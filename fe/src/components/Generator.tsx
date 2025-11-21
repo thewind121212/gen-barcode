@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { BarChart3 } from 'lucide-react';
-import { suppliers, categories, initialComponents } from './barcode-generator/constants';
+import { suppliers, categories, initialComponents, categoryOptions } from './barcode-generator/constants';
 import { calculateCheckDigit } from './barcode-generator/utils';
+import toast from 'react-hot-toast';
 import { ControlPanel } from './barcode-generator/ControlPanel';
 import { PartSelector } from './barcode-generator/PartSelector';
 import { ResultPanel } from './barcode-generator/ResultPanel';
-import { HistoryList } from './barcode-generator/HistoryList';
+import { HistoryModal } from './barcode-generator/HistoryModal';
 import { AddPartModal } from './barcode-generator/AddPartModal';
 import type { ComponentOptions, Selection, HistoryItem, PartKey, ComponentPart } from './barcode-generator/types';
 
@@ -24,6 +25,24 @@ const Generator = () => {
         part3: initialComponents.part3[0]
     });
 
+    // --- EFFECT: Update options when category changes ---
+    useEffect(() => {
+        const newOptions = categoryOptions[selectedCategory];
+        if (newOptions) {
+            setComponentOptions(prev => ({
+                ...prev,
+                part2: newOptions.part2,
+                part3: newOptions.part3
+            }));
+
+            setSelection(prev => ({
+                ...prev,
+                part2: newOptions.part2[0],
+                part3: newOptions.part3[0]
+            }));
+        }
+    }, [selectedCategory]);
+
     const [fullCode, setFullCode] = useState('');
     const [checkDigit, setCheckDigit] = useState(0);
     const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -34,6 +53,9 @@ const Generator = () => {
         targetPart: null,
         title: ''
     });
+
+    // State cho History Modal
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
     // --- CẬP NHẬT MÃ VẠCH ---
     useEffect(() => {
@@ -50,7 +72,7 @@ const Generator = () => {
     // --- ACTIONS ---
     const copyToClipboard = () => {
         navigator.clipboard.writeText(fullCode);
-        alert(`Đã copy mã: ${fullCode}`);
+        toast.success('Copy Thành Công')
     };
 
     const saveToHistory = () => {
@@ -132,9 +154,7 @@ const Generator = () => {
                             onSelectionChange={(part, item) => setSelection(prev => ({ ...prev, [part]: item }))}
                             onOpenAddModal={openAddModal}
                         />
-
                     </div>
-
                     {/* CỘT PHẢI: KẾT QUẢ & LỊCH SỬ (Chiếm 4 phần) */}
                     <div className="lg:col-span-4 space-y-6">
 
@@ -147,14 +167,8 @@ const Generator = () => {
                             selectedCategory={selectedCategory}
                             onCopy={copyToClipboard}
                             onSave={saveToHistory}
+                            onViewHistory={() => setIsHistoryModalOpen(true)}
                         />
-
-                        {/* LỊCH SỬ */}
-                        <HistoryList
-                            history={history}
-                            onClearHistory={() => setHistory([])}
-                        />
-
                     </div>
                 </div>
 
@@ -165,6 +179,17 @@ const Generator = () => {
                     targetPart={modalConfig.targetPart}
                     onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
                     onAdd={handleAddItem}
+                />
+
+                {/* MODAL LỊCH SỬ */}
+                <HistoryModal
+                    isOpen={isHistoryModalOpen}
+                    history={history}
+                    onClose={() => setIsHistoryModalOpen(false)}
+                    onClearHistory={() => {
+                        setHistory([]);
+                        setIsHistoryModalOpen(false);
+                    }}
                 />
 
             </div>

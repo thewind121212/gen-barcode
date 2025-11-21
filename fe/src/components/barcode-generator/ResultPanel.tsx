@@ -1,5 +1,5 @@
 import React from 'react';
-import { Copy, Save } from 'lucide-react';
+import { Copy, Save, History } from 'lucide-react';
 import { BarcodeVisual } from './BarcodeVisual';
 import type { Selection } from './types';
 
@@ -11,6 +11,7 @@ interface ResultPanelProps {
     selectedCategory: string;
     onCopy: () => void;
     onSave: () => void;
+    onViewHistory: () => void;
 }
 
 export const ResultPanel: React.FC<ResultPanelProps> = ({
@@ -20,7 +21,8 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
     selectedSupplier,
     selectedCategory,
     onCopy,
-    onSave
+    onSave,
+    onViewHistory
 }) => {
     return (
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 sticky top-6">
@@ -66,6 +68,9 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
                 </button>
                 <button onClick={onSave} className="w-full py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-semibold transition-all flex justify-center items-center gap-2">
                     <Save className="w-4 h-4" /> Lưu Lịch Sử
+                </button>
+                <button onClick={onViewHistory} className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-all flex justify-center items-center gap-2">
+                    <History className="w-4 h-4" /> Xem Lịch Sử
                 </button>
             </div>
         </div>

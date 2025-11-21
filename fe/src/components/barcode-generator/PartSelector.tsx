@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Settings, Tag, Plus, Palette, Ruler } from 'lucide-react';
+import { Layers, Settings, Tag, Plus, Palette, Ruler, VenusAndMars, Columns3Cog } from 'lucide-react';
 import type { ComponentOptions, Selection, PartKey, ComponentPart } from './types';
 
 interface PartSelectorProps {
@@ -31,7 +31,7 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <label className="text-xs font-bold text-gray-500 uppercase flex gap-1">
-                            <Tag className="w-3 h-3" /> Dòng (1 số)
+                            <VenusAndMars className="w-3 h-3" /> Giới Tính
                         </label>
                         <button onClick={() => onOpenAddModal('part1', 'Thêm Dòng Mới')} className="text-orange-500 hover:bg-orange-50 p-1 rounded"><Plus className="w-3 h-3" /></button>
                     </div>
@@ -54,7 +54,7 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <label className="text-xs font-bold text-gray-500 uppercase flex gap-1">
-                            <Palette className="w-3 h-3" /> Màu (2 số)
+                            <Columns3Cog className="w-3 h-3" /> Thuộc Tính 1
                         </label>
                         <button onClick={() => onOpenAddModal('part2', 'Thêm Màu Mới')} className="text-orange-500 hover:bg-orange-50 p-1 rounded"><Plus className="w-3 h-3" /></button>
                     </div>
@@ -77,7 +77,7 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <label className="text-xs font-bold text-gray-500 uppercase flex gap-1">
-                            <Ruler className="w-3 h-3" /> Size (2 số)
+                            <Columns3Cog className="w-3 h-3" /> Thuộc Tính 2
                         </label>
                         <button onClick={() => onOpenAddModal('part3', 'Thêm Size Mới')} className="text-orange-500 hover:bg-orange-50 p-1 rounded"><Plus className="w-3 h-3" /></button>
                     </div>

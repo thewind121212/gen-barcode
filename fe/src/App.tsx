@@ -1,11 +1,12 @@
-import './App.css'
 import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
 import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui";
 import { EmailPasswordPreBuiltUI } from 'supertokens-auth-react/recipe/emailpassword/prebuiltui';
 import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
-import Session, { SessionAuth, signOut } from "supertokens-auth-react/recipe/session";
+import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Generator from './components/Generator';
+import Nav from './components/nav-bar';
 
 import * as reactRouterDom from "react-router-dom";
 
@@ -22,22 +23,18 @@ SuperTokens.init({
 });
 
 function App() {
-  const handlerSignOut = async () => {
-    await signOut();
-    window.location.href = "/auth";
-  }
-
   return (
     <SuperTokensWrapper>
       <BrowserRouter>
         <Routes>
           {getSuperTokensRoutesForReactRouterDom(reactRouterDom, [EmailPasswordPreBuiltUI])}
-
           <Route path="/" element={
             <SessionAuth>
-              <div className="App">
-                <h2 onClick={handlerSignOut} style={{ cursor: 'pointer' }}>Log out</h2>
-              </div>
+              <Toaster
+                position="bottom-right"
+                reverseOrder={false}
+              />
+              <Nav />
               <Generator />
             </SessionAuth>
           } />
