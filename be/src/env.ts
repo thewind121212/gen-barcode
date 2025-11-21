@@ -9,6 +9,8 @@ const envSchema = z.object({
   WEBSITE_DOMAIN: z.string().default("http://localhost:3000"),
   API_BASE_PATH: z.string().default("/auth"),
   WEBSITE_BASE_PATH: z.string().default("/auth"),
+  ERP_BASE_URL: z.string().default("http://localhost:8080"),
+  ERP_NEXT_TOKEN: z.string().default("token 558742534b48626:a5ef0b2f64c6be7")
 });
 
 try {

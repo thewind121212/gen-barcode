@@ -67,9 +67,10 @@ app.get<object, MessageResponse>("/ping", (req, res) => {
   });
 });
 
-app.use("/api/v1", api);
+app.use(middlewares.handlerCheckToken)
+// app.use(middlewares.notFound);
+// app.use(middlewares.errorHandler);
 
-app.use(middlewares.notFound);
-app.use(middlewares.errorHandler);
+app.use("/api/v1", api);
 
 export default app;

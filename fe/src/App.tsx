@@ -5,11 +5,21 @@ import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
 import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Generator from './components/Generator';
 import Nav from './components/nav-bar';
 
 import * as reactRouterDom from "react-router-dom";
 
+// Create a client for TanStack Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 SuperTokens.init({
   appInfo: {
@@ -24,23 +34,25 @@ SuperTokens.init({
 
 function App() {
   return (
-    <SuperTokensWrapper>
-      <BrowserRouter>
-        <Routes>
-          {getSuperTokensRoutesForReactRouterDom(reactRouterDom, [EmailPasswordPreBuiltUI])}
-          <Route path="/" element={
-            <SessionAuth>
-              <Toaster
-                position="bottom-right"
-                reverseOrder={false}
-              />
-              <Nav />
-              <Generator />
-            </SessionAuth>
-          } />
-        </Routes>
-      </BrowserRouter>
-    </SuperTokensWrapper>
+    <QueryClientProvider client={queryClient}>
+      <SuperTokensWrapper>
+        <BrowserRouter>
+          <Routes>
+            {getSuperTokensRoutesForReactRouterDom(reactRouterDom, [EmailPasswordPreBuiltUI])}
+            <Route path="/" element={
+              <SessionAuth>
+                <Toaster
+                  position="bottom-right"
+                  reverseOrder={false}
+                />
+                <Nav />
+                <Generator />
+              </SessionAuth>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </SuperTokensWrapper>
+    </QueryClientProvider>
   )
 }
 
