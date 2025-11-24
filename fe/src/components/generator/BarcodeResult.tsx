@@ -22,7 +22,7 @@ export const BarcodeResult: React.FC<BarcodeResultProps> = ({
     onSave
 }) => {
     return (
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8 rounded-xl shadow-lg text-center sticky top-6">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8 rounded-xl shadow-lg text-center">
             <h3 className="text-gray-400 text-sm font-medium mb-4 uppercase tracking-widest">
                 Mã Vạch Hoàn Chỉnh
             </h3>

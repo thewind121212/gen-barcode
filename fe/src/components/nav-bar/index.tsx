@@ -25,7 +25,7 @@ export default function Nav() {
                             <div className="bg-blue-600 p-1.5 rounded-lg text-white shadow-sm">
                                 <BarChart3 className="w-6 h-6" />
                             </div>
-                            <span className="font-bold text-xl text-blue-900 tracking-tight">BarCode<span className="text-orange-500">Pro</span></span>
+                            <span className="font-bold text-xl text-blue-900 tracking-tight">BarCode<span className="text-orange-500">Gen</span></span>
                         </div>
                         <div className="hidden md:ml-8 md:flex md:space-x-6">
                             <button
@@ -38,13 +38,13 @@ export default function Nav() {
                                 onClick={() => setActiveTab('inventory')}
                                 className={`${activeTab === 'inventory' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors`}
                             >
-                                Quản Lý Kho
+                                In BarCode
                             </button>
                             <button
                                 onClick={() => setActiveTab('report')}
                                 className={`${activeTab === 'report' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors`}
                             >
-                                Báo Cáo
+                                Kiểm Tra Máy In
                             </button>
                         </div>
                     </div>

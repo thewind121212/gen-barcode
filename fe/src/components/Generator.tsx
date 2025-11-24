@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Header } from './generator/Header';
 import { SupplierSelector } from './generator/SupplierSelector';
 import { CategorySelector } from './generator/CategorySelector';
 import { VariantSelector } from './generator/VariantSelector';
 import { BarcodeResult } from './generator/BarcodeResult';
-import { HistoryList } from './generator/HistoryList';
 import { AddVariantModal } from './generator/AddVariantModal';
 import { suppliers, categories, initialVariants } from './generator/data';
 import { calculateCheckDigit, generateRandomDetail, copyToClipboard } from './generator/utils';
 import type { HistoryItem, VariantPresets } from './generator/types';
+import InputVariant from './generator/InputVariant';
 
 const Generator = () => {
     // --- STATE ---
@@ -16,8 +16,6 @@ const Generator = () => {
     const [selectedCategory, setSelectedCategory] = useState(categories[0].id);
     const [variantPresets, setVariantPresets] = useState<VariantPresets>(initialVariants);
     const [productDetail, setProductDetail] = useState('00001');
-    const [fullCode, setFullCode] = useState('');
-    const [checkDigit, setCheckDigit] = useState(0);
     const [history, setHistory] = useState<HistoryItem[]>([]);
 
     // Modal state
@@ -25,14 +23,11 @@ const Generator = () => {
     const [newVariantName, setNewVariantName] = useState('');
     const [newVariantCode, setNewVariantCode] = useState('');
 
-    // --- UPDATE BARCODE WHEN INPUTS CHANGE ---
-    useEffect(() => {
-        const formattedDetail = productDetail.padEnd(5, '0').substring(0, 5);
-        const rawCode = `${selectedSupplier}${selectedCategory}${formattedDetail}`;
-        const check = calculateCheckDigit(rawCode);
-        setCheckDigit(check);
-        setFullCode(`${rawCode}${check}`);
-    }, [selectedSupplier, selectedCategory, productDetail]);
+    // --- DERIVED STATE ---
+    const formattedDetail = productDetail.padEnd(5, '0').substring(0, 5);
+    const rawCode = `${selectedSupplier}${selectedCategory}${formattedDetail}`;
+    const checkDigit = calculateCheckDigit(rawCode);
+    const fullCode = `${rawCode}${checkDigit}`;
 
     // --- EVENT HANDLERS ---
     const handleCategorySelect = (categoryId: string) => {
@@ -102,7 +97,6 @@ const Generator = () => {
                     {/* LEFT COLUMN: CONTROLS */}
                     <div className="lg:col-span-7 space-y-6">
                         <SupplierSelector
-                            suppliers={suppliers}
                             selectedSupplier={selectedSupplier}
                             onSelect={setSelectedSupplier}
                         />
@@ -124,7 +118,7 @@ const Generator = () => {
                     </div>
 
                     {/* RIGHT COLUMN: RESULT & HISTORY */}
-                    <div className="lg:col-span-5 space-y-6">
+                    <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-20 self-start">
                         <BarcodeResult
                             fullCode={fullCode}
                             selectedSupplier={selectedSupplier}
@@ -134,10 +128,10 @@ const Generator = () => {
                             onCopy={handleCopyToClipboard}
                             onSave={handleSaveToHistory}
                         />
-
-                        <HistoryList
-                            history={history}
-                            onClear={() => setHistory([])}
+                        <InputVariant
+                            onManualInput={setProductDetail}
+                            onRandomGenerate={handleRandomGenerate}
+                            selectedVariant={productDetail}
                         />
                     </div>
                 </div>
