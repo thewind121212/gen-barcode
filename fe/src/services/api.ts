@@ -14,6 +14,7 @@ export const fetchProducts = async (): Promise<ProductItem[]> => {
         headers: {
             "Content-Type": "application/json",
         },
+        credentials: "include",
     });
 
     if (!response.ok) {
@@ -32,6 +33,7 @@ export const fetchSuppliers = async (): Promise<Supplier[]> => {
         headers: {
             "Content-Type": "application/json",
         },
+        credentials: "include",
     });
 
     if (!response.ok) {
