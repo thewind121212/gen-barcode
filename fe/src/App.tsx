@@ -35,11 +35,12 @@ SuperTokens.init({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SuperTokensWrapper>
-        <BrowserRouter>
-          <Routes>
-            {getSuperTokensRoutesForReactRouterDom(reactRouterDom, [EmailPasswordPreBuiltUI])}
-            <Route path="/" element={
+      {/* <SuperTokensWrapper> */}
+      <BrowserRouter>
+        <Routes>
+          {getSuperTokensRoutesForReactRouterDom(reactRouterDom, [EmailPasswordPreBuiltUI])}
+          <Route path="/" element={
+            <>
               <SessionAuth>
                 <Toaster
                   position="bottom-right"
@@ -48,10 +49,11 @@ function App() {
                 <Nav />
                 <Generator />
               </SessionAuth>
-            } />
-          </Routes>
-        </BrowserRouter>
-      </SuperTokensWrapper>
+            </>
+          } />
+        </Routes>
+      </BrowserRouter>
+      {/* </SuperTokensWrapper> */}
     </QueryClientProvider>
   )
 }

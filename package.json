@@ -7,11 +7,21 @@
         "fe"
     ],
     "scripts": {
-        "test:sentry": "ts-node deploy/monitor/sentry_test.ts"
+        "test:sentry": "ts-node deploy/monitor/sentry_test.ts",
+        "build:all": "npm run build --workspace=fe && npm run build --workspace=be",
+        "dev:fe": "npm run dev --workspace=fe",
+        "dev:be": "npm run dev --workspace=be",
+        "dev:fullstack": "npm run dev:fe && npm run dev:be",
+        "lint:all": "npm run lint --workspace=fe && npm run lint --workspace=be",
+        "typecheck:all": "npm run typecheck --workspace=be && cd fe && tsc -b"
     },
     "dependencies": {
-        "@sentry/node": "^8.0.0",
+        "@sentry/node": "^8.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.10.1",
+        "eslint": "^9.39.1",
         "ts-node": "^10.9.2",
-        "typescript": "^5.0.0"
+        "typescript": "^5.9.3"
     }
 }
