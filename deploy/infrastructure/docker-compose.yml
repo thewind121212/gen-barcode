@@ -2,11 +2,11 @@ version: '3'
 
 services:
   # Note: If you are assigning a custom name to your db service on the line below, make sure it does not contain underscores
-  db:
+  postgres:
     image: 'postgres:latest'
     environment:
-      POSTGRES_USER: supertokens_user 
-      POSTGRES_PASSWORD: somePassword 
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
       POSTGRES_DB: supertokens
     ports:
       - 5432:5432
@@ -14,7 +14,7 @@ services:
       - app_network
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'pg_isready', '-U', 'supertokens_user', '-d', 'supertokens']
+      test: [ 'CMD', 'pg_isready', '-U', 'supertokens_user', '-d', 'supertokens' ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,12 +22,12 @@ services:
   supertokens:
     image: registry.supertokens.io/supertokens/supertokens-postgresql:latest
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     ports:
       - 3567:3567
     environment:
-      POSTGRESQL_CONNECTION_URI: "postgresql://supertokens_user:somePassword@db:5432/supertokens"
+      POSTGRESQL_CONNECTION_URI: "postgresql://admin:admin@postgres:5432/supertokens"
     networks:
       - app_network
     restart: unless-stopped
@@ -40,4 +40,4 @@ services:
 
 networks:
   app_network:
-    driver: bridge
+    external: true

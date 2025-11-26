@@ -1,0 +1,28 @@
+version: '3'
+
+tasks:
+  docker-local:
+    desc: Start Docker containers locally (monitor + infrastructure)
+    cmds:
+      - docker compose -f ./deploy/monitor/docker-compose.yml -f ./deploy/infrastructure/docker-compose.yml up -d
+
+  docker-down:
+    desc: Stop Docker containers
+    cmds:
+      - docker compose -f ./deploy/monitor/docker-compose.yml -f ./deploy/infrastructure/docker-compose.yml down
+
+  docker-logs:
+    desc: View logs from Docker containers
+    cmds:
+      - docker compose -f ./deploy/monitor/docker-compose.yml -f ./deploy/infrastructure/docker-compose.yml logs -f
+
+  docker-restart:
+    desc: Restart Docker containers
+    cmds:
+      - task: docker-down
+      - task: docker-local
+
+  docker-ps:
+    desc: List running Docker containers
+    cmds:
+      - docker compose -f ./deploy/monitor/docker-compose.yml -f ./deploy/infrastructure/docker-compose.yml ps
