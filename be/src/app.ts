@@ -17,6 +17,27 @@ import { env } from "./env.js";
 import supertokens from "supertokens-node";
 import Session from "supertokens-node/recipe/session";
 import EmailPassword from "supertokens-node/recipe/emailpassword";
+import { overwrite } from "zod";
+
+
+const recipeList = [Session.init()];
+
+// if (env.DISABLE_REGISTER === "true") {
+//   recipeList.push(
+//     EmailPassword.init({
+//       override: {
+//         apis: (originalImplementation) => {
+//           return {
+//             ...originalImplementation,
+//             signUpPOST: undefined,
+//           }
+//         }
+//       }
+//     })
+//   );
+// }
+
+
 
 supertokens.init({
   framework: "express",
@@ -31,19 +52,23 @@ supertokens.init({
     websiteBasePath: env.WEBSITE_BASE_PATH,
   },
   recipeList: [
+    Session.init(),
     EmailPassword.init({
       override: {
         apis: (originalImplementation) => {
-          return {
-            ...originalImplementation,
-            signUpPOST: undefined,
+          if (env.DISABLE_REGISTER === "true") {
+            return {
+              ...originalImplementation,
+              signUpPOST: undefined,
+            }
           }
+          return originalImplementation
         }
       }
-    }),
-    Session.init()
+    })
   ]
 });
+
 
 
 const app = express();
@@ -68,8 +93,8 @@ app.get<object, MessageResponse>("/ping", (req, res) => {
 });
 
 app.use(middlewares.handlerCheckToken)
-// app.use(middlewares.notFound);
-// app.use(middlewares.errorHandler);
+app.use(middlewares.notFound);
+app.use(middlewares.errorHandler);
 
 app.use("/api/v1", api);
 

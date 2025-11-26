@@ -1,5 +1,5 @@
 x-environment: &default-environment
-  DATABASE_URL: postgres://admin:adminPass@postgres:5432/postgres
+  DATABASE_URL: postgres://admin:admin@postgres:5432/postgres
   VALKEY_URL: redis://valkey:6379
   SECRET_KEY: change_me_to_something_random
   PORT: 8000
@@ -9,22 +9,14 @@ x-environment: &default-environment
   CELERY_WORKER_AUTOSCALE: "1,3"
 
 x-depends_on: &default-depends_on
-  - postgres
   - valkey
 
 services:
-  postgres:
-    image: postgres:18
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: "adminPass"
-      POSTGRES_DB: postgres
-    restart: unless-stopped
-    volumes:
-      - pg-data:/var/lib/postgresql
   valkey:
     image: valkey/valkey
     restart: unless-stopped
+    networks:
+      - app_network
   web:
     image: glitchtip/glitchtip
     depends_on: *default-depends_on
@@ -32,6 +24,8 @@ services:
       - "8000:8000"
     environment: *default-environment
     restart: unless-stopped
+    networks:
+      - app_network
     volumes:
       - uploads:/code/uploads
   worker:
@@ -40,6 +34,8 @@ services:
     depends_on: *default-depends_on
     environment: *default-environment
     restart: unless-stopped
+    networks:
+      - app_network
     volumes:
       - uploads:/code/uploads
   migrate:
@@ -47,7 +43,14 @@ services:
     depends_on: *default-depends_on
     command: ./bin/run-migrate.sh
     environment: *default-environment
+    networks:
+      - app_network
 
 volumes:
   pg-data:
   uploads:
+
+
+networks:
+  app_network:
+    external: true
