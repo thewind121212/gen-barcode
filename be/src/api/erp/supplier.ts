@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get<object, any>("/getSupplier", async (req, res) => {
     try {
-        const supplier = await getSupplierNames()
+        const supplier = await getSupplierNames();
 
         return res.json(supplier)
     } catch (error) {
