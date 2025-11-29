@@ -1,18 +1,23 @@
 import { BarChart3, LogOut, Menu, Loader } from "lucide-react"
 import { useState } from "react";
 import { signOut, } from "supertokens-auth-react/recipe/emailpassword";
+import { useNavigate } from "react-router-dom";
 
 
 export default function Nav() {
     const [activeTab, setActiveTab] = useState('create'); // State để demo navigation
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [signOutLoading, setSignOutLoading] = useState<boolean>(false)
+    const navigate = useNavigate();
 
     const handlerSignOut = async () => {
         setSignOutLoading(true)
         await signOut();
         setSignOutLoading(false)
         window.location.href = "/auth";
+    }
+    const handleNavigateToGenerator = () => {
+        navigate("/generator");
     }
 
     return (
@@ -29,7 +34,7 @@ export default function Nav() {
                         </div>
                         <div className="hidden md:ml-8 md:flex md:space-x-6">
                             <button
-                                onClick={() => setActiveTab('create')}
+                                onClick={handleNavigateToGenerator}
                                 className={`${activeTab === 'create' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-colors`}
                             >
                                 Tạo Mã Vạch

@@ -23,7 +23,7 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
-    "supertokens-node": "^23.0.1",
+    "supertokens-node": "^23.1.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
