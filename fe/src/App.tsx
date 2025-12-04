@@ -4,11 +4,11 @@ import { EmailPasswordPreBuiltUI } from "supertokens-auth-react/recipe/emailpass
 import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
 import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Generator from "./components/Generator";
 import OnboardingComponent from "./components/Onboarding";
-import Nav from "./components/nav-bar";
+import { Sidebar } from "./components/nav-bar/net";
 
 import * as reactRouterDom from "react-router-dom";
 
@@ -33,6 +33,28 @@ SuperTokens.init({
   recipeList: [EmailPassword.init(), Session.init()],
 });
 
+// Layout component that conditionally renders Nav based on route
+function ProtectedLayout() {
+  const location = useLocation();
+  const isOnboarding = location.pathname === '/onboarding';
+
+  return (
+    <SessionAuth>
+      <QueryClientProvider client={queryClient}>
+        <Toaster position="bottom-right" reverseOrder={false} />
+        {!isOnboarding && <Sidebar
+          setActiveTab={() => { }}
+          onSignOut={() => { }}
+          isSigningOut={false}
+        />}
+        <div className="ml-20">
+          <Outlet />
+        </div>
+      </QueryClientProvider>
+    </SessionAuth>
+  );
+}
+
 function App() {
   return (
     <SuperTokensWrapper>
@@ -42,20 +64,12 @@ function App() {
             EmailPasswordPreBuiltUI,
           ])}
 
-          <Route
-            element={
-              <SessionAuth>
-                <QueryClientProvider client={queryClient}>
-                  <Toaster position="bottom-right" reverseOrder={false} />
-                  <Nav />
-                  <Outlet />
-                </QueryClientProvider>
-              </SessionAuth>
-            }
-          >
+          <Route element={<ProtectedLayout />}>
             <Route path="/" element={<Generator />} />
-            <Route path="/generator" element={<Generator />} />
-            <Route path="/onboarding" element={<OnboardingComponent />} />
+            <Route path="/barcode-generator" element={<Generator />} />
+            <Route path="/inventory" element={<OnboardingComponent />} />
+            <Route path="/printer" element={<Generator />} />
+            <Route path="/settings" element={<Generator />} />
           </Route>
         </Routes>
       </BrowserRouter>

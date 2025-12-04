@@ -21,8 +21,3 @@ tasks:
     cmds:
       - task: docker-down
       - task: docker-local
-
-  docker-ps:
-    desc: List running Docker containers
-    cmds:
-      - docker compose -f ./deploy/monitor/docker-compose.yml -f ./deploy/infrastructure/docker-compose.yml ps
