@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Store, Warehouse, ArrowRight, Check, Box, Loader2, ScanBarcode, Layers } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Onboarding() {
     const [currentStep, setCurrentStep] = useState(0);
     const [isStockroomReady, setIsStockroomReady] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     // Animation state for the storage builder
     const [stockAnimationStep, setStockAnimationStep] = useState(0);
@@ -28,29 +30,29 @@ export default function Onboarding() {
     const slides = [
         {
             id: 1,
-            title: "Retail Simplified",
-            description: "A focused experience designed strictly for retail environments. No clutter, just the tools you need to sell.",
+            title: "Bán Lẻ Tinh Gọn",
+            description: "Trải nghiệm được thiết kế chuyên biệt cho môi trường bán lẻ. Giao diện tinh giản, tập trung hoàn toàn vào các công cụ bán hàng thiết yếu.",
             icon: <Store className="w-16 h-16 text-indigo-600" />,
             color: "bg-indigo-50"
         },
         {
             id: 2,
-            title: "Smart Tracking",
-            description: "Track items by barcode, category, or aisle. We organize your digital catalog to match your real-world layout.",
+            title: "Quản Lý Thông Minh",
+            description: "Theo dõi hàng hóa qua mã vạch, danh mục hoặc vị trí kệ. Hệ thống sẽ sắp xếp danh mục số hóa tương thích hoàn toàn với sơ đồ thực tế của cửa hàng.",
             icon: <ScanBarcode className="w-16 h-16 text-purple-600" />,
             color: "bg-purple-50"
         },
         {
             id: 3,
-            title: "Stockroom Setup",
-            description: "Your physical stockroom needs a digital twin. We'll initialize the database structure to house your inventory.",
+            title: "Thiết Lập Kho Hàng",
+            description: "Kho hàng thực tế cần được số hóa chính xác. Chúng tôi sẽ khởi tạo cấu trúc dữ liệu để quản lý toàn bộ hàng tồn kho của quý khách.",
             icon: <Warehouse className="w-16 h-16 text-blue-600" />,
             color: "bg-blue-50"
         },
         {
             id: 4,
-            title: "Ready to Sell",
-            description: "Your stockroom is configured and your front-of-house is ready.",
+            title: "Sẵn Sàng Kinh Doanh",
+            description: "Kho hàng đã được thiết lập và khu vực bán hàng đã sẵn sàng để hoạt động.",
             icon: <Check className="w-16 h-16 text-green-600" />,
             color: "bg-green-50"
         }
@@ -66,6 +68,8 @@ export default function Onboarding() {
             }, 3000);
         } else if (currentStep < slides.length - 1) {
             setCurrentStep(prev => prev + 1);
+        } else {
+            navigate("/generator");
         }
     };
 
