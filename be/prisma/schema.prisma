@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum StoreRole {
+  OWNER
+  STAFF
+}
+
+model Store {
+  id        Int           @id @default(autoincrement())
+  name      String
+  createdAt DateTime      @default(now())
+  
+  // Relations
+  members   StoreMember[]
+  storage   Storage?
+}
+
+model StoreMember {
+  id        Int       @id @default(autoincrement())
+  storeId   Int
+  userId    String    // ID from external Auth service
+  role      StoreRole // Enum: OWNER or STAFF
+  joinedAt  DateTime  @default(now())
+
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  // A user can only have one specific role per store to prevent duplicates
+  @@unique([storeId, userId])
+}
+
+model Storage {
+  id       Int     @id @default(autoincrement())
+  location String?
+  capacity Int?
+  
+  storeId  Int     @unique
+  store    Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+

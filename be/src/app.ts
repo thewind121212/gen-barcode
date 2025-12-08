@@ -1,11 +1,12 @@
+import api from "./api/index.js";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { middleware } from "supertokens-node/framework/express";
 import { errorHandler } from "supertokens-node/framework/express";
+import './prisma.ts'
 
-import api from "./api/index.js";
 import * as middlewares from "./middlewares.js";
 
 
@@ -17,10 +18,10 @@ import { env } from "./env.js";
 import supertokens from "supertokens-node";
 import Session from "supertokens-node/recipe/session";
 import EmailPassword from "supertokens-node/recipe/emailpassword";
-import { overwrite } from "zod";
+// import { overwrite } from "zod";
 
 
-const recipeList = [Session.init()];
+// const recipeList = [Session.init()];
 
 // if (env.DISABLE_REGISTER === "true") {
 //   recipeList.push(
@@ -86,16 +87,16 @@ app.use(express.json());
 app.use(middleware())
 app.use(errorHandler())
 
-app.get<object, MessageResponse>("/ping", (req, res) => {
+app.get<object, MessageResponse>("/ping", (_req, res) => {
   res.json({
     message: "pong",
   });
 });
 
+app.use("/api/v1", api);
+
 app.use(middlewares.handlerCheckToken)
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
-
-app.use("/api/v1", api);
 
 export default app;

@@ -14,7 +14,7 @@ export function notFound(req: Request, res: Response, next: NextFunction) {
 
 export async function handlerCheckToken(req: Request, res: Response<ErrorResponse>, next: NextFunction) {
   try {
-    let session = await Session.getSession(req, res, { sessionRequired: false })
+    const session = await Session.getSession(req, res, { sessionRequired: false })
     if (!session) {
       res.status(401).json({
         message: "Your Request Is Not Auth",
@@ -33,7 +33,7 @@ export async function handlerCheckToken(req: Request, res: Response<ErrorRespons
   }
 }
 
-export async function errorHandler(err: Error, req: Request, res: Response<ErrorResponse>, _next: NextFunction) {
+export async function errorHandler(err: Error, _req: Request, res: Response<ErrorResponse>, _next: NextFunction) {
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
   res.status(statusCode);
   res.json({
