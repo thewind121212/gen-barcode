@@ -12,17 +12,20 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "node --env-file=.env dist/src/index.js",
-    "dev": "tsx watch --env-file=../.env src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "tsc",
     "lint": "eslint --fix src test",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/client": "^7.1.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
+    "pg": "^8.16.3",
     "supertokens-node": "^23.1.0",
     "zod": "^4.1.12"
   },
@@ -32,7 +35,9 @@
     "@types/express": "^5.0.5",
     "@types/morgan": "^1.9.10",
     "@types/supertest": "^6.0.3",
+    "dotenv": "^17.2.3",
     "eslint-plugin-format": "^1.0.2",
+    "prisma": "^7.1.0",
     "supertest": "^7.1.4",
     "tsx": "^4.20.6",
     "vitest": "^4.0.6"

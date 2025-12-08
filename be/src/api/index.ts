@@ -1,17 +1,17 @@
 import express from "express";
 
 import type MessageResponse from "../interfaces/message-response.js";
+import storeRoutes from "./store/store.routes.js";
 
-import erp from './erp/index.js'
 
 const router = express.Router();
 
-router.get<object, MessageResponse>("/", (req, res) => {
+router.get<object, MessageResponse>("/", (_req, res) => {
   res.json({
     message: "API - 👋🌎🌍🌏",
   });
 });
 
-router.use("/erp", erp)
+router.use("/store", storeRoutes);
 
 export default router;
