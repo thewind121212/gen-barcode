@@ -30,9 +30,10 @@ export const useSuppliers = () => {
     });
 };
 
-export const useCreateStore = ({ onSuccess }: { onSuccess?: () => void }) => {
+export const useCreateStore = ({ onSuccess, onError }: { onSuccess?: (data: any) => void, onError?: (error: any) => void }) => {
     return useMutation<Store, Error, string>({
         mutationFn: (name: string) => createStore(name),
         onSuccess: onSuccess,
+        onError: onError,
     });
 };

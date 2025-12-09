@@ -2,6 +2,7 @@ import { StoreRole } from "../../generated/prisma/enums.js";
 import { env } from "../env.js";
 import { StorageRepository } from "../repo/storage.repo.js";
 import { StoreRepository } from "../repo/store.repo.js";
+import { LogLevel, LogType, UnitLogger } from "../utils/logger.js";
 import { StoreMemberRepository } from "../repo/storeMember.repo.js";
 
 export class StoreService {
@@ -45,6 +46,7 @@ export class StoreService {
             return { storeId: store.id.toString(), error: null };
 
         } catch (error) {
+            UnitLogger(LogType.SERVICE, "Store Create:", LogLevel.ERROR, (error as Error).message);
             return { storeId: null, error: (error as Error).message };
         }
     }

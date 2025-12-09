@@ -62,12 +62,6 @@ export const createStore = async (name: string): Promise<Store> => {
     body: JSON.stringify({ name }),
   });
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(
-      errorText || `Failed to create store (status ${response.status})`,
-    );
-  }
 
   await Session.doesSessionExist();
 

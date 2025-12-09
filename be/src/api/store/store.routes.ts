@@ -5,6 +5,7 @@ import { StoreService } from "../../services/store.service.js";
 import { LogLevel, LogType, UnitLogger } from "../../utils/logger.js";
 import { validateBody } from "../../utils/validation.js";
 import { createStoreSchema } from "../../dto/store.dto.js";
+import { ErrorResponses, sendSuccessResponse } from "../../utils/errorResponse.js";
 
 const router = express.Router();
 const storeService = new StoreService();
@@ -13,7 +14,6 @@ router.post(
   "/createStore",
   validateBody(createStoreSchema),
   async (req, res, next) => {
-    return res.status(200).json({ message: "Hello World" });
     try {
       const session = await Session.getSession(req, res);
       const userId = session.getUserId();
@@ -22,10 +22,10 @@ router.post(
 
       const { storeId, error } = await storeService.CreateStore(userId, name);
       if (error) {
-        res.status(400).json({ message: error });
+        ErrorResponses.badRequest(res, error);
         return;
       }
-      res.status(201).json({ storeId });
+      sendSuccessResponse(res, 201, { storeId });
     }
     catch (error) {
       UnitLogger(

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Store, Warehouse, ArrowRight, Check, Box, Loader2, ScanBarcode, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateStore } from '../../services/store/useQuery'
+import { toast } from "react-hot-toast";
 
 export default function Onboarding() {
     const [currentStep, setCurrentStep] = useState(0);
@@ -12,9 +13,13 @@ export default function Onboarding() {
     const [stockAnimationStep, setStockAnimationStep] = useState(0);
 
     const { mutate: createStore, isPending: isLoading } = useCreateStore({
-        onSuccess: () => {
+        onSuccess: (data) => {
             setIsStockroomReady(true);
             setCurrentStep(prev => prev + 1);
+        },
+        onError: (error) => {
+            console.log(error)
+            toast.error(error.message);
         }
     });
 
