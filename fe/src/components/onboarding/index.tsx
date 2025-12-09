@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Store, Warehouse, ArrowRight, Check, Box, Loader2, ScanBarcode, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useCreateStore } from '../../services/store/useQuery'
 
 export default function Onboarding() {
     const [currentStep, setCurrentStep] = useState(0);
     const [isStockroomReady, setIsStockroomReady] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     // Animation state for the storage builder
     const [stockAnimationStep, setStockAnimationStep] = useState(0);
+
+    const { mutate: createStore, isPending: isLoading } = useCreateStore({
+        onSuccess: () => {
+            setIsStockroomReady(true);
+            setCurrentStep(prev => prev + 1);
+        }
+    });
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
@@ -60,12 +67,7 @@ export default function Onboarding() {
 
     const handleNext = () => {
         if (currentStep === 2 && !isStockroomReady) {
-            setIsLoading(true);
-            setTimeout(() => {
-                setIsStockroomReady(true);
-                setIsLoading(false);
-                setCurrentStep(prev => prev + 1);
-            }, 3000);
+            createStore("Stockroom");
         } else if (currentStep < slides.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {

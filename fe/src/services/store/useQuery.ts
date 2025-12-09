@@ -30,14 +30,9 @@ export const useSuppliers = () => {
     });
 };
 
-export const useCreateStore = () => {
-    const queryClient = useQueryClient();
-
+export const useCreateStore = ({ onSuccess }: { onSuccess?: () => void }) => {
     return useMutation<Store, Error, string>({
         mutationFn: (name: string) => createStore(name),
-        onSuccess: () => {
-            // Invalidate any queries related to stores list if/when you add them
-            queryClient.invalidateQueries({ queryKey: ["stores"] });
-        },
+        onSuccess: onSuccess,
     });
 };
