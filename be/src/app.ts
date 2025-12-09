@@ -5,7 +5,6 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { middleware } from "supertokens-node/framework/express";
 import { errorHandler } from "supertokens-node/framework/express";
-import './prisma.ts'
 
 import * as middlewares from "./middlewares.js";
 
@@ -84,8 +83,9 @@ app.use(
   }),
 );
 app.use(express.json());
-app.use(middleware())
-app.use(errorHandler())
+
+// app.use(middleware())
+// app.use(errorHandler())
 
 app.get<object, MessageResponse>("/ping", (_req, res) => {
   res.json({
@@ -93,9 +93,9 @@ app.get<object, MessageResponse>("/ping", (_req, res) => {
   });
 });
 
+// app.use(middlewares.handlerCheckToken)
 app.use("/api/v1", api);
 
-app.use(middlewares.handlerCheckToken)
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
 

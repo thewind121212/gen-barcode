@@ -5,10 +5,10 @@ import Session from "supertokens-node/recipe/session";
 const router = express.Router();
 const storeService = new StoreService();
 
-router.post("/", async (req, res, next) => {
+router.post("/createStore", async (req, res, next) => {
     try {
-        const session = await Session.getSession(req, res);
-        const userId = session.getUserId();
+        // const session = await Session.getSession(req, res);
+        // const userId = session.getUserId();
         const { name } = req.body;
 
         if (!name) {
@@ -16,7 +16,7 @@ router.post("/", async (req, res, next) => {
             return;
         }
 
-        const store = await storeService.createStore(userId, name);
+        const store = await storeService.createStore("1", name);
         res.status(201).json(store);
     } catch (error) {
         next(error);

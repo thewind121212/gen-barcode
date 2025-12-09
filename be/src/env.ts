@@ -12,6 +12,7 @@ const envSchema = z.object({
   ERP_BASE_URL: z.string().default("http://10.10.0.216:8080"),
   ERP_NEXT_TOKEN: z.string().default("token 558742534b48626:a5ef0b2f64c6be7"),
   DISABLE_REGISTER: z.string().default("false"),
+  DATABASE_URL: z.string().default("postgresql://postgres:postgres@localhost:5432/postgres?schema=public"),
 });
 
 try {
