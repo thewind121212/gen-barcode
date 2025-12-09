@@ -26,4 +26,10 @@ export class StoreRepository {
             where: { id },
         });
     }
+
+    async getStoreEnrolledByUserId(userId: string) {
+        return prisma.storeMember.count({
+            where: { userId },
+        });
+    }
 }
