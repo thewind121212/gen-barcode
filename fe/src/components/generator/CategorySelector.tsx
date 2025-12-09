@@ -15,10 +15,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     onSelect
 }) => {
 
-    const { data: products, isLoading, isError, error, refetch } = useProducts();
-
-    console.log(products)
-
+    const { data: products } = useProducts();
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-700">
