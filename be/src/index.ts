@@ -1,19 +1,20 @@
 import app from "./app.js";
 import { env } from "./env.js";
+import { GeneralLogger, InitPinoLogger, LogLevel, LogType } from "./utils/logger.js";
 
+
+InitPinoLogger()
 const port = env.PORT;
 const server = app.listen(port, () => {
-  /* eslint-disable no-console */
-  console.log(`Listening: http://localhost:${port}`);
-  /* eslint-enable no-console */
+  GeneralLogger(LogType.SERVICE, LogLevel.INFO, `Listening: http://localhost:${port}`);
 });
 
 server.on("error", (err) => {
   if ("code" in err && err.code === "EADDRINUSE") {
-    console.error(`Port ${env.PORT} is already in use. Please choose another port or stop the process using it.`);
+    GeneralLogger(LogType.SERVICE, LogLevel.ERROR, `Port ${env.PORT} is already in use. Please choose another port or stop the process using it.`);
   }
   else {
-    console.error("Failed to start server:", err);
+    GeneralLogger(LogType.SERVICE, LogLevel.ERROR, `Failed to start server: ${err}`);
   }
   process.exit(1);
 });

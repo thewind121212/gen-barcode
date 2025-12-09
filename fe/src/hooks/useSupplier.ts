@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchSuppliers } from "../services/api";
+import { fetchSuppliers } from "../services/store/api";
 import type { Supplier } from "../types/supplier.types";
 
 export const useSuppliers = () => {

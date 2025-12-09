@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 SuperTokens.init({
   appInfo: {
     appName: "barcode-generator",
-    apiDomain: "http://localhost:9090",
+    apiDomain: "http://localhost:9190",
     websiteDomain: "http://localhost:3000",
     apiBasePath: "/auth",
     websiteBasePath: "/auth",

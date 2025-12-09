@@ -2,10 +2,10 @@ import { z } from "zod/v4";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  PORT: z.coerce.number().default(9090),
+  PORT: z.coerce.number().default(9190),
   SUPERTOKENS_CONNECTION_URI: z.string().default("http://10.10.0.216:3567"),
   APP_NAME: z.string().default("barcode-generator"),
-  API_DOMAIN: z.string().default("http://localhost:9090"),
+  API_DOMAIN: z.string().default("http://localhost:9190"),
   WEBSITE_DOMAIN: z.string().default("http://localhost:3000"),
   API_BASE_PATH: z.string().default("/auth"),
   WEBSITE_BASE_PATH: z.string().default("/auth"),

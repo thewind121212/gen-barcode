@@ -3,7 +3,7 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../generated/prisma/client'
 import { env } from "./env.js";
-import { logger, LogType } from "./utils/logger.js";
+import { GeneralLogger, LogType, LogLevel } from "./utils/logger.js";
 
 // Global singleton instance
 let prisma: PrismaClient | null
@@ -17,12 +17,12 @@ let isFirstInitDone = false
 export const getPrisma = (): PrismaClient => {
     if (!prisma) {
         if (!isFirstInitDone) {
-            logger(LogType.INFRASTRUCTURE, "info", "First Initializing Prisma Client")
+            GeneralLogger(LogType.INFRASTRUCTURE, LogLevel.INFO, "First Initializing Prisma Client")
             isFirstInitDone = true
         }
         const connectionString = env.DATABASE_URL;
         if (!connectionString) {
-            logger(LogType.INFRASTRUCTURE, "error", "DATABASE_URL environment variable is not set")
+            GeneralLogger(LogType.INFRASTRUCTURE, LogLevel.ERROR, "DATABASE_URL environment variable is not set")
             throw new Error('Infrastructure error: DATABASE_URL environment variable is not set')
         }
 
@@ -46,7 +46,7 @@ export const getPrisma = (): PrismaClient => {
 
         // Handle graceful shutdown
         const cleanup = async () => {
-            logger(LogType.INFRASTRUCTURE, "info", "Shutting down Prisma Client")
+            GeneralLogger(LogType.INFRASTRUCTURE, LogLevel.INFO, "Shutting down Prisma Client")
             if (prisma) {
                 await prisma.$disconnect()
                 prisma = null
@@ -62,9 +62,7 @@ export const getPrisma = (): PrismaClient => {
         process.on('beforeExit', cleanup)
     }
 
-    if (env.ENVIRONMENT === "dev") {
-        logger(LogType.INFRASTRUCTURE, "info", "Prisma Client initialized")
-    }
+    GeneralLogger(LogType.INFRASTRUCTURE, LogLevel.DEBUG, "Prisma Client In Good State")
 
     return prisma
 }
