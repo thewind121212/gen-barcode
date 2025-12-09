@@ -17,7 +17,6 @@ import { env } from "./env.js";
 import supertokens from "supertokens-node";
 import Session from "supertokens-node/recipe/session";
 import EmailPassword from "supertokens-node/recipe/emailpassword";
-import pino from "pino-http";
 // import { overwrite } from "zod";
 
 
@@ -75,7 +74,6 @@ supertokens.init({
 const app = express();
 
 app.use(morgan("dev"));
-app.use(pino);
 app.use(helmet());
 app.use(
   cors({
@@ -86,8 +84,8 @@ app.use(
 );
 app.use(express.json());
 
-// app.use(middleware())
-// app.use(errorHandler())
+app.use(middleware())
+app.use(errorHandler())
 
 app.get<object, MessageResponse>("/ping", (_req, res) => {
   res.json({
