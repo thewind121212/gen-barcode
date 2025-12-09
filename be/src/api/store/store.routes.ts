@@ -13,14 +13,19 @@ router.post(
   "/createStore",
   validateBody(createStoreSchema),
   async (req, res, next) => {
+    return res.status(200).json({ message: "Hello World" });
     try {
       const session = await Session.getSession(req, res);
       const userId = session.getUserId();
 
       const { name } = (req as any).validatedBody;
 
-      const store = await storeService.createStore(userId, name);
-      res.status(201).json(store);
+      const { storeId, error } = await storeService.CreateStore(userId, name);
+      if (error) {
+        res.status(400).json({ message: error });
+        return;
+      }
+      res.status(201).json({ storeId });
     }
     catch (error) {
       UnitLogger(

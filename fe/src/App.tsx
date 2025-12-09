@@ -26,7 +26,7 @@ SuperTokens.init({
   appInfo: {
     appName: "barcode-generator",
     apiDomain: "http://localhost:9190",
-    websiteDomain: "http://localhost:3000",
+    websiteDomain: "http://localhost:4140",
     apiBasePath: "/auth",
     websiteBasePath: "/auth",
   },

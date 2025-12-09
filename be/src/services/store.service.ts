@@ -1,7 +1,8 @@
+import { StoreRole } from "../../generated/prisma/enums.js";
+import { env } from "../env.js";
+import { StorageRepository } from "../repo/storage.repo.js";
 import { StoreRepository } from "../repo/store.repo.js";
 import { StoreMemberRepository } from "../repo/storeMember.repo.js";
-import { StorageRepository } from "../repo/storage.repo.js";
-import { StoreRole } from "../../generated/prisma/enums.js";
 
 export class StoreService {
     private storeRepo: StoreRepository;
@@ -14,26 +15,37 @@ export class StoreService {
         this.storageRepo = new StorageRepository();
     }
 
-    async createStore(userId: string, name: string) {
-        // 1. Create Store
-        const store = await this.storeRepo.create({
-            name,
-        });
+    async getStoreEnrolledByUserId(userId: string) {
+        return await this.storeRepo.getStoreEnrolledByUserId(userId);
+    }
 
-        // 2. Add User as Owner
-        await this.storeMemberRepo.create({
-            userId,
-            store: { connect: { id: store.id } },
-            role: StoreRole.OWNER,
-        });
+    async CreateStore(userId: string, name: string): Promise<{ storeId?: string | null, error?: string | null }> {
+        try {
+            const store = await this.storeRepo.create({
+                name,
+            });
 
-        // 3. Create Storage for Store
-        await this.storageRepo.create({
-            store: { connect: { id: store.id } },
-            location: "Default Location", // You might want to parameterize this later
-            capacity: 100, // Default capacity
-        });
+            const storeEnrolled = await this.getStoreEnrolledByUserId(userId);
+            if (storeEnrolled >= env.MAX_STORE_BY_USER) {
+                throw new Error("User has reached the maximum number of stores");
+            }
 
-        return store;
+            await this.storeMemberRepo.create({
+                userId,
+                store: { connect: { id: store.id } },
+                role: StoreRole.OWNER,
+            });
+
+            await this.storageRepo.create({
+                store: { connect: { id: store.id } },
+                location: "Default Location",
+                capacity: 100,
+            });
+
+            return { storeId: store.id.toString(), error: null };
+
+        } catch (error) {
+            return { storeId: null, error: (error as Error).message };
+        }
     }
 }
