@@ -1,7 +1,6 @@
-import React from 'react';
 import { ShoppingBag } from 'lucide-react';
+import React from 'react';
 import type { Category } from './types';
-import { useProducts } from '../../hooks/useProducts';
 
 interface CategorySelectorProps {
     categories: Category[];
@@ -15,7 +14,6 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     onSelect
 }) => {
 
-    const { data: products } = useProducts();
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-700">
