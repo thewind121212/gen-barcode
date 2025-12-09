@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, type ProductItem } from "../services/api";
+import { fetchProducts, type ProductItem } from "../services/store/api";
 
 export const useProducts = () => {
     return useQuery<ProductItem[], Error>({
