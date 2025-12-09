@@ -1,7 +1,6 @@
-import React from 'react';
 import { ShoppingBag } from 'lucide-react';
+import React from 'react';
 import type { Category } from './types';
-import { useProducts } from '../../hooks/useProducts';
 
 interface CategorySelectorProps {
     categories: Category[];
@@ -14,10 +13,6 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     selectedCategory,
     onSelect
 }) => {
-
-    const { data: products, isLoading, isError, error, refetch } = useProducts();
-
-    console.log(products)
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">

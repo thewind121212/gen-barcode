@@ -3,10 +3,12 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../generated/prisma/client'
 import { env } from "./env.js";
+import { logger, LogType } from "./utils/logger.js";
 
 // Global singleton instance
 let prisma: PrismaClient | null
 let pool: Pool | null = null
+let isFirstInitDone = false
 
 /**
  * Get or create the Prisma Client singleton instance with connection pooling
@@ -14,20 +16,23 @@ let pool: Pool | null = null
  */
 export const getPrisma = (): PrismaClient => {
     if (!prisma) {
-        console.log('hit')
+        if (!isFirstInitDone) {
+            logger(LogType.INFRASTRUCTURE, "info", "First Initializing Prisma Client")
+            isFirstInitDone = true
+        }
         const connectionString = env.DATABASE_URL;
-
         if (!connectionString) {
-            throw new Error('DATABASE_URL environment variable is not set')
+            logger(LogType.INFRASTRUCTURE, "error", "DATABASE_URL environment variable is not set")
+            throw new Error('Infrastructure error: DATABASE_URL environment variable is not set')
         }
 
         // Create a connection pool with optimal settings
         pool = new Pool({
             connectionString,
             // Connection pool configuration
-            max: 20,                // Maximum number of clients in the pool
-            idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-            connectionTimeoutMillis: 5000, // Return an error after 5 seconds if connection could not be established
+            max: 20,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 5000,
         })
 
         // Create Prisma adapter with the pool
@@ -41,6 +46,7 @@ export const getPrisma = (): PrismaClient => {
 
         // Handle graceful shutdown
         const cleanup = async () => {
+            logger(LogType.INFRASTRUCTURE, "info", "Shutting down Prisma Client")
             if (prisma) {
                 await prisma.$disconnect()
                 prisma = null
@@ -54,6 +60,10 @@ export const getPrisma = (): PrismaClient => {
         process.on('SIGINT', cleanup)
         process.on('SIGTERM', cleanup)
         process.on('beforeExit', cleanup)
+    }
+
+    if (env.ENVIRONMENT === "dev") {
+        logger(LogType.INFRASTRUCTURE, "info", "Prisma Client initialized")
     }
 
     return prisma

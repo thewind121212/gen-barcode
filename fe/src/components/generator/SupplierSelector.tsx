@@ -77,7 +77,7 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
                                 >
                                     <span className="font-medium">{s.name}</span>
                                     <span className={`text-xs px-2 py-1 mt-1 rounded font-bold`}
-                                    style={{ backgroundColor: s.color }} 
+                                        style={{ backgroundColor: s.color }}
                                     >{s.id}</span>
                                 </button>
                             ))}
