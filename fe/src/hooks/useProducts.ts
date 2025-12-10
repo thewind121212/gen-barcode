@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, type ProductItem } from "@Jade/services/store/api";
+import { fetchProducts } from "@Jade/hooks/temp";
+import type { ProductItem } from "@Jade/hooks/temp";
 
 export const useProducts = () => {
     return useQuery<ProductItem[], Error>({
@@ -11,3 +12,4 @@ export const useProducts = () => {
         refetchOnWindowFocus: false,
     });
 };
+

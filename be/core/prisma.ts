@@ -2,9 +2,10 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-import { PrismaClient } from "../generated/prisma/client.js";
 import { env } from "@Ciri/env";
 import { GeneralLogger, LogLevel, LogType } from "@Ciri/utils/logger";
+
+import { PrismaClient } from "../generated/prisma/client.js";
 
 // Global singleton instance
 let prisma: PrismaClient | null;

@@ -76,20 +76,33 @@ export const GenerateFileTypeScript = (pkg: protobuf.Namespace, packageName: str
     // write all generated types into a shared `types` folder in repo root
     const rootDir = path.resolve(protoDir, "..", "..");
     const typesDir = path.join(rootDir, "types");
+    const feTypesDir = path.join(rootDir, "fe", "src", "types");
+    const beTypesDir = path.join(rootDir, "be", "types");
 
     if (!fs.existsSync(typesDir)) {
         fs.mkdirSync(typesDir, { recursive: true });
     }
 
-    const targetPath = path.join(typesDir, fileNameTypes);
+    const feTargetPath = path.join(feTypesDir, fileNameTypes);
+    const beTargetPath = path.join(beTypesDir, fileNameTypes);
 
-    if (!fs.existsSync(targetPath)) {
-        fs.writeFileSync(targetPath, fileContent);
+    if (!fs.existsSync(feTargetPath)) {
+        fs.writeFileSync(feTargetPath, fileContent);
+
     } else {
-        const fileContent = fs.readFileSync(targetPath, "utf8");
+        const fileContent = fs.readFileSync(feTargetPath, "utf8");
         const oldContent = fileContent.split(divider)[1];
         const newContent = fileContent.replace(oldContent, interfaces);
-        fs.writeFileSync(targetPath, newContent);
+        fs.writeFileSync(feTargetPath, newContent);
+    }
+
+    if (!fs.existsSync(beTargetPath)) {
+        fs.writeFileSync(beTargetPath, fileContent);
+    } else {
+        const fileContent = fs.readFileSync(beTargetPath, "utf8");
+        const oldContent = fileContent.split(divider)[1];
+        const newContent = fileContent.replace(oldContent, interfaces);
+        fs.writeFileSync(beTargetPath, newContent);
     }
 }
 

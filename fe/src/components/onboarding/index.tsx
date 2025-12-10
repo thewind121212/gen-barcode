@@ -71,7 +71,7 @@ export default function Onboarding() {
 
     const handleNext = () => {
         if (currentStep === 2 && !isStockroomReady) {
-            createStore("Stockroom");
+            createStore({ name: "Stockroom" });
         } else if (currentStep < slides.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {

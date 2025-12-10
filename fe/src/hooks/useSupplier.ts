@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchSuppliers } from "@Jade/services/store/api";
-import type { Supplier } from "@Jade/types/supplier.types";
+import { fetchSuppliers } from "@Jade/hooks/temp";
+import type { Supplier } from "@Jade/types/supplier";
 
 export const useSuppliers = () => {
     return useQuery<Supplier[], Error>({

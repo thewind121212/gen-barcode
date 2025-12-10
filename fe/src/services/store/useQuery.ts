@@ -1,39 +1,13 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import type { Supplier } from "@Jade/types/supplier.types";
+import { useMutation } from "@tanstack/react-query";
+import type { CreateStoreRequest, CreateStoreResponse } from "@Jade/types/store.d";
 import {
     createStore,
-    fetchProducts,
-    fetchSuppliers,
-    type ProductItem,
-    type Store,
 } from "./api";
 
-export const useProducts = () => {
-    return useQuery<ProductItem[], Error>({
-        queryKey: ["products"],
-        queryFn: fetchProducts,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-        retry: 2,
-        refetchOnWindowFocus: false,
-    });
-};
-
-export const useSuppliers = () => {
-    return useQuery<Supplier[], Error>({
-        queryKey: ["suppliers"],
-        queryFn: fetchSuppliers,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-        retry: 2,
-        refetchOnWindowFocus: false,
-    });
-};
-
-export const useCreateStore = ({ onSuccess, onError }: { onSuccess?: (data: any) => void, onError?: (error: any) => void }) => {
-    return useMutation<Store, Error, string>({
-        mutationFn: (name: string) => createStore(name),
-        onSuccess: onSuccess,
-        onError: onError,
+export const useCreateStore = ({ onSuccess, onError }: { onSuccess?: (data: CreateStoreResponse) => void, onError?: (error: Error) => void }) => {
+    return useMutation<CreateStoreResponse, Error, CreateStoreRequest>({
+        mutationFn: (request: CreateStoreRequest) => createStore(request),
+        onSuccess: (data) => onSuccess?.(data),
+        onError: (error) => onError?.(error),
     });
 };

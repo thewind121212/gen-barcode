@@ -1,11 +1,12 @@
 import type { RequestContext } from "@Ciri/middlewares";
 
-import { StoreRole } from "../../generated/prisma/enums.js";
 import { env } from "@Ciri/env";
 import { StorageRepository } from "@Ciri/repo/storage.repo";
 import { StoreMemberRepository } from "@Ciri/repo/store-member.repo";
 import { StoreRepository } from "@Ciri/repo/store.repo";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/utils/logger";
+
+import { StoreRole } from "../../generated/prisma/enums.js";
 
 export class StoreService {
   private storeRepo: StoreRepository;
