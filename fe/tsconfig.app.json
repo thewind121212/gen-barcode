@@ -12,14 +12,16 @@
     "types": [
       "vite/client"
     ],
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    /* Vite-specific linting */
+    "baseUrl": "./src",
+    "paths": {
+      "@Jade/*": ["*"]
+    },
     "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true
   },

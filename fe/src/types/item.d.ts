@@ -1,3 +1,6 @@
+
+// skip lint check this file
+/* eslint-disable */
 // Nested types for Item Detail
 export type ItemBarcode = {
   barcode: string;

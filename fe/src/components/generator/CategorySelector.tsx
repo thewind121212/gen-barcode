@@ -1,6 +1,6 @@
 import { ShoppingBag } from 'lucide-react';
 import React from 'react';
-import type { Category } from './types';
+import type { Category } from '@Jade/components/generator/types';
 
 interface CategorySelectorProps {
     categories: Category[];

@@ -1,9 +1,8 @@
-import app from "./app.js";
-import { env } from "./env.js";
-import { GeneralLogger, InitPinoLogger, LogLevel, LogType } from "./utils/logger.js";
+import app from "@Ciri/app";
+import { env } from "@Ciri/env";
+import { GeneralLogger, InitPinoLogger, LogLevel, LogType } from "@Ciri/utils/logger";
 
-
-InitPinoLogger()
+InitPinoLogger();
 const port = env.PORT;
 const server = app.listen(port, () => {
   GeneralLogger(LogType.SERVICE, LogLevel.INFO, `Listening: http://localhost:${port}`);

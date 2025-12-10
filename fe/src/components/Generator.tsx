@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Header } from './generator/Header';
-import { SupplierSelector } from './generator/SupplierSelector';
-import { CategorySelector } from './generator/CategorySelector';
-import { VariantSelector } from './generator/VariantSelector';
-import { BarcodeResult } from './generator/BarcodeResult';
-import { AddVariantModal } from './generator/AddVariantModal';
-import { suppliers, categories, initialVariants } from './generator/data';
-import { calculateCheckDigit, generateRandomDetail, copyToClipboard } from './generator/utils';
-import type { HistoryItem, VariantPresets } from './generator/types';
-import InputVariant from './generator/InputVariant';
+import { Header } from '@Jade/components/generator/Header';
+import { SupplierSelector } from '@Jade/components/generator/SupplierSelector';
+import { CategorySelector } from '@Jade/components/generator/CategorySelector';
+import { VariantSelector } from '@Jade/components/generator/VariantSelector';
+import { BarcodeResult } from '@Jade/components/generator/BarcodeResult';
+import { AddVariantModal } from '@Jade/components/generator/AddVariantModal';
+import { suppliers, categories, initialVariants } from '@Jade/components/generator/data';
+import { calculateCheckDigit, generateRandomDetail, copyToClipboard } from '@Jade/components/generator/utils';
+import type { HistoryItem, VariantPresets } from '@Jade/components/generator/types';
+import InputVariant from '@Jade/components/generator/InputVariant';
 
 const Generator = () => {
     // --- STATE ---

@@ -1,4 +1,4 @@
-import type MessageResponse from "./message-response.js";
+import type MessageResponse from "@Ciri/interfaces/message-response";
 
 type ErrorResponse = {
   stack?: string;

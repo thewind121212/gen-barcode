@@ -1,66 +1,16 @@
 import Session from "supertokens-auth-react/recipe/session";
-import type { Supplier } from "../../types/supplier.types";
+import type { CreateStoreRequest, CreateStoreResponse } from "@Jade/types/store.d";
 
-const API_BASE_URL = "http://localhost:9190/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export interface ProductItem {
-  ItemCode: string;
-  ItemName: string;
-  // Add other fields from your ERP API response
-}
-
-export const fetchProducts = async (): Promise<ProductItem[]> => {
-  const response = await fetch(`${API_BASE_URL}/erp/getFulItemsDetail`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch products");
-  }
-
-  // Ensure SuperTokens session exists / sync cookies
-  await Session.doesSessionExist();
-
-  return response.json();
-};
-
-export const fetchSuppliers = async (): Promise<Supplier[]> => {
-  const response = await fetch(`${API_BASE_URL}/erp/getSupplier`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch suppliers");
-  }
-
-
-  return response.json();
-};
-
-// ----- Store APIs -----
-
-export interface Store {
-  id: number;
-  name: string;
-  // add other fields from Prisma model if needed
-}
-
-export const createStore = async (name: string): Promise<Store> => {
+export const createStore = async (request: CreateStoreRequest): Promise<CreateStoreResponse> => {
   const response = await fetch(`${API_BASE_URL}/store/createStore`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "include",
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(request),
   });
 
   const data = await response.json();

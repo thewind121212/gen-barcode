@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "api/models;models";
+
+package store;
+
+
+message CreateStoreRequest {
+  string name = 1;
+}
+
+message CreateStoreResponse {
+  string store_id = 1;
+}
+
+
+service UserService {
+  rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse) {
+    option (google.api.http) = {
+      post: "/v1/store/createStore"
+      body: "*"
+    };
+  }
+}

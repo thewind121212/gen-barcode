@@ -1,7 +1,7 @@
 import React from 'react';
 import { Truck } from 'lucide-react';
 import { LoaderCircleIcon, LaughIcon, RefreshCw } from 'lucide-react'
-import { useSuppliers } from '../../hooks/useSupplier';
+import { useSuppliers } from '@Jade/hooks/useSupplier';
 
 interface SupplierSelectorProps {
     selectedSupplier: string;

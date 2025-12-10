@@ -1,7 +1,11 @@
 {
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "module": "commonjs"
+        "module": "commonjs",
+        "paths": {
+            "@Ciri/*": ["./be/*"],
+            "@Jade/*": ["./fe/*"],
+        }
     },
     "include": [
         "deploy/monitor/**/*"

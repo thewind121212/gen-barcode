@@ -1,1 +1,1 @@
-export { default } from '../Generator';
+export { default } from '@Jade/components/Generator';
