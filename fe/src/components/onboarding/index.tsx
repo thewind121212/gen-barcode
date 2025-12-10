@@ -18,7 +18,6 @@ export default function Onboarding() {
             setCurrentStep(prev => prev + 1);
         },
         onError: (error) => {
-            console.log(error)
             toast.error(error.message);
         }
     });
