@@ -12,7 +12,7 @@ message CreateStoreRequest {
 }
 
 message CreateStoreResponse {
-  string store_id = 1;
+  optional string store_id = 1;
 }
 
 

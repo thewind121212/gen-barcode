@@ -1,9 +1,9 @@
 import express from "express";
 
-import type MessageResponse from "@Ciri/interfaces/message-response";
+import type MessageResponse from "@Ciri/core/interfaces/message-response";
 
-import storeRoutes from "@Ciri/api/store/store.routes";
-import { handlerCheckToken } from "@Ciri/middlewares";
+import storeRoutes from "@Ciri/core/api/store/store.routes";
+import { handlerCheckToken } from "@Ciri/core/middlewares";
 
 const router = express.Router();
 

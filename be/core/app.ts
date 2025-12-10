@@ -7,11 +7,11 @@ import { errorHandler, middleware } from "supertokens-node/framework/express";
 import EmailPassword from "supertokens-node/recipe/emailpassword";
 import Session from "supertokens-node/recipe/session";
 
-import type MessageResponse from "@Ciri/interfaces/message-response";
+import type MessageResponse from "@Ciri/core/interfaces/message-response";
 
-import api from "@Ciri/api";
-import { env } from "@Ciri/env";
-import * as middlewares from "@Ciri/middlewares";
+import api from "@Ciri/core/api";
+import { env } from "@Ciri/core/env";
+import * as middlewares from "@Ciri/core/middlewares";
 // import { overwrite } from "zod";
 
 // const recipeList = [Session.init()];

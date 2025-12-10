@@ -1,3 +1,4 @@
+// this is code generated usequery for api
 import { useMutation } from "@tanstack/react-query";
 import type { CreateStoreRequest, CreateStoreResponse } from "@Jade/types/store.d";
 import {
@@ -11,3 +12,4 @@ export const useCreateStore = ({ onSuccess, onError }: { onSuccess?: (data: Crea
         onError: (error) => onError?.(error),
     });
 };
+

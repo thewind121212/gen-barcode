@@ -2,12 +2,14 @@ import type { z } from "zod";
 
 import express from "express";
 
-import { createStoreSchema } from "@Ciri/dto/store.dto";
-import { getContext } from "@Ciri/middlewares";
-import { StoreService } from "@Ciri/services/store.service";
-import { ErrorResponses, sendSuccessResponse } from "@Ciri/utils/error-response";
-import { LogLevel, LogType, UnitLogger } from "@Ciri/utils/logger";
-import { getValidatedBody, validateBody } from "@Ciri/utils/validation";
+import type { CreateStoreResponse } from "@Ciri/types/store";
+
+import { createStoreSchema } from "@Ciri/core/dto/store.dto";
+import { getContext } from "@Ciri/core/middlewares";
+import { StoreService } from "@Ciri/core/services/store.service";
+import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
+import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
+import { getValidatedBody, validateBody } from "@Ciri/core/utils/validation";
 
 const router = express.Router();
 const storeService = new StoreService();
@@ -20,18 +22,18 @@ router.post(
   async (req, res, next): Promise<void> => {
     try {
       const ctx = getContext(req);
-      const { name } = getValidatedBody<CreateStoreRequestBody>(req);
-      const { storeId, error } = await storeService.CreateStore(ctx, name);
-      if (error) {
-        ErrorResponses.badRequest(res, error);
+      const validatedBody = getValidatedBody<CreateStoreRequestBody>(req);
+      const response = await storeService.CreateStore(ctx, validatedBody);
+      if (response.error) {
+        ErrorResponses.badRequest(res, response.error);
         return;
       }
-      sendSuccessResponse<{ storeId: string }>(res, 201, { storeId: storeId! });
+      sendSuccessResponse<CreateStoreResponse>(res, 201, response);
     }
     catch (error) {
       UnitLogger(
         LogType.ROUTER,
-        "Store Create:",
+        "Store CreateStore:",
         LogLevel.ERROR,
         (error as Error).message,
       );

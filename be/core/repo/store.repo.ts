@@ -1,6 +1,6 @@
-import prisma from "@Ciri/prisma";
+import type { Prisma } from "@Ciri/generated/prisma/client.js";
 
-import type { Prisma } from "../../generated/prisma/client.js";
+import prisma from "@Ciri/core/prisma";
 
 export class StoreRepository {
   async create(data: Prisma.StoreCreateInput) {

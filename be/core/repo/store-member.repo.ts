@@ -1,4 +1,4 @@
-import prisma from "@Ciri/prisma";
+import prisma from "@Ciri/core/prisma";
 
 import type { Prisma } from "../../generated/prisma/client.js";
 
