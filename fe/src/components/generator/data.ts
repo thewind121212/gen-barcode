@@ -1,4 +1,4 @@
-import type { Supplier, Category, VariantPresets } from './types';
+import type { Supplier, Category, VariantPresets } from '@Jade/components/generator/types';
 
 // Dummy data for suppliers
 export const suppliers: Supplier[] = [

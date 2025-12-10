@@ -2,7 +2,7 @@ import { ArrowRight, Box, Check, Layers, Loader2, ScanBarcode, Store, Warehouse 
 import { useEffect, useState } from 'react';
 import { toast } from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
-import { useCreateStore } from '../../services/store/useQuery';
+import { useCreateStore } from '@Jade/services/store/useQuery';
 
 export default function Onboarding() {
     const [currentStep, setCurrentStep] = useState(0);

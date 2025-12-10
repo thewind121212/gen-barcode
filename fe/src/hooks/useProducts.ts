@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, type ProductItem } from "../services/store/api";
+import { fetchProducts, type ProductItem } from "@Jade/services/store/api";
 
 export const useProducts = () => {
     return useQuery<ProductItem[], Error>({

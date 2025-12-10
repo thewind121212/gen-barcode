@@ -6,9 +6,9 @@ import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Generator from "./components/Generator";
-import OnboardingComponent from "./components/Onboarding";
-import { Sidebar } from "./components/nav-bar/net";
+import Generator from "@Jade/components/Generator";
+import OnboardingComponent from "@Jade/components/Onboarding";
+import { Sidebar } from "@Jade/components/nav-bar/net";
 
 import * as reactRouterDom from "react-router-dom";
 

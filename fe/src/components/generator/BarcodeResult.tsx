@@ -1,6 +1,6 @@
 import React from 'react';
 import { Copy, Save } from 'lucide-react';
-import { BarcodeVisual } from './BarcodeVisual';
+import { BarcodeVisual } from '@Jade/components/generator/BarcodeVisual';
 
 interface BarcodeResultProps {
     fullCode: string;

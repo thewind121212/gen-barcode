@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tag, Settings, Plus } from 'lucide-react';
-import type { Variant } from './types';
+import type { Variant } from '@Jade/components/generator/types';
 
 interface VariantSelectorProps {
     variants: Variant[];

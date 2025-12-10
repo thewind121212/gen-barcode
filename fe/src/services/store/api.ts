@@ -1,5 +1,5 @@
 import Session from "supertokens-auth-react/recipe/session";
-import type { Supplier } from "../../types/supplier.types";
+import type { Supplier } from "@Jade/types/supplier.types";
 
 const API_BASE_URL = "http://localhost:9190/api/v1";
 

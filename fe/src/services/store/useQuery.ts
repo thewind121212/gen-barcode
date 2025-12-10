@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { Supplier } from "../../types/supplier.types";
+import type { Supplier } from "@Jade/types/supplier.types";
 import {
     createStore,
     fetchProducts,

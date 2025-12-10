@@ -1,4 +1,4 @@
-import Onboarding from './onboarding/index';
+import Onboarding from '@Jade/components/onboarding/index';
 
 
 export default function OnboardingComponent() {
