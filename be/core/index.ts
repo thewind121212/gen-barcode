@@ -1,6 +1,6 @@
-import app from "@Ciri/app";
-import { env } from "@Ciri/env";
-import { GeneralLogger, InitPinoLogger, LogLevel, LogType } from "@Ciri/utils/logger";
+import app from "@Ciri/core/app";
+import { env } from "@Ciri/core/env";
+import { GeneralLogger, InitPinoLogger, LogLevel, LogType } from "@Ciri/core/utils/logger";
 
 InitPinoLogger();
 const port = env.PORT;

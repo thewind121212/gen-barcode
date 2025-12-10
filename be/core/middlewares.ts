@@ -2,9 +2,9 @@ import type { NextFunction, Request, Response } from "express";
 
 import Session from "supertokens-node/recipe/session";
 
-import type ErrorResponse from "@Ciri/interfaces/error-response";
+import type ErrorResponse from "@Ciri/core/interfaces/error-response";
 
-import { env } from "@Ciri/env";
+import { env } from "@Ciri/core/env";
 
 export type RequestContext = {
   userId: string;

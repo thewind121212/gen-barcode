@@ -1,12 +1,16 @@
-import type { RequestContext } from "@Ciri/middlewares";
+import type { RequestContext } from "@Ciri/core/middlewares";
+import type { CreateStoreRequest, CreateStoreResponse } from "@Ciri/types/store.d";
 
-import { env } from "@Ciri/env";
-import { StorageRepository } from "@Ciri/repo/storage.repo";
-import { StoreMemberRepository } from "@Ciri/repo/store-member.repo";
-import { StoreRepository } from "@Ciri/repo/store.repo";
-import { LogLevel, LogType, UnitLogger } from "@Ciri/utils/logger";
+import { env } from "@Ciri/core/env";
+import { StorageRepository } from "@Ciri/core/repo/storage.repo";
+import { StoreMemberRepository } from "@Ciri/core/repo/store-member.repo";
+import { StoreRepository } from "@Ciri/core/repo/store.repo";
+import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
+import { StoreRole } from "@Ciri/generated/prisma/enums.js";
 
-import { StoreRole } from "../../generated/prisma/enums.js";
+type CreateStoreResponseServices = CreateStoreResponse & {
+  error: string | null;
+};
 
 export class StoreService {
   private storeRepo: StoreRepository;
@@ -23,12 +27,13 @@ export class StoreService {
     return await this.storeRepo.getStoreEnrolledByUserId(userId);
   }
 
-  async CreateStore(ctx: RequestContext, name: string): Promise<{ storeId?: string | null; error?: string | null }> {
+  async CreateStore(ctx: RequestContext, req: CreateStoreRequest): Promise<CreateStoreResponseServices> {
     try {
       const { userId } = ctx;
       if (!userId) {
         throw new Error("User ID is required");
       }
+      const { name } = req;
       const store = await this.storeRepo.create({
         name,
       });
@@ -54,7 +59,7 @@ export class StoreService {
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Store Create:", LogLevel.ERROR, (error as Error).message);
-      return { storeId: null, error: (error as Error).message };
+      return { storeId: undefined, error: (error as Error).message };
     }
   }
 }

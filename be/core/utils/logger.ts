@@ -1,6 +1,5 @@
-import pino from "pino";
-
 import { env } from "@Ciri/env";
+import pino from "pino";
 
 export enum LogType {
   INFRASTRUCTURE = "Infrastructure:",

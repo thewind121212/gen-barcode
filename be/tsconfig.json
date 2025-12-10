@@ -6,7 +6,7 @@
     "sourceMap": true,
     "baseUrl": "./",
     "paths": {
-      "@Ciri/*": ["core/*"]
+      "@Ciri/*": ["./*"]
     }
   },
   "include": ["core/**/*.ts", "test/**/*.ts"]
