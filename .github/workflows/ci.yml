@@ -47,5 +47,3 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      - name: Build frontend
-        run: npm run build --workspace=fe
