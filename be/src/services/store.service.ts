@@ -1,8 +1,10 @@
 import { StoreRole } from "../../generated/prisma/enums.js";
 import { env } from "../env.js";
+import type { RequestContext } from "../middlewares.js";
 import { StorageRepository } from "../repo/storage.repo.js";
 import { StoreRepository } from "../repo/store.repo.js";
 import { StoreMemberRepository } from "../repo/storeMember.repo.js";
+import { LogLevel, LogType, UnitLogger } from "../utils/logger.js";
 
 export class StoreService {
     private storeRepo: StoreRepository;
@@ -19,8 +21,12 @@ export class StoreService {
         return await this.storeRepo.getStoreEnrolledByUserId(userId);
     }
 
-    async CreateStore(userId: string, name: string): Promise<{ storeId?: string | null, error?: string | null }> {
+    async CreateStore(ctx: RequestContext, name: string): Promise<{ storeId?: string | null, error?: string | null }> {
         try {
+            const { userId } = ctx;
+            if (!userId) {
+                throw new Error("User ID is required");
+            }
             const store = await this.storeRepo.create({
                 name,
             });
@@ -45,6 +51,7 @@ export class StoreService {
             return { storeId: store.id.toString(), error: null };
 
         } catch (error) {
+            UnitLogger(LogType.SERVICE, "Store Create:", LogLevel.ERROR, (error as Error).message);
             return { storeId: null, error: (error as Error).message };
         }
     }

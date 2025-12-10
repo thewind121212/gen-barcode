@@ -41,6 +41,7 @@ export const fetchSuppliers = async (): Promise<Supplier[]> => {
     throw new Error("Failed to fetch suppliers");
   }
 
+
   return response.json();
 };
 
@@ -62,12 +63,11 @@ export const createStore = async (name: string): Promise<Store> => {
     body: JSON.stringify({ name }),
   });
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(
-      errorText || `Failed to create store (status ${response.status})`,
-    );
-  }
+  const data = await response.json();
+
+  if (!response.ok && data.success === false) {
+    throw new Error(data.error.message);
+  } 
 
   await Session.doesSessionExist();
 

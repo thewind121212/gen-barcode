@@ -73,6 +73,7 @@ supertokens.init({
 
 const app = express();
 
+app.use(express.json());
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(
@@ -82,7 +83,6 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json());
 
 app.use(middleware())
 app.use(errorHandler())

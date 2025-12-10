@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { Supplier } from "../../types/supplier.types";
 import {
     createStore,
@@ -30,14 +30,10 @@ export const useSuppliers = () => {
     });
 };
 
-export const useCreateStore = () => {
-    const queryClient = useQueryClient();
-
+export const useCreateStore = ({ onSuccess, onError }: { onSuccess?: (data: any) => void, onError?: (error: any) => void }) => {
     return useMutation<Store, Error, string>({
         mutationFn: (name: string) => createStore(name),
-        onSuccess: () => {
-            // Invalidate any queries related to stores list if/when you add them
-            queryClient.invalidateQueries({ queryKey: ["stores"] });
-        },
+        onSuccess: onSuccess,
+        onError: onError,
     });
 };
