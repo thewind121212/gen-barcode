@@ -1,24 +1,18 @@
-import api from "./api/index.js";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import { middleware } from "supertokens-node/framework/express";
-import { errorHandler } from "supertokens-node/framework/express";
-
-import * as middlewares from "./middlewares.js";
-
-
-import type MessageResponse from "./interfaces/message-response.js";
-import { env } from "./env.js";
-
-
-
 import supertokens from "supertokens-node";
-import Session from "supertokens-node/recipe/session";
+import { errorHandler, middleware } from "supertokens-node/framework/express";
 import EmailPassword from "supertokens-node/recipe/emailpassword";
-// import { overwrite } from "zod";
+import Session from "supertokens-node/recipe/session";
 
+import type MessageResponse from "@Ciri/interfaces/message-response";
+
+import api from "@Ciri/api";
+import { env } from "@Ciri/env";
+import * as middlewares from "@Ciri/middlewares";
+// import { overwrite } from "zod";
 
 // const recipeList = [Session.init()];
 
@@ -36,8 +30,6 @@ import EmailPassword from "supertokens-node/recipe/emailpassword";
 //     })
 //   );
 // }
-
-
 
 supertokens.init({
   framework: "express",
@@ -60,16 +52,14 @@ supertokens.init({
             return {
               ...originalImplementation,
               signUpPOST: undefined,
-            }
+            };
           }
-          return originalImplementation
-        }
-      }
-    })
-  ]
+          return originalImplementation;
+        },
+      },
+    }),
+  ],
 });
-
-
 
 const app = express();
 
@@ -84,8 +74,8 @@ app.use(
   }),
 );
 
-app.use(middleware())
-app.use(errorHandler())
+app.use(middleware());
+app.use(errorHandler());
 
 app.get<object, MessageResponse>("/ping", (_req, res) => {
   res.json({

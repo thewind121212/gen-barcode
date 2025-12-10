@@ -1,4 +1,4 @@
-name: CI action for React FE
+name: CI action for Simple Store
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  react-fe-ci:
+  lint-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,5 +30,22 @@ jobs:
             ${{ runner.os }}-vite-${{ hashFiles('**/package-lock.json') }}-
       - name: Install dependencies
         run: npm ci
-      - name: Build Frontend
+      - name: Lint backend
+        run: npm run lint --workspace=be
+      - name: Lint frontend
+        run: npm run lint --workspace=fe
+    
+  build-fe-workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Build frontend
         run: npm run build --workspace=fe

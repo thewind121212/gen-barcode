@@ -1,17 +1,18 @@
 import type { NextFunction, Request, Response } from "express";
 
-import type ErrorResponse from "./interfaces/error-response.js";
-
 import Session from "supertokens-node/recipe/session";
-import { env } from "./env.js";
 
-export interface RequestContext {
+import type ErrorResponse from "@Ciri/interfaces/error-response";
+
+import { env } from "@Ciri/env";
+
+export type RequestContext = {
   userId: string;
-}
+};
 
-interface RequestWithContext extends Request {
+type RequestWithContext = {
   context: RequestContext;
-}
+} & Request;
 
 export function notFound(req: Request, res: Response, next: NextFunction) {
   res.status(404);
@@ -37,7 +38,8 @@ export async function handlerCheckToken(req: Request, res: Response<ErrorRespons
 
     // Session is valid, continue to next middleware
     next();
-  } catch (error) {
+  }
+  catch (error) {
     res.status(401).json({
       message: "Invalid or expired token",
       stack: env.NODE_ENV === "production" ? "🥞" : (error as Error).stack,
@@ -46,8 +48,9 @@ export async function handlerCheckToken(req: Request, res: Response<ErrorRespons
 }
 
 // Helper to read context in routes / controllers.
-export const getContext = (req: Request): RequestContext =>
-  (req as RequestWithContext).context;
+export function getContext(req: Request): RequestContext {
+  return (req as RequestWithContext).context;
+}
 
 export async function errorHandler(err: Error, _req: Request, res: Response<ErrorResponse>, _next: NextFunction) {
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;

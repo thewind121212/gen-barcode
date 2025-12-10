@@ -7,4 +7,3 @@ export const createStoreSchema = z.object({
 
 // Inferred TypeScript DTO type for codegen / services
 export type CreateStoreDto = z.infer<typeof createStoreSchema>;
-
