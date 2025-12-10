@@ -3,17 +3,26 @@ import path from "path";
 import protobuf from "protobufjs";
 import { fileURLToPath } from "url";
 import { GenerateFileTypeScript } from "./gen-types";
+import { GenerateApi } from "./gen-api";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Get folder name from command line arguments
 const args = process.argv.slice(2);
 if (args.length === 0) {
-  console.error("Error: Please provide a folder name. Usage: npm run gen -- <folder_name>");
+  console.error("Error: Please provide a folder name. Usage: npm run gen -- <folder_name> [--test]");
   process.exit(1);
 }
 
-const packageName = args[0];
+// Check for test mode flag
+const testMode = args.includes("--test");
+const packageName = args.find((arg) => !arg.startsWith("--")) as string;
+
+if (!packageName) {
+  console.error("Error: Please provide a folder name. Usage: npm run gen -- <folder_name> [--test]");
+  process.exit(1);
+}
+
 const protoDir = path.resolve(__dirname, "../bff", packageName);
 const protoPath = path.join(protoDir, `${packageName}.proto`);
 
@@ -67,16 +76,25 @@ export const TypeMapGolang: Record<string, string> = {
   bytes: "[]byte",
 };
 
+if (testMode) {
+  console.log("\n🧪 TEST MODE - Output to ./temp folder\n");
+}
+
+// Generate TypeScript types
 GenerateFileTypeScript(pkg, packageName, protoDir);
+
+// Generate API files (routes, services, frontend api, hooks)
+GenerateApi(pkg, packageName, protoDir, {
+  testMode,
+  outputDir: testMode ? "./temp" : undefined,
+});
 
 const rootDir = path.resolve(__dirname, "..");
 const typesDir = path.join(rootDir, "types");
+const outputDir = testMode ? path.resolve(rootDir, "./temp") : rootDir;
 
 console.log("\n✨ Generation Complete! ✨");
 console.log(`📦 Package: ${packageName}`);
-console.log(`📁 Output: ${typesDir}`);
+console.log(`📁 Output: ${outputDir}`);
 console.log(`✅ TypeScript: ${path.join(typesDir, `${packageName}.d.ts`)}`);
 console.log("\n🎉 All files generated successfully!");
-
-
-
