@@ -9,5 +9,5 @@
       "@Ciri/*": ["./*"]
     }
   },
-  "include": ["core/**/*.ts", "test/**/*.ts"]
+  "include": ["core/**/*.ts", "test/**/*.ts", "sentry/**/*.ts"]
 }

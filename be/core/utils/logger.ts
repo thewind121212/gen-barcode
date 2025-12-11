@@ -1,5 +1,6 @@
 import { env } from "@Ciri/core/env";
 import pino from "pino";
+import { CaptureSentryException, CaptureSentryMessage } from "@Ciri/sentry/init";
 
 export enum LogType {
   INFRASTRUCTURE = "Infrastructure:",
@@ -43,6 +44,9 @@ export function GeneralLogger(type: LogType, logLevel: LogLevel, message: string
   }
   if (pinoLogger && pinoLogger[logLevel]) {
     pinoLogger[logLevel](`${type} ${message}`);
+    if (logLevel === LogLevel.ERROR) {
+      CaptureSentryMessage(message, "error");
+    }
   }
 }
 
@@ -54,5 +58,8 @@ export function UnitLogger(unitType: LogType, unitName: string, logLevel: LogLev
   }
   if (pinoLogger && pinoLogger[logLevel]) {
     pinoLogger[logLevel](`${unitType}-${unitName} ${message}`);
+    if (logLevel === LogLevel.ERROR) {
+      CaptureSentryMessage(message, "error");
+    }
   }
 }
