@@ -19,7 +19,7 @@ message CreateStoreResponse {
 service UserService {
   rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse) {
     option (google.api.http) = {
-      post: "/v1/store/createStore"
+      post: "/v1/store/CreateStore"
       body: "*"
     };
   }

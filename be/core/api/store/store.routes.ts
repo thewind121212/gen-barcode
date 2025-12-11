@@ -20,7 +20,7 @@ export type CreateStoreResponseServices = CreateStoreResponse & {
     };
 
 router.post(
-  "/createStore",
+  "/CreateStore",
   validateBody<CreateStoreRequestBody>(createStoreSchema),
   async (req, res, next): Promise<void> => {
     try {

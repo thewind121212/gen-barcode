@@ -4,8 +4,24 @@ import type { CreateStoreRequest, CreateStoreResponse } from "@Jade/types/store.
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+
+export enum ApiVersion {
+  API_VERSION_UNSPECIFIED = 0,
+  API_VERSION_V1 = 1,
+}
+
+// Change this to switch between API versions
+export const API_VERSION: ApiVersion = ApiVersion.API_VERSION_V1;
+
+const API_VERSION_PATHS: Record<ApiVersion, string> = {
+  [ApiVersion.API_VERSION_UNSPECIFIED]: "",
+  [ApiVersion.API_VERSION_V1]: "v1",
+};
+
+const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
+
 export const createStore = async (request: CreateStoreRequest): Promise<CreateStoreResponse> => {
-  const response = await fetch(`${API_BASE_URL}/store/createStore`, {
+  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/store/CreateStore`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -17,7 +17,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     /* Vite-specific linting */
-    "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true
   },
   "include": [

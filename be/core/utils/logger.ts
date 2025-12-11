@@ -1,4 +1,4 @@
-import { env } from "@Ciri/env";
+import { env } from "@Ciri/core/env";
 import pino from "pino";
 
 export enum LogType {

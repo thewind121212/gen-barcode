@@ -10,6 +10,42 @@ interface RpcMethod {
   httpPath: string;
 }
 
+interface ApiVersionConfig {
+  enumName: string;
+  values: Record<string, number>;
+}
+
+/**
+ * Try to load API version configuration from a shared `config.proto` file.
+ * This lets us generate a version enum + prefix into the frontend API.
+ */
+const loadApiVersionConfig = (protoDir: string): ApiVersionConfig | null => {
+  try {
+    // `protoDir` is `<root>/bff/<packageName>`, so config lives one level up
+    const rootDir = path.resolve(protoDir, "..");
+    const configProtoPath = path.join(rootDir, "config.proto");
+
+    if (!fs.existsSync(configProtoPath)) {
+      return null;
+    }
+
+    const root = protobuf.loadSync(configProtoPath);
+    const apiVersionEnum = root.lookupEnum("config.ApiVersion") as protobuf.Enum | null;
+
+    if (!apiVersionEnum) {
+      return null;
+    }
+
+    return {
+      enumName: apiVersionEnum.name,
+      values: apiVersionEnum.values,
+    };
+  } catch {
+    // If anything goes wrong we just skip version-aware generation
+    return null;
+  }
+};
+
 const extractRpcMethods = (namespace: protobuf.Namespace, packageName: string): RpcMethod[] => {
   const methods: RpcMethod[] = [];
 
@@ -86,7 +122,11 @@ const toKebabCase = (str: string): string => {
 };
 
 // Generate Frontend API file
-const generateFrontendApi = (methods: RpcMethod[], packageName: string): string => {
+const generateFrontendApi = (
+  methods: RpcMethod[],
+  packageName: string,
+  apiVersionConfig: ApiVersionConfig | null,
+): string => {
   const imports = new Set<string>();
   methods.forEach((method) => {
     imports.add(method.requestType);
@@ -103,12 +143,63 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 `;
 
+  if (apiVersionConfig) {
+    const entries = Object.entries(apiVersionConfig.values);
+
+    // Build enum body
+    const enumBody = entries
+      .map(([name, value]) => `  ${name} = ${value},`)
+      .join("\n");
+
+    // Prefer a concrete version (e.g. API_VERSION_V1) as default
+    let defaultKey = "API_VERSION_V1";
+    if (!(defaultKey in apiVersionConfig.values)) {
+      const preferred = entries
+        .map(([name]) => name)
+        .filter((name) => !name.endsWith("_UNSPECIFIED"))[0];
+      defaultKey = preferred || entries[0]?.[0] || "API_VERSION_UNSPECIFIED";
+    }
+
+    // Map enum -> URL path segment (API_VERSION_V1 -> "v1")
+    const pathMappings = entries
+      .map(([name]) => {
+        if (name.endsWith("_UNSPECIFIED")) {
+          return `  [ApiVersion.${name}]: "",`;
+        }
+        const suffix = name.split("_").pop() ?? "1";
+        const normalized = suffix.replace(/^V/i, "");
+        const segment = `v${normalized}`.toLowerCase();
+        return `  [ApiVersion.${name}]: "${segment}",`;
+      })
+      .join("\n");
+
+    output += `
+export enum ApiVersion {
+${enumBody}
+}
+
+// Change this to switch between API versions
+export const API_VERSION: ApiVersion = ApiVersion.${defaultKey};
+
+const API_VERSION_PATHS: Record<ApiVersion, string> = {
+${pathMappings}
+};
+
+const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
+
+`;
+  }
+
   methods.forEach((method) => {
     const funcName = toCamelCase(method.name);
 
     if (method.httpMethod === "post") {
+      const urlTemplate = apiVersionConfig
+        ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}\``
+        : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}\``;
+
       output += `export const ${funcName} = async (request: ${method.requestType}): Promise<${method.responseType}> => {
-  const response = await fetch(\`\${API_BASE_URL}/${packageName}/${method.httpPath}\`, {
+  const response = await fetch(${urlTemplate}, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -131,9 +222,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 `;
     } else {
       // GET method
+      const urlTemplate = apiVersionConfig
+        ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}?\${params}\``
+        : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\``;
+
       output += `export const ${funcName} = async (request: ${method.requestType}): Promise<${method.responseType}> => {
   const params = new URLSearchParams(request as Record<string, string>).toString();
-  const response = await fetch(\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\`, {
+  const response = await fetch(${urlTemplate}, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -376,6 +471,7 @@ export const GenerateApi = (
 ) => {
   const { testMode = false, outputDir } = options;
   const methods = extractRpcMethods(pkg, packageName);
+  const apiVersionConfig = loadApiVersionConfig(protoDir);
 
   if (methods.length === 0) {
     console.log("⚠️  No RPC methods found in the proto file");
@@ -408,7 +504,7 @@ export const GenerateApi = (
   }
 
   // Generate and write frontend files (always replace)
-  const feApiContent = generateFrontendApi(methods, packageName);
+  const feApiContent = generateFrontendApi(methods, packageName, apiVersionConfig);
   const feUseQueryContent = generateFrontendUseQuery(methods, packageName);
 
   fs.writeFileSync(feApiPath, feApiContent);
