@@ -3,10 +3,26 @@ import { ArrowRight, Box, Check, Layers, Loader2, ScanBarcode, Store, Warehouse 
 import { useEffect, useState } from 'react';
 import { toast } from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
+import Input from '@Jade/core-design/Input.tsx';
+import { useForm, type SubmitHandler } from "react-hook-form"
+import * as yup from "yup"
+import { yupResolver } from "@hookform/resolvers/yup"
+
+
+const schema = yup.object({
+    storeName: yup.string().required("Store name is required"),
+});
+
+interface OnboardingForm {
+    storeName: string;
+}
 
 export default function Onboarding() {
     const [currentStep, setCurrentStep] = useState(0);
     const [isStockroomReady, setIsStockroomReady] = useState(false);
+    const { register, handleSubmit, formState: { errors, isDirty } } = useForm<OnboardingForm>({
+        resolver: yupResolver(schema),
+    });
     const navigate = useNavigate();
 
     // Animation state for the storage builder
@@ -21,6 +37,10 @@ export default function Onboarding() {
             toast.error(error.message);
         }
     });
+
+    const onSubmit: SubmitHandler<OnboardingForm> = (data) => {
+        createStore({ name: data.storeName });
+    }
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
@@ -70,9 +90,7 @@ export default function Onboarding() {
     ];
 
     const handleNext = () => {
-        if (currentStep === 2 && !isStockroomReady) {
-            createStore({ name: "Stockroom" });
-        } else if (currentStep < slides.length - 1) {
+        if (currentStep < slides.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {
             navigate("/generator");
@@ -82,7 +100,7 @@ export default function Onboarding() {
     const handleStepClick = (step: number) => {
         if (isLoading) return;
         if (step === currentStep) return;
-        if (step === 2 && !isStockroomReady) return;
+        if (step === slides.length - 1) return;
         setCurrentStep(step);
     }
 
@@ -128,18 +146,33 @@ export default function Onboarding() {
 
                         {/* Step 3 Specific UI: Inventory Badge */}
                         {currentStep === 2 && !isLoading && (
-                            <div className="mt-6 flex items-center gap-2 text-xs text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-3 py-1 rounded-full animate-fade-in">
-                                <Layers size={14} />
-                                <span>Physical Storage Mapping</span>
-                            </div>
+                            <>
+                                <div className="mt-6 flex items-center gap-2 text-xs text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-3 py-1 rounded-full animate-fade-in">
+                                    <Layers size={14} />
+                                    <span>Physical Storage Mapping</span>
+                                </div>
+                            </>
                         )}
                     </div>
 
                     {/* Navigation Controls */}
-                    <div className="mt-8 flex flex-col gap-4">
+                    <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4">
+
+                        {
+                            currentStep === 2 && (
+                                <Input label="Store Name" className="mt-4"
+                                    icon={<Store className="w-6 h-6" />}
+                                    register={register}
+                                    registerOptions={{ required: true }}
+                                    error={isDirty ? errors.storeName?.message : undefined}
+                                    name="storeName"
+                                />
+                            )
+                        }
                         <button
-                            onClick={handleNext}
+                            type={currentStep === 2 ? "submit" : "button"}
                             disabled={isLoading}
+                            onClick={currentStep === 2 ? undefined : handleNext}
                             className={`
                 w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2
                 transition-all duration-300 transform active:scale-95 shadow-md hover:shadow-lg
@@ -175,7 +208,7 @@ export default function Onboarding() {
                                 />
                             ))}
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
