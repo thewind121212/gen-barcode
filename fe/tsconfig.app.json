@@ -22,7 +22,6 @@
     "paths": {
       "@Jade/*": ["*"]
     },
-    "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true
   },
   "include": [
