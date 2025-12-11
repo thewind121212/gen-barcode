@@ -54,7 +54,7 @@ export class StoreService {
       return { storeId: store.id.toString(), error: null };
     }
     catch (error) {
-      UnitLogger(LogType.SERVICE, "Store Create:", LogLevel.ERROR, (error as Error).message);
+      UnitLogger(LogType.SERVICE, "<Store Create>", LogLevel.ERROR, (error as Error).message);
       return { storeId: undefined, error: (error as Error).message };
     }
   }

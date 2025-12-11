@@ -1,12 +1,12 @@
 import { env } from "@Ciri/core/env";
 import pino from "pino";
-import { CaptureSentryException, CaptureSentryMessage } from "@Ciri/sentry/init";
+import { CaptureSentryMessage } from "@Ciri/sentry/init";
 
 export enum LogType {
-  INFRASTRUCTURE = "Infrastructure:",
-  REPO = "Repository:",
-  SERVICE = "Service:",
-  ROUTER = "Router:",
+  INFRASTRUCTURE = "Infrastructure",
+  REPO = "Repository",
+  SERVICE = "Service",
+  ROUTER = "Router",
 }
 
 export enum LogLevel {
@@ -43,9 +43,10 @@ export function GeneralLogger(type: LogType, logLevel: LogLevel, message: string
     InitPinoLogger();
   }
   if (pinoLogger && pinoLogger[logLevel]) {
-    pinoLogger[logLevel](`${type} ${message}`);
+    const errorMessage = `${type} ${message}`;
+    pinoLogger[logLevel](errorMessage);
     if (logLevel === LogLevel.ERROR) {
-      CaptureSentryMessage(message, "error");
+      CaptureSentryMessage(errorMessage, "error");
     }
   }
 }
@@ -57,9 +58,10 @@ export function UnitLogger(unitType: LogType, unitName: string, logLevel: LogLev
     InitPinoLogger();
   }
   if (pinoLogger && pinoLogger[logLevel]) {
-    pinoLogger[logLevel](`${unitType}-${unitName} ${message}`);
+    const errorMessage = `${unitType}<-${unitName}: ${message}`;
+    pinoLogger[logLevel](errorMessage);
     if (logLevel === LogLevel.ERROR) {
-      CaptureSentryMessage(message, "error");
+      CaptureSentryMessage(errorMessage, "error");
     }
   }
 }

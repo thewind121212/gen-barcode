@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
+import { env } from "@Ciri/core/env";
 
 const dsn = process.env.SENTRY_DSN;
 let isInitialized = false;
@@ -22,6 +23,7 @@ function ensureSentryInitialized() {
   Sentry.init({
     dsn,
     tracesSampleRate: 1.0,
+    environment: env.ENVIRONMENT,
   });
 
   isEnabled = true;
@@ -56,7 +58,7 @@ export function CaptureSentryException(
 
 export function CaptureSentryMessage(
   message: string,
-  level: Sentry.SeverityLevel = "info"
+  level: Sentry.SeverityLevel = "info",
 ) {
   ensureSentryInitialized();
   if (!isEnabled) return;
