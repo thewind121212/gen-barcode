@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Generator from "@Jade/components/Generator";
 import OnboardingComponent from "@Jade/components/Onboarding";
 import { Sidebar } from "@Jade/components/nav-bar/net";
+import CategoriesView from "@Jade/core-design/category/category";
 
 import * as reactRouterDom from "react-router-dom";
 
@@ -41,7 +42,22 @@ function ProtectedLayout() {
   return (
     <SessionAuth>
       <QueryClientProvider client={queryClient}>
-        <Toaster position="bottom-right" reverseOrder={false} />
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            className: `
+              [--toast-bg:#ffffff] [--toast-fg:#0f172a] [--toast-border:#e2e8f0]
+              dark:[--toast-bg:#0f172a] dark:[--toast-fg:#e2e8f0] dark:[--toast-border:#1f2937]
+            `,
+            style: {
+              background: "var(--toast-bg)",
+              color: "var(--toast-fg)",
+              border: "1px solid var(--toast-border)",
+              boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.15)",
+            },
+          }}
+        />
         {!isOnboarding && <Sidebar
           setActiveTab={() => { }}
           onSignOut={() => { }}
@@ -67,6 +83,7 @@ function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<Generator />} />
             <Route path="/barcode-generator" element={<Generator />} />
+            <Route path="/categories" element={<CategoriesView />} />
             <Route path="/inventory" element={<OnboardingComponent />} />
             <Route path="/printer" element={<Generator />} />
             <Route path="/settings" element={<Generator />} />
