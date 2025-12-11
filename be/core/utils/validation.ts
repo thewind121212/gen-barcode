@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ZodType } from "zod/v4";
 
-import { ErrorResponses } from "@Ciri/utils/error-response";
+import { ErrorResponses } from "@Ciri/core/utils/error-response";
 
 /**
  * Validate `req.body` against a Zod schema.

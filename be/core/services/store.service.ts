@@ -1,5 +1,5 @@
+import type { CreateStoreRequestBody, CreateStoreResponseServices } from "@Ciri/core/api/store/store.routes";
 import type { RequestContext } from "@Ciri/core/middlewares";
-import type { CreateStoreRequest, CreateStoreResponse } from "@Ciri/types/store.d";
 
 import { env } from "@Ciri/core/env";
 import { StorageRepository } from "@Ciri/core/repo/storage.repo";
@@ -7,10 +7,6 @@ import { StoreMemberRepository } from "@Ciri/core/repo/store-member.repo";
 import { StoreRepository } from "@Ciri/core/repo/store.repo";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
 import { StoreRole } from "@Ciri/generated/prisma/enums.js";
-
-type CreateStoreResponseServices = CreateStoreResponse & {
-  error: string | null;
-};
 
 export class StoreService {
   private storeRepo: StoreRepository;
@@ -27,7 +23,7 @@ export class StoreService {
     return await this.storeRepo.getStoreEnrolledByUserId(userId);
   }
 
-  async CreateStore(ctx: RequestContext, req: CreateStoreRequest): Promise<CreateStoreResponseServices> {
+  async CreateStore(ctx: RequestContext, req: CreateStoreRequestBody): Promise<CreateStoreResponseServices> {
     try {
       const { userId } = ctx;
       if (!userId) {
