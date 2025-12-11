@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import protobuf from "protobufjs";
 
-interface RpcMethod {
+export interface RpcMethod {
   name: string;
   requestType: string;
   responseType: string;
@@ -46,7 +46,7 @@ const loadApiVersionConfig = (protoDir: string): ApiVersionConfig | null => {
   }
 };
 
-const extractRpcMethods = (namespace: protobuf.Namespace, packageName: string): RpcMethod[] => {
+export const extractRpcMethods = (namespace: protobuf.Namespace, packageName: string): RpcMethod[] => {
   const methods: RpcMethod[] = [];
 
   namespace.nestedArray.forEach((nested) => {
