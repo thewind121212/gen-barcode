@@ -17,8 +17,31 @@ const extractRpcMethods = (namespace: protobuf.Namespace, packageName: string): 
     if (nested instanceof protobuf.Service) {
       nested.methodsArray.forEach((method) => {
         // Parse HTTP options from the method
-        const options = method.toJSON()?.options || {};
-        const httpOption = options["(google.api.http)"] || {};
+        const json = typeof method.toJSON === "function" ? method.toJSON() : {};
+        const options = (json as any).options || {};
+
+        let httpOption: { post?: string; get?: string } = {};
+
+        if (Array.isArray((json as any).parsedOptions)) {
+          for (const entry of (json as any).parsedOptions as any[]) {
+            if (entry["(google.api.http)"]) {
+              httpOption = entry["(google.api.http)"];
+              break;
+            }
+          }
+        }
+
+        // Fallback: reconstruct from flattened option keys if parsedOptions is missing
+        if (!httpOption.post && !httpOption.get) {
+          const flatPost = options["(google.api.http).post"];
+          const flatGet = options["(google.api.http).get"];
+          if (flatPost) {
+            httpOption.post = flatPost;
+          }
+          if (flatGet) {
+            httpOption.get = flatGet;
+          }
+        }
 
         let httpMethod: "post" | "get" = "post";
         let httpPath = `/${packageName}/${method.name}`;
@@ -52,6 +75,14 @@ const extractRpcMethods = (namespace: protobuf.Namespace, packageName: string): 
 // Convert PascalCase to camelCase
 const toCamelCase = (str: string): string => {
   return str.charAt(0).toLowerCase() + str.slice(1);
+};
+
+// Convert PascalCase / camelCase to kebab-case
+const toKebabCase = (str: string): string => {
+  return str
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[\s_]+/g, "-")
+    .toLowerCase();
 };
 
 // Generate Frontend API file
@@ -150,8 +181,6 @@ const generateFrontendUseQuery = (methods: RpcMethod[], packageName: string): st
     .filter(Boolean)
     .join(", ");
 
-  console.log(reactQueryImports);
-
   let output = `// this is code generated usequery for api
 import { ${reactQueryImports} } from "@tanstack/react-query";
 import type { ${importTypes} } from "@Jade/types/${packageName}.d";
@@ -176,7 +205,6 @@ import {
 
 `;
     } else {
-      // GET method - use useQuery
       output += `export const ${hookName} = (request: ${method.requestType}, options?: { enabled?: boolean }) => {
     return useQuery<${method.responseType}, Error>({
         queryKey: ["${packageName}", "${method.name}", request],
@@ -222,18 +250,26 @@ const generateBackendRoutes = (methods: RpcMethod[], packageName: string): strin
   const serviceName = packageName.charAt(0).toUpperCase() + packageName.slice(1) + "Service";
   const serviceFileName = `${packageName}.service`;
 
-  // Collect all response types and schema imports
+  // Collect all response types
   const responseTypes = methods.map((m) => m.responseType);
-  const schemaImports = methods.map((m) => `${toCamelCase(m.name)}Schema`);
 
   let output = `import type { z } from "zod";
 
 import express from "express";
 
 import type { ${responseTypes.join(", ")} } from "@Ciri/types/${packageName}";
+`;
 
-import { ${schemaImports.join(", ")} } from "@Ciri/core/dto/${packageName}.dto";
-import { getContext } from "@Ciri/core/middlewares";
+  // Import each schema from its own DTO file (one file per method)
+  methods.forEach((method) => {
+    const schemaName = `${toCamelCase(method.name)}Schema`;
+    const dtoImportPath = `@Ciri/core/dto/${packageName}/${toKebabCase(method.name)}.dto`;
+    output += `
+import { ${schemaName} } from "${dtoImportPath}";
+`;
+  });
+
+  output += `import { getContext } from "@Ciri/core/middlewares";
 import { ${serviceName} } from "@Ciri/core/services/${serviceFileName}";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
@@ -248,7 +284,12 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
   methods.forEach((method) => {
     const schemaName = `${toCamelCase(method.name)}Schema`;
     const typeName = `${method.name}RequestBody`;
-    output += `type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
+    let responseServicesName = `${toCamelCase(method.name)}ResponseServices`;
+    responseServicesName = responseServicesName.charAt(0).toUpperCase() + responseServicesName.slice(1);
+    output += `export type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
+    output += `export type ${responseServicesName} = ${method.responseType} & {
+      error: string | null;
+    };\n`;
   });
 
   output += "\n";
@@ -353,7 +394,7 @@ export const GenerateApi = (
   // Backend paths
   const beRoutesDir = path.join(rootDir, "be", "core", "api", packageName);
   const beRoutesPath = path.join(beRoutesDir, `${packageName}.routes.ts`);
-  const beDtoPath = path.join(rootDir, "be", "core", "dto", `${packageName}.dto.ts`);
+  const beDtoDir = path.join(rootDir, "be", "core", "dto", packageName);
 
   // Ensure directories exist
   if (!fs.existsSync(feServicesDir)) {
@@ -362,9 +403,8 @@ export const GenerateApi = (
   if (!fs.existsSync(beRoutesDir)) {
     fs.mkdirSync(beRoutesDir, { recursive: true });
   }
-  const dtoDir = path.dirname(beDtoPath);
-  if (!fs.existsSync(dtoDir)) {
-    fs.mkdirSync(dtoDir, { recursive: true });
+  if (!fs.existsSync(beDtoDir)) {
+    fs.mkdirSync(beDtoDir, { recursive: true });
   }
 
   // Generate and write frontend files (always replace)
@@ -376,19 +416,35 @@ export const GenerateApi = (
 
   // Generate and write backend files (always replace)
   const beRoutesContent = generateBackendRoutes(methods, packageName);
-  const beDtoContent = generateBackendDto(methods, packageName);
-
   fs.writeFileSync(beRoutesPath, beRoutesContent);
+
+  // Generate one DTO file per RPC method.
+  // If a DTO file already exists for a method, we DO NOT overwrite it.
+  methods.forEach((method) => {
+    const schemaName = `${toCamelCase(method.name)}Schema`;
+    const dtoName = `${method.name}Dto`;
+    const dtoFileName = `${toKebabCase(method.name)}.dto.ts`;
+    const dtoPath = path.join(beDtoDir, dtoFileName);
+
+    const dtoContent = `import { z } from "zod/v4";
+
+// Schema used to validate the ${toCamelCase(method.name)} request body
+export const ${schemaName} = z.object({
+  // TODO: Add validation rules
+});
+
+// Inferred TypeScript DTO type for codegen / services
+export type ${dtoName} = z.infer<typeof ${schemaName}>;
+`;
+
+    if (!fs.existsSync(dtoPath)) {
+      fs.writeFileSync(dtoPath, dtoContent);
+    }
+  });
 
   console.log("\n📡 API Generation:");
   console.log(`✅ Frontend API: ${feApiPath}`);
   console.log(`✅ Frontend Hooks: ${feUseQueryPath}`);
   console.log(`✅ Backend Routes: ${beRoutesPath}`);
-  if (fs.existsSync(beDtoPath)) {
-    console.log(`↩️ Backend DTO exists, not overwritten: ${beDtoPath}`);
-  }
-  else {
-    fs.writeFileSync(beDtoPath, beDtoContent);
-    console.log(`✅ Backend DTO: ${beDtoPath}`);
-  }
+  console.log(`✅ Backend DTOs dir: ${beDtoDir}`);
 };

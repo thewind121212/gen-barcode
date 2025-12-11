@@ -4,7 +4,7 @@ import express from "express";
 
 import type { CreateStoreResponse } from "@Ciri/types/store";
 
-import { createStoreSchema } from "@Ciri/core/dto/store.dto";
+import { createStoreSchema } from "@Ciri/core/dto/store/create-store.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { StoreService } from "@Ciri/core/services/store.service";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
@@ -14,7 +14,10 @@ import { getValidatedBody, validateBody } from "@Ciri/core/utils/validation";
 const router = express.Router();
 const storeService = new StoreService();
 
-type CreateStoreRequestBody = z.infer<typeof createStoreSchema>;
+export type CreateStoreRequestBody = z.infer<typeof createStoreSchema>;
+export type CreateStoreResponseServices = CreateStoreResponse & {
+      error: string | null;
+    };
 
 router.post(
   "/createStore",
