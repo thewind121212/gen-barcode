@@ -77,6 +77,14 @@ const toCamelCase = (str: string): string => {
   return str.charAt(0).toLowerCase() + str.slice(1);
 };
 
+// Convert PascalCase / camelCase to kebab-case
+const toKebabCase = (str: string): string => {
+  return str
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[\s_]+/g, "-")
+    .toLowerCase();
+};
+
 // Generate Frontend API file
 const generateFrontendApi = (methods: RpcMethod[], packageName: string): string => {
   const imports = new Set<string>();
@@ -255,7 +263,7 @@ import type { ${responseTypes.join(", ")} } from "@Ciri/types/${packageName}";
   // Import each schema from its own DTO file (one file per method)
   methods.forEach((method) => {
     const schemaName = `${toCamelCase(method.name)}Schema`;
-    const dtoImportPath = `@Ciri/core/dto/${packageName}/${toCamelCase(method.name)}.dto`;
+    const dtoImportPath = `@Ciri/core/dto/${packageName}/${toKebabCase(method.name)}.dto`;
     output += `
 import { ${schemaName} } from "${dtoImportPath}";
 `;
@@ -276,8 +284,10 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
   methods.forEach((method) => {
     const schemaName = `${toCamelCase(method.name)}Schema`;
     const typeName = `${method.name}RequestBody`;
+    let responseServicesName = `${toCamelCase(method.name)}ResponseServices`;
+    responseServicesName = responseServicesName.charAt(0).toUpperCase() + responseServicesName.slice(1);
     output += `export type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
-    output += `export type ${typeName}ResponseServices = ${method.responseType} & {
+    output += `export type ${responseServicesName} = ${method.responseType} & {
       error: string | null;
     };\n`;
   });
@@ -413,7 +423,7 @@ export const GenerateApi = (
   methods.forEach((method) => {
     const schemaName = `${toCamelCase(method.name)}Schema`;
     const dtoName = `${method.name}Dto`;
-    const dtoFileName = `${toCamelCase(method.name)}.dto.ts`;
+    const dtoFileName = `${toKebabCase(method.name)}.dto.ts`;
     const dtoPath = path.join(beDtoDir, dtoFileName);
 
     const dtoContent = `import { z } from "zod/v4";
