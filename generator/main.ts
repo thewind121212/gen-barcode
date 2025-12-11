@@ -4,6 +4,7 @@ import protobuf from "protobufjs";
 import { fileURLToPath } from "url";
 import { GenerateFileTypeScript } from "./gen-types";
 import { GenerateApi } from "./gen-api";
+import { GenerateOpenApi } from "./gen-openapi";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -121,6 +122,12 @@ GenerateFileTypeScript(pkg, packageName, protoDir);
 
 // Generate API files (routes, services, frontend api, hooks)
 GenerateApi(pkg, packageName, protoDir, {
+  testMode,
+  outputDir: testMode ? "./temp" : undefined,
+});
+
+// Generate OpenAPI 3.0 (Swagger) specification
+GenerateOpenApi(root, pkg, packageName, protoDir, {
   testMode,
   outputDir: testMode ? "./temp" : undefined,
 });

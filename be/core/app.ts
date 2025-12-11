@@ -6,6 +6,7 @@ import supertokens from "supertokens-node";
 import { errorHandler, middleware } from "supertokens-node/framework/express";
 import EmailPassword from "supertokens-node/recipe/emailpassword";
 import Session from "supertokens-node/recipe/session";
+import {InitSentry} from "@Ciri/sentry/init";
 
 import type MessageResponse from "@Ciri/core/interfaces/message-response";
 
@@ -76,6 +77,8 @@ app.use(
 
 app.use(middleware());
 app.use(errorHandler());
+
+InitSentry();
 
 app.get<object, MessageResponse>("/ping", (_req, res) => {
   res.json({

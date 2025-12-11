@@ -36,7 +36,7 @@ export class StoreService {
 
       const storeEnrolled = await this.getStoreEnrolledByUserId(userId);
       if (storeEnrolled >= env.MAX_STORE_BY_USER) {
-        throw new Error("User has reached the maximum number of stores");
+        return { storeId: undefined, error: "User has reached the maximum number of stores" };
       }
 
       await this.storeMemberRepo.create({
@@ -54,7 +54,7 @@ export class StoreService {
       return { storeId: store.id.toString(), error: null };
     }
     catch (error) {
-      UnitLogger(LogType.SERVICE, "Store Create:", LogLevel.ERROR, (error as Error).message);
+      UnitLogger(LogType.SERVICE, "<Store Create>", LogLevel.ERROR, (error as Error).message);
       return { storeId: undefined, error: (error as Error).message };
     }
   }
