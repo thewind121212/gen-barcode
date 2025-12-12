@@ -10,6 +10,7 @@ import Generator from "@Jade/components/Generator";
 import OnboardingComponent from "@Jade/components/Onboarding";
 import { Sidebar } from "@Jade/components/nav-bar/net";
 import CategoriesView from "@Jade/core-design/category/category";
+import CategoriesView2 from "@Jade/core-design/category/category2";
 
 import * as reactRouterDom from "react-router-dom";
 
@@ -63,7 +64,7 @@ function ProtectedLayout() {
           onSignOut={() => { }}
           isSigningOut={false}
         />}
-        <div className="ml-20">
+        <div className="ml-20 p-20 pt-4">
           <Outlet />
         </div>
       </QueryClientProvider>
@@ -83,7 +84,7 @@ function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<Generator />} />
             <Route path="/barcode-generator" element={<Generator />} />
-            <Route path="/categories" element={<CategoriesView />} />
+            <Route path="/categories" element={<CategoriesView2 />} />
             <Route path="/inventory" element={<OnboardingComponent />} />
             <Route path="/printer" element={<Generator />} />
             <Route path="/settings" element={<Generator />} />

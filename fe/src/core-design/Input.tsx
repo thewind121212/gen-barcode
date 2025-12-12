@@ -67,8 +67,6 @@ const Input = ({ label, icon, error, success, className, register, registerOptio
             text-sm
             font-semibold
             transition-all
-            text-slate-500
-            dark:text-slate-300
             duration-200
             pointer-events-none
             bg-white dark:bg-slate-900
