@@ -64,7 +64,7 @@ export async function handlerCheckToken(req: Request, res: Response<ErrorRespons
     next();
   }
   catch (error) {
-    ErrorResponses.unauthorized(res, "Invalid or expired token");
+    ErrorResponses.unauthorized(res, (error as Error).message);
   }
 }
 
