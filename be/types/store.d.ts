@@ -7,4 +7,19 @@ export interface CreateStoreRequest {
 export interface CreateStoreResponse {
   storeId?: string;
 }
+
+export interface GetUserInfoRequest {
+  userId: string;
+}
+
+export interface StoreInfo {
+  id: string;
+  name: string;
+}
+
+export interface GetUserInfoResponse {
+  email?: string;
+  name?: string;
+  storeInfos: StoreInfo[];
+}
 //==================================================

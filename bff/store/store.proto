@@ -15,11 +15,32 @@ message CreateStoreResponse {
   optional string store_id = 1;
 }
 
+message GetUserInfoRequest {
+  string user_id = 1;
+}
+
+message StoreInfo {
+  string id = 1;
+  string name = 2;
+}
+
+message GetUserInfoResponse {
+  optional string email = 1;
+  optional string name = 2;
+  repeated StoreInfo store_infos = 3;
+}
+
 
 service UserService {
   rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse) {
     option (google.api.http) = {
       post: "/v1/store/CreateStore"
+      body: "*"
+    };
+  }
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse) {
+    option (google.api.http) = {
+      post: "/v1/store/GetUserInfo"
       body: "*"
     };
   }

@@ -13,16 +13,15 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
+import UserMenu from '@Jade/components/nav-bar/user';
 
 interface SidebarProps {
     setActiveTab: (tab: string) => void;
     onSignOut: () => void;
-    isSigningOut: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-    onSignOut,
-    isSigningOut
+    onSignOut
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
@@ -164,14 +163,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         </div>
                     </div>
                 ) : (
-                    <button
+                    <div
                         onClick={onSignOut}
-                        disabled={isSigningOut}
-                        className="p-3 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/20 dark:hover:text-red-400 dark:hover:border-red-500/40 transition-all shadow-sm dark:shadow-none group"
+                        className="p-3"
                         title="Đăng xuất"
                     >
-                        <span className="font-bold text-transparent bg-clip-text bg-linear-to-tr from-blue-500 to-purple-500">AD</span>
-                    </button>
+                        <UserMenu />
+                    </div>
                 )}
             </div>
         </aside>

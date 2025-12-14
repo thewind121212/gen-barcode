@@ -227,7 +227,7 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
         : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\``;
 
       output += `export const ${funcName} = async (request: ${method.requestType}): Promise<${method.responseType}> => {
-  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
+  const params = new URLSearchParams(request as Record<string, string>).toString();
   const response = await fetch(${urlTemplate}, {
     method: "GET",
     headers: {
@@ -283,6 +283,12 @@ import {
     ${apiImports.join(",\n    ")},
 } from "./api";
 
+type ApiSuccessResponse<T> = {
+  success: true;
+  data: T;
+  timestamp: string;
+};
+
 `;
 
   methods.forEach((method) => {
@@ -290,10 +296,10 @@ import {
     const hookName = `use${method.name}`;
 
     if (method.httpMethod === "post") {
-      output += `export const ${hookName} = ({ onSuccess, onError }: { onSuccess?: (data: ${method.responseType}) => void, onError?: (error: Error) => void }) => {
+      output += `export const ${hookName} = ({ onSuccess, onError }: { onSuccess?: (data: ApiSuccessResponse<${method.responseType}>) => void, onError?: (error: Error) => void }) => {
     return useMutation<${method.responseType}, Error, ${method.requestType}>({
         mutationFn: (request: ${method.requestType}) => ${funcName}(request),
-        onSuccess: (data) => onSuccess?.(data),
+        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<${method.responseType}>),
         onError: (error) => onError?.(error),
     });
 };
