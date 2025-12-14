@@ -62,7 +62,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick);
     };
-  }, [openState]);
+  }, [openState, handleClose]);
 
   return (
     <div className="relative" ref={containerRef}>
