@@ -3,7 +3,7 @@ import { ArrowRight, Box, Check, Layers, Loader2, ScanBarcode, Store, Warehouse 
 import { useEffect, useState } from 'react';
 import { toast } from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
-import Input from '@Jade/core-design/Input.tsx';
+import Input from '@Jade/core-design/input/CommonInput';
 import { useForm, type SubmitHandler } from "react-hook-form"
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
@@ -106,7 +106,7 @@ export default function Onboarding() {
 
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center p-4 font-sans">
+        <div className="bg-white dark:bg-gray-950 flex items-center justify-center font-sans h-full" >
             <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl shadow-2xl dark:shadow-none overflow-hidden border border-gray-100 dark:border-gray-800 relative">
 
                 {/* Progress Bar */}
