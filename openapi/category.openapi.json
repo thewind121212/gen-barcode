@@ -1,0 +1,201 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "category API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/category/CreateCategory": {
+      "post": {
+        "operationId": "CreateCategory",
+        "summary": "CreateCategory",
+        "tags": [
+          "category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCategoryResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/category/GetCategory": {
+      "get": {
+        "operationId": "GetCategory",
+        "summary": "GetCategory",
+        "tags": [
+          "category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetCategoryResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/category/RemoveCategory": {
+      "post": {
+        "operationId": "RemoveCategory",
+        "summary": "RemoveCategory",
+        "tags": [
+          "category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveCategoryResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveCategoryRequest"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "layer": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "layer"
+        ]
+      },
+      "CreateCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string"
+          }
+        }
+      },
+      "GetCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colorSettings": {
+            "type": "string"
+          },
+          "layer": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "subCategoriesCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "categoryId"
+        ]
+      },
+      "RemoveCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RemoveCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "removedCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "removedCount"
+        ]
+      }
+    }
+  }
+}

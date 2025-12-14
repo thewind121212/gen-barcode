@@ -227,7 +227,7 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
         : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\``;
 
       output += `export const ${funcName} = async (request: ${method.requestType}): Promise<${method.responseType}> => {
-  const params = new URLSearchParams(request as Record<string, string>).toString();
+  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
   const response = await fetch(${urlTemplate}, {
     method: "GET",
     headers: {

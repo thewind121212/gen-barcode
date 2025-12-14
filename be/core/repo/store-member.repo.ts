@@ -1,6 +1,6 @@
 import prisma from "@Ciri/core/prisma";
 
-import type { Prisma } from "../../generated/prisma/client.js";
+import type { Prisma } from "@Ciri/generated/prisma/client";
 
 export class StoreMemberRepository {
   async create(data: Prisma.StoreMemberCreateInput) {
@@ -9,7 +9,7 @@ export class StoreMemberRepository {
     });
   }
 
-  async findByStoreId(storeId: number) {
+  async findByStoreId(storeId: string) {
     return prisma.storeMember.findMany({
       where: { storeId },
     });

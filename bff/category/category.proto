@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "api/models;models";
+
+package category;
+
+
+message CreateCategoryRequest {
+    string name = 1;
+    option string parent_id = 2;
+    option string colorSettings = 3;
+    string layer = 4;
+    optional string description = 5;
+}
+
+
+message CreateCategoryResponse {
+    optional string category_id = 1;
+}
+
+message GetCategoryResponse {
+  optional string category_id = 1;
+  optional string name = 2;
+  optional string parent_id = 3;
+  optional string description = 4;
+  optional string colorSettings = 5;
+  optional string layer = 6;
+  optional string imageUrl = 7;
+  optional int32 sub_categories_count = 8;
+}
+
+message GetCategoryRequest {
+  string category_id = 1;
+}
+
+message RemoveCategoryRequest {
+  repeated string category_ids = 1;
+}
+
+message RemoveCategoryResponse {
+  int32 removed_count = 1;
+}
+
+service UserService {
+  rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse) {
+    option (google.api.http) = {
+      post: "/v1/category/CreateCategory"
+      body: "*"
+    };
+  }
+  rpc GetCategory(GetCategoryRequest) returns (GetCategoryResponse) {
+    option (google.api.http) = {
+      get: "/v1/category/GetCategory"
+      body: "*"
+    };
+  }
+  rpc RemoveCategory(RemoveCategoryRequest) returns (RemoveCategoryResponse) {
+    option (google.api.http) = {
+      post: "/v1/category/RemoveCategory"
+      body: "*"
+    };
+  }
+}
