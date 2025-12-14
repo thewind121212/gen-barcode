@@ -89,10 +89,10 @@ export default function LoadingScreen() {
     }, [progress]);
     return (
         !isAppInitialized ? (
-            <div className="h-screen w-full bg-gray-50 flex flex-col items-center justify-center overflow-hidden font-sans fixed top-0 left-0 z-9999" >
+            <div className="h-screen w-full bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center overflow-hidden font-sans fixed top-0 left-0 z-9999" >
 
-                <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-60 pointer-events-none mix-blend-multiply"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-purple-100 rounded-full blur-[120px] opacity-60 pointer-events-none mix-blend-multiply"></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-100 dark:bg-blue-900/40 rounded-full blur-[120px] opacity-60 pointer-events-none mix-blend-multiply"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-purple-100 dark:bg-purple-900/40 rounded-full blur-[120px] opacity-60 pointer-events-none mix-blend-multiply"></div>
 
                 <div className="z-10 flex flex-col items-center">
                     <div className="relative mb-12">
@@ -107,28 +107,28 @@ export default function LoadingScreen() {
 
                     {!errorMessage ? (
                         <div className="flex flex-col items-center gap-4 w-64">
-                            <h2 className="text-xl font-semibold text-slate-800 tracking-tight animate-fade-in transition-all duration-300">
+                            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight animate-fade-in transition-all duration-300">
                                 {loadingText}
                                 <span className="animate-pulse">...</span>
                             </h2>
 
-                            <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden backdrop-blur-sm">
+                            <div className="h-1.5 w-full bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden backdrop-blur-sm">
                                 <div
-                                    className="h-full bg-linear-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                                    className="h-full bg-linear-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)] dark:shadow-[0_0_12px_rgba(99,102,241,0.35)]"
                                     style={{ width: `${progress}%` }}
                                 ></div>
                             </div>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center gap-5 animate-in slide-in-from-bottom-2 fade-in duration-300">
-                            <div className="flex items-center gap-2 text-red-500 bg-red-50 px-4 py-2 rounded-full border border-red-100">
+                            <div className="flex items-center gap-2 text-red-500 dark:text-red-300 bg-red-50 dark:bg-red-900/40 px-4 py-2 rounded-full border border-red-100 dark:border-red-800/60">
                                 <AlertCircle size={18} />
                                 <span className="text-sm font-medium">Unable to connect</span>
                             </div>
 
                             <button
                                 onClick={handlerFetchUserInfo}
-                                className="group flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-xl"
+                                className="group flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-xl dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
                             >
                                 <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
                                 <span>Try Again</span>
