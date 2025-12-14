@@ -16,8 +16,8 @@ const storeService = new StoreService();
 
 export type CreateStoreRequestBody = z.infer<typeof createStoreSchema>;
 export type CreateStoreResponseServices = CreateStoreResponse & {
-      error: string | null;
-    };
+  error: string | null;
+};
 
 router.post(
   "/CreateStore",
