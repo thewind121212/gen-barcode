@@ -51,7 +51,7 @@ export class StoreService {
         capacity: 100,
       });
 
-      return { storeId: store.id.toString(), error: null };
+      return { storeId: store.id, error: null };
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "<Store Create>", LogLevel.ERROR, (error as Error).message);

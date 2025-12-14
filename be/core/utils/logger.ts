@@ -1,5 +1,6 @@
-import { env } from "@Ciri/core/env";
 import pino from "pino";
+
+import { env } from "@Ciri/core/env";
 import { CaptureSentryMessage } from "@Ciri/sentry/init";
 
 export enum LogType {

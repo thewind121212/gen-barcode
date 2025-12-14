@@ -1,14 +1,33 @@
 import type { NextFunction, Request, Response } from "express";
-
 import Session from "supertokens-node/recipe/session";
-
+import { ErrorResponses } from "@Ciri/core/utils/error-response";
 import type ErrorResponse from "@Ciri/core/interfaces/error-response";
-
-import { env } from "@Ciri/core/env";
+import { guardStoreid } from "@Ciri/config";
 
 export type RequestContext = {
   userId: string;
+  storeId?: string;
 };
+
+
+function extractStoreId(req: Request): string | undefined {
+  const fromBody = typeof req.body?.storeId === "string" ? req.body.storeId : undefined;
+  if (fromBody) return fromBody;
+
+  const fromQuery = typeof req.query?.storeId === "string" ? req.query.storeId : undefined;
+  if (fromQuery) return fromQuery;
+
+  const fromParams = typeof req.params?.storeId === "string" ? req.params.storeId : undefined;
+  return fromParams;
+}
+
+export function guardHaveStoreId(route: string): boolean {
+  const topic = route.split('/')[1];
+  if (guardStoreid.includes(topic)) {
+    return true;
+  }
+  return false;
+}
 
 type RequestWithContext = {
   context: RequestContext;
@@ -24,26 +43,28 @@ export async function handlerCheckToken(req: Request, res: Response<ErrorRespons
   try {
     const session = await Session.getSession(req, res, { sessionRequired: false });
     if (!session) {
-      res.status(401).json({
-        message: "Your Request Is Not Auth",
-        stack: env.NODE_ENV === "production" ? "🥞" : undefined,
-      });
+      ErrorResponses.unauthorized(res, "Your Request Is Not Auth");
       return; // Stop execution here
     }
 
-    // Attach context for downstream handlers (can be extended later)
+    if (guardHaveStoreId(req.path)) {
+      const storeId = extractStoreId(req);
+      if (!storeId) {
+        ErrorResponses.badRequest(res, "storeId is missing");
+        return;
+      }
+    }
+
     (req as RequestWithContext).context = {
       userId: session.getUserId(),
+      storeId: extractStoreId(req),
     };
 
     // Session is valid, continue to next middleware
     next();
   }
   catch (error) {
-    res.status(401).json({
-      message: "Invalid or expired token",
-      stack: env.NODE_ENV === "production" ? "🥞" : (error as Error).stack,
-    });
+    ErrorResponses.unauthorized(res, (error as Error).message);
   }
 }
 
@@ -55,8 +76,5 @@ export function getContext(req: Request): RequestContext {
 export async function errorHandler(err: Error, _req: Request, res: Response<ErrorResponse>, _next: NextFunction) {
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
   res.status(statusCode);
-  res.json({
-    message: err.message,
-    stack: env.NODE_ENV === "production" ? "🥞" : err.stack,
-  });
+  ErrorResponses.internalServerError(res, err.message);
 }

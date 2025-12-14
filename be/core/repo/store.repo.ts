@@ -1,4 +1,4 @@
-import type { Prisma } from "@Ciri/generated/prisma/client.js";
+import type { Prisma } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
 
@@ -9,20 +9,20 @@ export class StoreRepository {
     });
   }
 
-  async update(id: number, data: Prisma.StoreUpdateInput) {
+  async update(id: string, data: Prisma.StoreUpdateInput) {
     return prisma.store.update({
       where: { id },
       data,
     });
   }
 
-  async delete(id: number) {
+  async delete(id: string) {
     return prisma.store.delete({
       where: { id },
     });
   }
 
-  async findById(id: number) {
+  async findById(id: string) {
     return prisma.store.findUnique({
       where: { id },
     });

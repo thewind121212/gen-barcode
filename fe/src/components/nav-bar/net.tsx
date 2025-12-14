@@ -8,7 +8,8 @@ import {
     Package,
     Printer,
     ScanBarcode,
-    Settings
+    Settings,
+    SquareChartGantt
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -35,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'create', label: 'Tạo Mã Vạch', icon: ScanBarcode, url: '/barcode-generator' },
         { id: 'printer', label: 'Kiểm Tra Máy In', icon: Printer, url: '/printer' },
         { id: 'settings', label: 'Cài Đặt', icon: Settings, url: '/settings' },
+        { id: 'category', label: 'Danh Mục', icon: SquareChartGantt, url: '/categories' },
     ];
 
     const isActiveTab = (tab: string) => {
