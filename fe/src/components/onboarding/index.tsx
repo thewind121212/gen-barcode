@@ -106,7 +106,7 @@ export default function Onboarding() {
 
 
     return (
-        <div className="bg-white dark:bg-gray-950 flex items-center justify-center font-sans h-full" >
+        <div className="bg-gray-50 dark:bg-gray-950 flex items-center justify-center font-sans h-full" >
             <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl shadow-2xl dark:shadow-none overflow-hidden border border-gray-100 dark:border-gray-800 relative">
 
                 {/* Progress Bar */}
