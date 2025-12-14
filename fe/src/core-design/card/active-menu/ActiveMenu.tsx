@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { MoreHorizontal } from 'lucide-react';
 
@@ -37,14 +37,15 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
     setLocalOpen((prev) => !prev);
   };
 
-  const handleClose = () => {
+
+  const handleClose = useCallback(() => {
     clearCloseTimer();
     if (typeof isOpen === 'boolean') {
       if (isOpen && onToggle) onToggle();
       return;
     }
     setLocalOpen(false);
-  };
+  }, [clearCloseTimer, isOpen, onToggle]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
@@ -62,7 +63,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('touchstart', handleOutsideClick);
     };
-  }, [openState, handleClose]);
+  }, [openState]);
 
   return (
     <div className="relative" ref={containerRef}>
