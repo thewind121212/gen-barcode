@@ -5,7 +5,6 @@ import express from "express";
 import type { CreateStoreResponse, GetUserInfoResponse } from "@Ciri/types/store";
 
 import { createStoreSchema } from "@Ciri/core/dto/store/create-store.dto";
-
 import { getUserInfoSchema } from "@Ciri/core/dto/store/get-user-info.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { StoreService } from "@Ciri/core/services/store.service";
@@ -18,12 +17,12 @@ const storeService = new StoreService();
 
 export type CreateStoreRequestBody = z.infer<typeof createStoreSchema>;
 export type CreateStoreResponseServices = CreateStoreResponse & {
-      error: string | null;
-    };
+  error: string | null;
+};
 export type GetUserInfoRequestBody = z.infer<typeof getUserInfoSchema>;
 export type GetUserInfoResponseServices = GetUserInfoResponse & {
-      error: string | null;
-    };
+  error: string | null;
+};
 
 router.post(
   "/CreateStore",

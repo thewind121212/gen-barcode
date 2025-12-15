@@ -3,7 +3,7 @@ import { signIn, signUp } from "supertokens-web-js/recipe/emailpassword";
 
 export async function signInWithCallback(email: string, password: string, successCallback: () => void) {
     try {
-        let response = await signIn({
+        const response = await signIn({
             formFields: [{
                 id: "email",
                 value: email
@@ -26,6 +26,7 @@ export async function signInWithCallback(email: string, password: string, succes
         } else {
             successCallback()
         }
+        // eslint-disable-next-line 
     } catch (err: any) {
         if (err.isSuperTokensGeneralError === true) {
             toast.error(err.message);
@@ -37,7 +38,7 @@ export async function signInWithCallback(email: string, password: string, succes
 
 export async function signUpWithCallback(email: string, password: string, successCallback: () => void) {
     try {
-        let response = await signUp({
+        const response = await signUp({
             formFields: [{
                 id: "email",
                 value: email
@@ -60,6 +61,7 @@ export async function signUpWithCallback(email: string, password: string, succes
         } else {
             successCallback()
         }
+        // eslint-disable-next-line 
     } catch (err: any) {
         if (err.isSuperTokensGeneralError === true) {
             toast.error(err.message);

@@ -40,9 +40,9 @@ const signupSchema = yup.object().shape({
 
 export default function LoginSignup() {
   const [isLogin, setIsLogin] = useState<boolean>(true);
-  const [isDark, setIsDark] = useState<boolean>(false);
+  const [isDark, setIsDark] = useState<boolean>(() => localStorage.getItem('theme') === 'dark');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [searchParams, _setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const redirect = searchParams.get('redirectToPath');
   const context = useSessionContext();
@@ -56,26 +56,18 @@ export default function LoginSignup() {
 
 
   useEffect(() => {
-    const isDark = localStorage.getItem('theme') === 'dark';
     const root = document.documentElement;
     if (isDark) {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-    setIsDark(isDark);
-  }, []);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
-    const root = document.documentElement;
-    if (!isDark) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    setIsDark((prev) => !prev);
   }
 
   useEffect(() => {
@@ -84,7 +76,7 @@ export default function LoginSignup() {
       password: '',
       confirmPassword: '',
     });
-  }, [isLogin]);
+  }, [isLogin, reset]);
 
   useEffect(() => {
     if (isContextLoading) return;
