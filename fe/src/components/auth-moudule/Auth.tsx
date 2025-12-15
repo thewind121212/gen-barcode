@@ -1,25 +1,122 @@
-import React, { useState } from 'react';
-import { 
-  Mail, 
-  Lock, 
-  ArrowRight, 
-  Eye, 
-  EyeOff,
-  Moon,
-  Sun,
+import { yupResolver } from "@hookform/resolvers/yup";
+import { signInWithCallback, signUpWithCallback } from '@Jade/components/auth-moudule/actions';
+import CommonButton from '@Jade/core-design/input/CommonButton';
+import Input from '@Jade/core-design/input/CommonInput';
+import PasswordInput from '@Jade/core-design/input/PasswordInput';
+import {
+  ArrowRight,
+  CheckCircle2,
   Layers,
-  CheckCircle2
+  Lock,
+  Mail,
+  Moon,
+  Sun
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useSessionContext } from "supertokens-auth-react/recipe/session";
+import * as yup from "yup";
+import AppLoading from "@Jade/components/loading/AppLoading";
+
+interface SignupForm {
+  email: string;
+  password: string;
+  confirmPassword?: string;
+}
+
+const loginSchema = yup.object().shape({
+  email: yup.string().email('Invalid email').required('Email is required'),
+  password: yup.string().required('Password is required'),
+});
+
+const signupSchema = yup.object().shape({
+  email: yup.string().email('Invalid email').required('Email is required'),
+  password: yup.string().required('Password is required'),
+  confirmPassword: yup.string().required('Confirm password is required').oneOf([yup.ref('password')], 'Passwords must match'),
+});
+
+
 
 export default function LoginSignup() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [isDark, setIsDark] = useState(false);
+  const [isLogin, setIsLogin] = useState<boolean>(true);
+  const [isInitAuthPage, setIsInitAuthPage] = useState<boolean>(true);
+  const [isDark, setIsDark] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [searchParams, _setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const redirect = searchParams.get('redirectToPath');
+  const context = useSessionContext();
 
-  const toggleTheme = () => setIsDark(!isDark);
+  const { register, handleSubmit, formState: { errors, isDirty, isValid }, reset } = useForm<SignupForm>({
+    resolver: yupResolver(isLogin ? loginSchema : signupSchema),
+    defaultValues: { email: '', password: '', confirmPassword: '' },
+  })
+
+
+  useEffect(() => {
+    const isDark = localStorage.getItem('theme') === 'dark';
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    setIsDark(isDark);
+  }, []);
+
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    const root = document.documentElement;
+    if (!isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }
+
+  useEffect(() => {
+    reset({
+      email: '',
+      password: '',
+      confirmPassword: '',
+    });
+  }, [isLogin]);
+
+  useEffect(() => {
+    if (context.loading) return
+    if (context.doesSessionExist) {
+      navigate(redirect || "/", { replace: true });
+    } else {
+      setIsInitAuthPage(false);
+    }
+  }, [context]);
+
+  const successCallback = () => {
+    navigate(redirect || "/", { replace: true });
+    setIsLoading(false);
+  }
+
+  const onSubmit = async (data: SignupForm) => {
+    setIsLoading(true);
+    if (isLogin) {
+      await signInWithCallback(data.email, data.password, successCallback);
+    }
+    else {
+      await signUpWithCallback(data.email, data.password, successCallback);
+    }
+  };
+
+  if (isInitAuthPage) {
+    return <AppLoading isSplashScreen={true} />
+  }
+
+  const onSubmitHandler = handleSubmit(onSubmit);
 
   return (
     <div className={`min-h-screen w-full flex items-center justify-center p-4 transition-colors duration-500 font-sans relative overflow-hidden ${isDark ? 'bg-slate-950' : 'bg-gray-50'}`}>
-      
       {/* --- Custom Animations Styles --- */}
       <style>{`
         @keyframes blob {
@@ -51,28 +148,23 @@ export default function LoginSignup() {
         .stagger-4 { animation-delay: 0.4s; }
       `}</style>
 
-      {/* --- Background Animated Blobs --- */}
       <div className={`absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-20' : 'opacity-60'}`}>
         <div className="absolute top-0 left-1/4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
         <div className="absolute top-0 right-1/4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
         <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Theme Toggle (Floating with hover bounce) */}
-      <button 
+      <button
         onClick={toggleTheme}
         className={`absolute top-6 right-6 p-2.5 rounded-full shadow-lg transition-all duration-300 z-50 hover:scale-110 active:scale-90 ${isDark ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-gray-50'}`}
       >
         {isDark ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
-      {/* Main Container Card - Slide Up on Mount */}
       <div className={`w-full max-w-4xl flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 animate-slide-up ${isDark ? 'shadow-black/50 bg-slate-900' : 'shadow-slate-200 bg-white'}`}>
-        
-        {/* Left Side: Brand Panel (Indigo) */}
+
         <div className="w-full md:w-5/12 bg-indigo-600 relative p-8 md:p-12 flex flex-col justify-between overflow-hidden text-white group">
-          
-          {/* Decorative Pattern */}
+
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
             <div className="absolute top-[-50px] left-[-50px] w-48 h-48 rounded-full border-2 border-white transition-transform duration-700 group-hover:scale-110"></div>
             <div className="absolute bottom-[-50px] right-[-50px] w-64 h-64 rounded-full border-4 border-white transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12"></div>
@@ -106,26 +198,26 @@ export default function LoginSignup() {
           </div>
 
           <div className="relative z-10 mt-12 md:mt-0">
-             {/* Company Information & Footer */}
-             <div className="flex flex-col gap-4 p-4 bg-indigo-700/30 rounded-xl backdrop-blur-sm border border-indigo-500/20 hover:bg-indigo-700/40 transition-colors">
-                <div className="text-xs text-indigo-100/90 leading-relaxed font-medium">
-                  <p>Acme Inc. HQ</p>
-                  <p>12 Innovation Way, Tech City</p>
-                  <p className="mt-1 opacity-75">contact@acmesuite.com</p>
-                </div>
-                <div className="h-px bg-indigo-400/30 w-full"></div>
-                <div className="flex gap-4 text-[10px] font-bold tracking-wide uppercase text-indigo-200">
-                  <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                  <a href="#" className="hover:text-white transition-colors">Terms</a>
-                  <a href="#" className="hover:text-white transition-colors">Help</a>
-                </div>
-             </div>
+            {/* Company Information & Footer */}
+            <div className="flex flex-col gap-4 p-4 bg-indigo-700/30 rounded-xl backdrop-blur-sm border border-indigo-500/20 hover:bg-indigo-700/40 transition-colors">
+              <div className="text-xs text-indigo-100/90 leading-relaxed font-medium">
+                <p>Acme Inc. HQ</p>
+                <p>12 Innovation Way, Tech City</p>
+                <p className="mt-1 opacity-75">contact@acmesuite.com</p>
+              </div>
+              <div className="h-px bg-indigo-400/30 w-full"></div>
+              <div className="flex gap-4 text-[10px] font-bold tracking-wide uppercase text-indigo-200">
+                <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                <a href="#" className="hover:text-white transition-colors">Terms</a>
+                <a href="#" className="hover:text-white transition-colors">Help</a>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Right Side: Form Panel */}
         <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center relative">
-          
+
           <div className="max-w-sm mx-auto w-full">
             <div className="mb-8">
               <h2 className={`text-2xl font-bold mb-2 transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -153,36 +245,46 @@ export default function LoginSignup() {
             </div>
 
             {/* Animated Form Fields */}
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()} key={isLogin ? 'login' : 'signup'}>
-              
+            <form className="space-y-4" onSubmit={onSubmitHandler} key={isLogin ? 'login' : 'signup'}>
+
               <div className="animate-slide-up stagger-1">
-                <ThemeInput 
-                  placeholder="Email Address" 
-                  icon={Mail} 
-                  type="email" 
-                  isDark={isDark}
+                <Input
+                  label="Email"
+                  placeholder="Email"
+                  icon={<Mail className="w-6 h-6 pt-1" />}
+                  name="email"
+                  register={register}
+                  registerOptions={{ required: true }}
+                  error={isDirty ? errors.email?.message : undefined}
+                  expandOnError={false}
                 />
               </div>
-              
+
               <div className="animate-slide-up stagger-2">
-                <ThemeInput 
-                  placeholder="Password" 
-                  icon={Lock} 
-                  type="password" 
-                  isPassword
-                  isDark={isDark}
+                <PasswordInput
+                  label="Password"
+                  placeholder="Password"
+                  icon={<Lock className="w-6 h-6 pt-1" />}
+                  name="password"
+                  register={register}
+                  registerOptions={{ required: true }}
+                  error={isDirty ? errors.password?.message : undefined}
+                  expandOnError={false}
                 />
               </div>
 
               {/* Confirm Password Field (Sign Up Only) */}
               {!isLogin && (
                 <div className="animate-slide-up stagger-3">
-                  <ThemeInput 
-                    placeholder="Retype Password" 
-                    icon={Lock} 
-                    type="password" 
-                    isPassword
-                    isDark={isDark}
+                  <PasswordInput
+                    label="Confirm Password"
+                    placeholder="Confirm Password"
+                    icon={<Lock className="w-6 h-6 pt-1" />}
+                    name="confirmPassword"
+                    register={register}
+                    registerOptions={{ required: true }}
+                    error={isDirty ? errors.confirmPassword?.message : undefined}
+                    expandOnError={false}
                   />
                 </div>
               )}
@@ -195,11 +297,12 @@ export default function LoginSignup() {
                 </div>
               )}
 
-              <div className="animate-slide-up stagger-4">
-                <button className={`w-full h-12 rounded-xl font-bold text-sm transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 ${isDark ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/20' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'}`}>
+              <div className="animate-slide-up stagger-4 group">
+                <CommonButton
+                  className="h-12"
+                  type="submit" loading={isLoading} disabled={isLoading || !isValid} icon={<ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />} iconPosition="right">
                   {isLogin ? 'Login' : 'Register'}
-                  <ArrowRight size={18} />
-                </button>
+                </CommonButton>
               </div>
             </form>
 
@@ -214,62 +317,21 @@ export default function LoginSignup() {
 
             {/* Google Sign In Only */}
             <div className="animate-slide-up stagger-4">
-              <button className={`w-full h-12 flex items-center justify-center gap-3 rounded-xl border transition-all duration-300 active:scale-95 hover:scale-[1.01] hover:shadow-md ${isDark ? 'border-slate-800 bg-slate-950 hover:bg-slate-800 text-white' : 'border-gray-200 bg-white hover:bg-gray-50 text-slate-700'}`}>
+              <CommonButton className="h-12 bg-slate-900! text-white! dark:bg-white! dark:text-slate-900!" type="button" icon={
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
+              } iconPosition="left">
                 <span className="font-semibold text-sm">Sign in with Google</span>
-              </button>
+              </CommonButton>
             </div>
 
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-// --- Helper Components ---
-
-function ThemeInput({ placeholder, icon: Icon, type = "text", isPassword = false, isDark }) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-
-  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
-
-  return (
-    <div 
-      className={`
-        flex items-center border rounded-xl px-4 py-3 transition-all duration-300
-        ${isDark 
-          ? (isFocused ? 'bg-slate-950 border-indigo-500 shadow-[0_0_15px_-3px_rgba(99,102,241,0.3)]' : 'bg-slate-950 border-slate-800 hover:border-slate-700') 
-          : (isFocused ? 'bg-white border-indigo-600 ring-4 ring-indigo-500/5 shadow-lg shadow-indigo-100' : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-white')
-        }
-      `}
-    >
-      <div className={`mr-3 transition-colors ${isFocused ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : 'text-slate-400'}`}>
-        <Icon size={18} />
-      </div>
-      <input
-        type={inputType}
-        placeholder={placeholder}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        className={`flex-1 bg-transparent border-none outline-none text-sm font-medium h-full py-1 ${isDark ? 'text-white placeholder:text-slate-600' : 'text-slate-900 placeholder:text-slate-400'}`}
-      />
-      
-      {isPassword && (
-        <button 
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className={`p-1 transition-colors ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-400 hover:text-slate-600'}`}
-        >
-          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
-      )}
     </div>
   );
 }

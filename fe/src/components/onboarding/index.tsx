@@ -1,5 +1,5 @@
 import { useCreateStore } from '@Jade/services/store/useQuery';
-import { ArrowRight, Box, Check, Layers, Loader2, ScanBarcode, Store, Warehouse } from 'lucide-react';
+import { ArrowRight, Box, Check, Layers, ScanBarcode, Store, Warehouse } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import Input from '@Jade/core-design/input/CommonInput';
 import { useForm, type SubmitHandler } from "react-hook-form"
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
+import CommonButton from '@Jade/core-design/input/CommonButton';
 
 
 const schema = yup.object({
@@ -158,42 +159,34 @@ export default function Onboarding() {
                     {/* Navigation Controls */}
                     <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4">
 
-                        {
-                            currentStep === 2 && (
-                                <Input label="Store Name" className="mt-4"
-                                    icon={<Store className="w-6 h-6" />}
-                                    register={register}
-                                    registerOptions={{ required: true }}
-                                    error={isDirty ? errors.storeName?.message : undefined}
-                                    name="storeName"
-                                />
-                            )
-                        }
-                        <button
+                        {currentStep === 2 && (
+                            <Input
+                                label="Store Name"
+                                className="mt-4"
+                                icon={<Store className="w-6 h-6" />}
+                                register={register}
+                                registerOptions={{ required: true }}
+                                error={isDirty ? errors.storeName?.message : undefined}
+                                name="storeName"
+                            />
+                        )}
+
+                        <CommonButton
                             type={currentStep === 2 ? "submit" : "button"}
+                            loading={isLoading}
                             disabled={isLoading}
                             onClick={currentStep === 2 ? undefined : handleNext}
-                            className={`
-                w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2
-                transition-all duration-300 transform active:scale-95 shadow-md hover:shadow-lg
-                ${isLoading
-                                    ? 'bg-blue-50 text-blue-600 cursor-wait ring-2 ring-blue-100 dark:bg-blue-500/20 dark:text-blue-200 dark:ring-blue-500/40'
-                                    : 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400'
-                                }
-              `}
+                            icon={!isLoading && currentStep !== slides.length - 1 ? <ArrowRight size={20} /> : undefined}
+                            iconPosition="right"
                         >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="animate-spin" size={20} />
-                                    Setting up...
-                                </>
-                            ) : (
-                                <>
-                                    {currentStep === slides.length - 1 ? "Open Shop" : (currentStep === 2 ? (isStockroomReady ? "Stockroom is ready" : "Create Stockroom") : "Continue")}
-                                    {currentStep !== slides.length - 1 && !isLoading && <ArrowRight size={20} />}
-                                </>
-                            )}
-                        </button>
+                            {isLoading
+                                ? "Setting up..."
+                                : currentStep === slides.length - 1
+                                    ? "Open Shop"
+                                    : currentStep === 2
+                                        ? (isStockroomReady ? "Stockroom is ready" : "Create Stockroom")
+                                        : "Continue"}
+                        </CommonButton>
 
                         {/* Pagination Dots */}
                         <div className="flex justify-center gap-2 mt-4">

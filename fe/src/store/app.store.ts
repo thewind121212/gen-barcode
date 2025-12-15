@@ -13,6 +13,7 @@ export interface AppState {
     storeName?: string
     userInfo?: UserInfo
     isAppInitialized: boolean
+    isDark: boolean
 }
 
 const initialState: AppState = {
@@ -21,6 +22,7 @@ const initialState: AppState = {
     userInfo: undefined,
     storeName: undefined,
     isAppInitialized: false,
+    isDark: false,
 }
 
 export const appSlice = createSlice({
@@ -42,10 +44,13 @@ export const appSlice = createSlice({
         },
         setIsAppInitialized: (state, action: PayloadAction<boolean>) => {
             state.isAppInitialized = action.payload
+        },
+        toggleTheme: (state) => {
+            state.isDark = !state.isDark
         }
     },
 })
 
-export const { setUserId, setUserInfo, setStoreInfo, setIsAppInitialized } = appSlice.actions
+export const { setUserId, setUserInfo, setStoreInfo, setIsAppInitialized, toggleTheme } = appSlice.actions
 
 export default appSlice.reducer

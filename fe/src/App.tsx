@@ -1,20 +1,18 @@
-import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
-import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui";
-import { EmailPasswordPreBuiltUI } from "supertokens-auth-react/recipe/emailpassword/prebuiltui";
-import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
-import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
-import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Outlet, Route, Routes, useLocation } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Generator from "@Jade/components/Generator";
 import OnboardingComponent from "@Jade/components/Onboarding";
+import AppLoading from "@Jade/components/loading/AppLoading";
 import { Sidebar } from "@Jade/components/nav-bar/net";
 import CategoryPage from "@Jade/page/Category";
-import { store } from '@Jade/store/global.store'
-import { Provider } from 'react-redux'
-import AppLoading from "@Jade/components/loading/appLoading";
+import { store } from '@Jade/store/global.store';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
+import { Provider } from 'react-redux';
+import { BrowserRouter, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
+import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
+import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
+import Auth from "@Jade/components/auth-moudule/Auth";
 
-import * as reactRouterDom from "react-router-dom";
 
 // Create a client for TanStack Query
 const queryClient = new QueryClient({
@@ -34,23 +32,6 @@ SuperTokens.init({
     apiBasePath: "/auth",
     websiteBasePath: "/auth",
   },
-  getRedirectionURL: async (context) => {
-    if (context.action === "SUCCESS" && context.newSessionCreated) {
-      if (context.redirectToPath !== undefined) {
-        // we are navigating back to where the user was before they authenticated
-        return context.redirectToPath;
-      }
-      if (context.createdNewUser) {
-        console.log("user signed up");
-        console.log(context);
-      } else {
-        console.log("user signed in");
-        console.log(context);
-      }
-      return "/categories";
-    }
-    return undefined;
-  },
   recipeList: [EmailPassword.init(), Session.init()],
 });
 
@@ -64,23 +45,6 @@ function ProtectedLayout() {
     <SessionAuth>
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
-          <AppLoading />
-          <Toaster
-            position="top-center"
-            reverseOrder={false}
-            toastOptions={{
-              className: `
-              [--toast-bg:#ffffff] [--toast-fg:#0f172a] [--toast-border:#e2e8f0]
-              dark:[--toast-bg:#0f172a] dark:[--toast-fg:#e2e8f0] dark:[--toast-border:#1f2937]
-            `,
-              style: {
-                background: "var(--toast-bg)",
-                color: "var(--toast-fg)",
-                border: "1px solid var(--toast-border)",
-                boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.15)",
-              },
-            }}
-          />
           {!isOnboarding && <Sidebar
             setActiveTab={() => { }}
             onSignOut={() => { }}
@@ -99,13 +63,27 @@ function ProtectedLayout() {
 function App() {
   return (
     <SuperTokensWrapper>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          className: `
+              [--toast-bg:#ffffff] [--toast-fg:#0f172a] [--toast-border:#e2e8f0]
+              dark:[--toast-bg:#0f172a] dark:[--toast-fg:#e2e8f0] dark:[--toast-border:#1f2937]
+            `,
+          style: {
+            background: "var(--toast-bg)",
+            color: "var(--toast-fg)",
+            border: "1px solid var(--toast-border)",
+            boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.15)",
+          },
+        }}
+      />
       <BrowserRouter>
         <Routes>
-          {getSuperTokensRoutesForReactRouterDom(reactRouterDom, [
-            EmailPasswordPreBuiltUI,
-          ])}
+          <Route path="/auth" element={<Auth />} />
           <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<Generator />} />
+            <Route path="/" element={<CategoryPage />} />
             <Route path="/barcode-generator" element={<Generator />} />
             <Route path="/categories" element={<CategoryPage />} />
             <Route path="/inventory" element={<OnboardingComponent />} />
