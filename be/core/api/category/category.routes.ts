@@ -2,10 +2,12 @@ import type { z } from "zod";
 
 import express from "express";
 
-import type { getCategorySchema } from "@Ciri/core/dto/category/get-category.dto";
 import type { CreateCategoryResponse, GetCategoryResponse, RemoveCategoryResponse } from "@Ciri/types/category";
 
 import { createCategorySchema } from "@Ciri/core/dto/category/create-category.dto";
+
+import { getCategorySchema } from "@Ciri/core/dto/category/get-category.dto";
+
 import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { CategoryService } from "@Ciri/core/services/category.service";
@@ -18,16 +20,16 @@ const categoryService = new CategoryService();
 
 export type CreateCategoryRequestBody = z.infer<typeof createCategorySchema>;
 export type CreateCategoryResponseServices = CreateCategoryResponse & {
-  error: string | null;
-};
+      error: string | null;
+    };
 export type GetCategoryRequestBody = z.infer<typeof getCategorySchema>;
 export type GetCategoryResponseServices = GetCategoryResponse & {
-  error: string | null;
-};
+      error: string | null;
+    };
 export type RemoveCategoryRequestBody = z.infer<typeof removeCategorySchema>;
 export type RemoveCategoryResponseServices = RemoveCategoryResponse & {
-  error: string | null;
-};
+      error: string | null;
+    };
 
 router.post(
   "/CreateCategory",

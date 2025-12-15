@@ -227,7 +227,7 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
         : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\``;
 
       output += `export const ${funcName} = async (request: ${method.requestType}): Promise<${method.responseType}> => {
-  const params = new URLSearchParams(request as Record<string, string>).toString();
+  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
   const response = await fetch(${urlTemplate}, {
     method: "GET",
     headers: {
@@ -271,7 +271,7 @@ const generateFrontendUseQuery = (methods: RpcMethod[], packageName: string): st
   const hasQuery = methods.some((method) => method.httpMethod === "get");
   const reactQueryImports = [
     hasMutation ? "useMutation" : null,
-    hasQuery ? "useQuery" : null,
+    hasQuery ? "useQuery, type UseQueryOptions" : null,
   ]
     .filter(Boolean)
     .join(", ");
@@ -306,40 +306,16 @@ type ApiSuccessResponse<T> = {
 
 `;
     } else {
-      output += `export const ${hookName} = (request: ${method.requestType}, options?: { enabled?: boolean }) => {
-    return useQuery<${method.responseType}, Error>({
+      output += `export const ${hookName} = (request: ${method.requestType}, options?: UseQueryOptions<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>) => {
+    return useQuery<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>({
         queryKey: ["${packageName}", "${method.name}", request],
-        queryFn: () => ${funcName}(request),
-        enabled: options?.enabled ?? true,
+        queryFn: () => ${funcName}(request) as unknown as ApiSuccessResponse<${method.responseType}>,
+        ...options,
     });
 };
 
 `;
     }
-  });
-
-  return output;
-};
-
-// Generate Backend DTO file
-const generateBackendDto = (methods: RpcMethod[], packageName: string): string => {
-  let output = `import { z } from "zod/v4";
-
-`;
-
-  methods.forEach((method) => {
-    const schemaName = `${toCamelCase(method.name)}Schema`;
-    const dtoName = `${method.name}Dto`;
-
-    output += `// Schema used to validate the ${toCamelCase(method.name)} request body
-export const ${schemaName} = z.object({
-  // TODO: Add validation rules
-});
-
-// Inferred TypeScript DTO type for codegen / services
-export type ${dtoName} = z.infer<typeof ${schemaName}>;
-
-`;
   });
 
   return output;
@@ -522,7 +498,11 @@ export const GenerateApi = (
 
   // Generate one DTO file per RPC method.
   // If a DTO file already exists for a method, we DO NOT overwrite it.
+  // If the method is a get method, we DO NOT generate a DTO file.
   methods.forEach((method) => {
+    if (method.httpMethod === "get") {
+      return;
+    }
     const schemaName = `${toCamelCase(method.name)}Schema`;
     const dtoName = `${method.name}Dto`;
     const dtoFileName = `${toKebabCase(method.name)}.dto.ts`;
