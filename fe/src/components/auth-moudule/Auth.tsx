@@ -40,13 +40,14 @@ const signupSchema = yup.object().shape({
 
 export default function LoginSignup() {
   const [isLogin, setIsLogin] = useState<boolean>(true);
-  const [isInitAuthPage, setIsInitAuthPage] = useState<boolean>(true);
   const [isDark, setIsDark] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchParams, _setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const redirect = searchParams.get('redirectToPath');
   const context = useSessionContext();
+  const isContextLoading = context.loading;
+  const hasSession = !isContextLoading && context.doesSessionExist;
 
   const { register, handleSubmit, formState: { errors, isDirty, isValid }, reset } = useForm<SignupForm>({
     resolver: yupResolver(isLogin ? loginSchema : signupSchema),
@@ -86,13 +87,11 @@ export default function LoginSignup() {
   }, [isLogin]);
 
   useEffect(() => {
-    if (context.loading) return
-    if (context.doesSessionExist) {
+    if (isContextLoading) return;
+    if (hasSession) {
       navigate(redirect || "/", { replace: true });
-    } else {
-      setIsInitAuthPage(false);
     }
-  }, [context]);
+  }, [hasSession, isContextLoading, navigate, redirect]);
 
   const successCallback = () => {
     navigate(redirect || "/", { replace: true });
@@ -109,7 +108,7 @@ export default function LoginSignup() {
     }
   };
 
-  if (isInitAuthPage) {
+  if (isContextLoading || hasSession) {
     return <SplashScreen/>
   }
 
