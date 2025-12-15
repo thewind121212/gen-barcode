@@ -17,7 +17,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import * as yup from "yup";
-import AppLoading from "@Jade/components/loading/AppLoading";
+import SplashScreen from '@Jade/components/loading/SplashScreen';
 
 interface SignupForm {
   email: string;
@@ -110,7 +110,7 @@ export default function LoginSignup() {
   };
 
   if (isInitAuthPage) {
-    return <AppLoading isSplashScreen={true} />
+    return <SplashScreen/>
   }
 
   const onSubmitHandler = handleSubmit(onSubmit);

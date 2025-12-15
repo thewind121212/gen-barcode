@@ -94,7 +94,7 @@ export default function Onboarding() {
         if (currentStep < slides.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {
-            navigate("/generator");
+            navigate("/", { replace: true });
         }
     };
 
