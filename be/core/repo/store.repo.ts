@@ -33,4 +33,10 @@ export class StoreRepository {
       where: { userId },
     });
   }
+
+  async findByUserId(userId: string) {
+    return prisma.store.findMany({
+      where: { members: { some: { userId } } },
+    });
+  }
 }

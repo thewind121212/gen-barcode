@@ -1,4 +1,4 @@
-import CategoriesView from "@Jade/components/main-category/MainCategory";
+import CategoriesView from "@Jade/components/category-module/MainCategory";
 
 const Category = () => {
   return <CategoriesView />;

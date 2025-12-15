@@ -1,7 +1,8 @@
-import type { CreateStoreRequestBody, CreateStoreResponseServices } from "@Ciri/core/api/store/store.routes";
+import type { CreateStoreRequestBody, CreateStoreResponseServices, GetUserInfoRequestBody, GetUserInfoResponseServices } from "@Ciri/core/api/store/store.routes";
 import type { RequestContext } from "@Ciri/core/middlewares";
 
 import { env } from "@Ciri/core/env";
+import { getEmailFromContext } from "@Ciri/core/middlewares";
 import { StorageRepository } from "@Ciri/core/repo/storage.repo";
 import { StoreMemberRepository } from "@Ciri/core/repo/store-member.repo";
 import { StoreRepository } from "@Ciri/core/repo/store.repo";
@@ -29,15 +30,16 @@ export class StoreService {
       if (!userId) {
         throw new Error("User ID is required");
       }
-      const { name } = req;
-      const store = await this.storeRepo.create({
-        name,
-      });
 
       const storeEnrolled = await this.getStoreEnrolledByUserId(userId);
       if (storeEnrolled >= env.MAX_STORE_BY_USER) {
         return { storeId: undefined, error: "User has reached the maximum number of stores" };
       }
+
+      const { name } = req;
+      const store = await this.storeRepo.create({
+        name,
+      });
 
       await this.storeMemberRepo.create({
         userId,
@@ -56,6 +58,25 @@ export class StoreService {
     catch (error) {
       UnitLogger(LogType.SERVICE, "<Store Create>", LogLevel.ERROR, (error as Error).message);
       return { storeId: undefined, error: (error as Error).message };
+    }
+  }
+
+  async GetUserInfo(ctx: RequestContext, _req: GetUserInfoRequestBody): Promise<GetUserInfoResponseServices> {
+    try {
+      const { userId } = ctx;
+      if (!userId) {
+        throw new Error("User ID is required");
+      }
+
+      const storeEntities = await this.storeRepo.findByUserId(userId);
+
+      const storeInfos = storeEntities.map(store => ({ id: store.id, name: store.name }));
+
+      return { email: getEmailFromContext(ctx), name: "", storeInfos, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "<Store GetUserInfo>", LogLevel.ERROR, (error as Error).message);
+      return { email: undefined, name: undefined, storeInfos: [], error: (error as Error).message };
     }
   }
 }

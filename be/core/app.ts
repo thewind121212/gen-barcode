@@ -13,24 +13,6 @@ import api from "@Ciri/core/api";
 import { env } from "@Ciri/core/env";
 import * as middlewares from "@Ciri/core/middlewares";
 import { InitSentry } from "@Ciri/sentry/init";
-// import { overwrite } from "zod";
-
-// const recipeList = [Session.init()];
-
-// if (env.DISABLE_REGISTER === "true") {
-//   recipeList.push(
-//     EmailPassword.init({
-//       override: {
-//         apis: (originalImplementation) => {
-//           return {
-//             ...originalImplementation,
-//             signUpPOST: undefined,
-//           }
-//         }
-//       }
-//     })
-//   );
-// }
 
 supertokens.init({
   framework: "express",

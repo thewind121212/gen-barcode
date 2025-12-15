@@ -114,17 +114,17 @@ const COLOR_OPTIONS = [
 const MENU_ACTIONS: ActionMenuItem[] = [
   {
     label: "View",
-    onClick: () => console.log("View"),
+    onClick: () => {},
     icon: EyeIcon,
   },
   {
     label: "Edit",
-    onClick: () => console.log("Edit"),
+    onClick: () => {},
     icon: Edit2Icon,
   },
   {
     label: "Delete",
-    onClick: () => console.log("Delete"),
+    onClick: () => {},
     icon: Trash2Icon,
     danger: true,
   },

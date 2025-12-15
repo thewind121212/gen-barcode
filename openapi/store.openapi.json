@@ -40,6 +40,37 @@
           }
         }
       }
+    },
+    "/store/GetUserInfo": {
+      "post": {
+        "operationId": "GetUserInfo",
+        "summary": "GetUserInfo",
+        "tags": [
+          "store"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetUserInfoRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -60,6 +91,49 @@
         "properties": {
           "storeId": {
             "type": "string"
+          }
+        }
+      },
+      "GetUserInfoRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "StoreInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "GetUserInfoResponse": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "storeInfos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreInfo"
+            }
           }
         }
       }

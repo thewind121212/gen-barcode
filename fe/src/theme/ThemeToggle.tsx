@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
-  // 1. Initialize state based on localStorage or system preference
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');

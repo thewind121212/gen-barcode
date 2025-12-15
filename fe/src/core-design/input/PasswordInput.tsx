@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import React from 'react';
 import type { FieldValues, RegisterOptions, UseFormRegister } from 'react-hook-form';
 
@@ -16,7 +16,7 @@ interface InputProps {
     [key: string]: any;
 }
 
-const Input = ({
+const PasswordInput = ({
     label,
     icon,
     error,
@@ -27,12 +27,15 @@ const Input = ({
     registerOptions,
     ...props
 }: InputProps) => {
+    const [showPassword, setShowPassword] = React.useState(false);
+
     return (
         <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''} ${className || ''}`}>
 
             <input
                 {...props}
-                placeholder=" " 
+                type={showPassword ? 'text' : 'password'}
+                placeholder=" "
                 {...register(props.name, { ...registerOptions })}
                 className={`
             peer
@@ -58,8 +61,38 @@ const Input = ({
                     }
   
             ${icon ? 'pl-12' : ''}
+            pr-12
           `}
             />
+
+            {/* Password visibility toggle */}
+            <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((prev) => !prev)}
+                className={`
+            absolute 
+            inset-y-0 
+            right-4 
+            my-auto 
+            flex 
+            items-center 
+            justify-center 
+            text-slate-400 
+            hover:text-slate-600 
+            dark:text-slate-500 
+            dark:hover:text-slate-300 
+            transition-colors 
+            duration-200
+          `}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+                {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                ) : (
+                    <Eye className="w-5 h-5" />
+                )}
+            </button>
 
             {/* Floating Label */}
             <label
@@ -139,4 +172,4 @@ const Input = ({
     );
 }
 
-export default Input;
+export default PasswordInput;
