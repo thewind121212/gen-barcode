@@ -11,7 +11,7 @@ import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
 import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
 import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
 import Auth from "@Jade/components/auth-moudule/Auth";
-import LoadingScreen from "@Jade/components/loading/appLoading";
+import LoadingScreen from "@Jade/components/loading/AppLoading";
 
 
 // Create a client for TanStack Query

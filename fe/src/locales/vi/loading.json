@@ -1,0 +1,11 @@
+{
+  "serverUnavailable": "Không thể kết nối đến server",
+  "userInfoMissing": "Không thể lấy thông tin người dùng",
+  "welcome": "Chào mừng bạn",
+  "fetchUser": "Đang tải dữ liệu người dùng",
+  "updateCategories": "Đang cập nhật danh mục",
+  "complete": "Hoàn thành",
+  "unableToConnect": "Không thể kết nối",
+  "retry": "Thử lại"
+}
+

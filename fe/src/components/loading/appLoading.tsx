@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import SplashScreen from '@Jade/components/loading/SplashScreen';
 
 export default function LoadingScreen() {
@@ -18,6 +19,7 @@ export default function LoadingScreen() {
     const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const navigate = useNavigate();
+    const { t } = useTranslation('loading');
 
     const clearAllTimeouts = () => {
         timeoutsRef.current.forEach(clearTimeout);
@@ -33,12 +35,12 @@ export default function LoadingScreen() {
     const { mutate: getUserInfo } = useGetUserInfo({
         onSuccess: (response) => {
             if (!response || !response.success) {
-                setErrorMessage('Không thể kết nối đến server');
+                setErrorMessage(t('serverUnavailable'));
                 return;
             }
             const data = response.data;
             if (!data) {
-                setErrorMessage('Không thể lấy thông tin người dùng');
+                setErrorMessage(t('userInfoMissing'));
                 return;
             }
             clearAllTimeouts();
@@ -63,7 +65,7 @@ export default function LoadingScreen() {
             }
         },
         onError: (error) => {
-            setErrorMessage(error.message);
+            setErrorMessage(error.message || t('serverUnavailable'));
         },
     });
 
@@ -86,11 +88,11 @@ export default function LoadingScreen() {
     useEffect(() => clearAllTimeouts, []);
 
     const loadingText = useMemo(() => {
-        if (progress > 30 && progress < 60) return 'Tải Dữ Liệu Người Dùng';
-        if (progress >= 60 && progress < 90) return 'Cập Nhật Danh Mục';
-        if (progress >= 90) return 'Hoàn Thành';
-        return 'Chào Mừng Bạn ';
-    }, [progress]);
+        if (progress > 30 && progress < 60) return t('fetchUser');
+        if (progress >= 60 && progress < 90) return t('updateCategories');
+        if (progress >= 90) return t('complete');
+        return t('welcome');
+    }, [progress, t]);
     return (
         !isAppInitialized ? (
             <SplashScreen>
@@ -112,7 +114,7 @@ export default function LoadingScreen() {
                     <div className="flex flex-col items-center gap-5 animate-in slide-in-from-bottom-2 fade-in duration-300">
                         <div className="flex items-center gap-2 text-red-500 dark:text-red-300 bg-red-50 dark:bg-red-900/40 px-4 py-2 rounded-full border border-red-100 dark:border-red-800/60">
                             <AlertCircle size={18} />
-                            <span className="text-sm font-medium">Unable to connect</span>
+                            <span className="text-sm font-medium">{errorMessage ?? t('unableToConnect')}</span>
                         </div>
 
                         <button
@@ -120,7 +122,7 @@ export default function LoadingScreen() {
                             className="group flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-xl dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
                         >
                             <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
-                            <span>Try Again</span>
+                            <span>{t('retry')}</span>
                         </button>
                     </div>
                 )}

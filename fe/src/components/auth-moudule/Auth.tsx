@@ -6,18 +6,22 @@ import PasswordInput from '@Jade/core-design/input/PasswordInput';
 import {
   ArrowRight,
   CheckCircle2,
+  Globe,
   Layers,
   Lock,
   Mail,
   Moon,
   Sun
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import * as yup from "yup";
 import SplashScreen from '@Jade/components/loading/SplashScreen';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import i18n, { handleChangeLanguage } from "@Jade/i18n";
 
 interface SignupForm {
   email: string;
@@ -25,15 +29,15 @@ interface SignupForm {
   confirmPassword?: string;
 }
 
-const loginSchema = yup.object().shape({
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().required('Password is required'),
+const buildLoginSchema = (t: TFunction<'auth'>) => yup.object().shape({
+  email: yup.string().email(t('validation.invalidEmail')).required(t('validation.emailRequired')),
+  password: yup.string().required(t('validation.passwordRequired')),
 });
 
-const signupSchema = yup.object().shape({
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().required('Password is required'),
-  confirmPassword: yup.string().required('Confirm password is required').oneOf([yup.ref('password')], 'Passwords must match'),
+const buildSignupSchema = (t: TFunction<'auth'>) => yup.object().shape({
+  email: yup.string().email(t('validation.invalidEmail')).required(t('validation.emailRequired')),
+  password: yup.string().required(t('validation.passwordRequired')),
+  confirmPassword: yup.string().required(t('validation.confirmRequired')).oneOf([yup.ref('password')], t('validation.passwordMismatch')),
 });
 
 
@@ -48,9 +52,14 @@ export default function LoginSignup() {
   const context = useSessionContext();
   const isContextLoading = context.loading;
   const hasSession = !isContextLoading && context.doesSessionExist;
+  const { t } = useTranslation('auth');
+
+  const loginSchema = useMemo(() => buildLoginSchema(t), [t]);
+  const signupSchema = useMemo(() => buildSignupSchema(t), [t]);
+  const resolver = useMemo(() => yupResolver(isLogin ? loginSchema : signupSchema), [isLogin, loginSchema, signupSchema]);
 
   const { register, handleSubmit, formState: { errors, isDirty, isValid }, reset } = useForm<SignupForm>({
-    resolver: yupResolver(isLogin ? loginSchema : signupSchema),
+    resolver,
     defaultValues: { email: '', password: '', confirmPassword: '' },
   })
 
@@ -101,7 +110,7 @@ export default function LoginSignup() {
   };
 
   if (isContextLoading || hasSession) {
-    return <SplashScreen/>
+    return <SplashScreen />
   }
 
   const onSubmitHandler = handleSubmit(onSubmit);
@@ -145,12 +154,24 @@ export default function LoginSignup() {
         <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
       </div>
 
-      <button
-        onClick={toggleTheme}
-        className={`absolute top-6 right-6 p-2.5 rounded-full shadow-lg transition-all duration-300 z-50 hover:scale-110 active:scale-90 ${isDark ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-gray-50'}`}
-      >
-        {isDark ? <Sun size={20} /> : <Moon size={20} />}
-      </button>
+      <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
+
+        <button
+          onClick={handleChangeLanguage}
+          className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 font-bold text-xs tracking-wide ${isDark ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' : 'bg-white text-slate-700 hover:bg-gray-50'}`}
+        >
+          <Globe size={14} />
+          <span>{i18n.language === 'en' ? 'EN' : 'VN'}</span>
+        </button>
+
+        <button
+          onClick={toggleTheme}
+          className={`p-2 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-90 ${isDark ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-gray-50'}`}
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
 
       <div className={`w-full max-w-4xl flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 animate-slide-up ${isDark ? 'shadow-black/50 bg-slate-900' : 'shadow-slate-200 bg-white'}`}>
 
@@ -167,18 +188,18 @@ export default function LoginSignup() {
               <Layers size={24} />
             </div>
             <h1 className="text-3xl font-bold mb-4 tracking-tight drop-shadow-md">
-              Acme Suite.
+              {t('hero.title')}
             </h1>
             <p className="text-indigo-100 text-sm leading-relaxed opacity-90 mb-8">
-              The all-in-one platform for modern teams. Secure, fast, and built for scale.
+              {t('hero.subtitle')}
             </p>
 
             {/* Feature List with hover effects */}
             <div className="space-y-3">
               {[
-                { color: "text-blue-300", text: "Real-time Analytics Dashboard" },
-                { color: "text-purple-300", text: "Advanced Team Collaboration" },
-                { color: "text-pink-300", text: "Enterprise-grade Security" }
+                { color: "text-blue-300", text: t('hero.features.analytics') },
+                { color: "text-purple-300", text: t('hero.features.collaboration') },
+                { color: "text-pink-300", text: t('hero.features.security') }
               ].map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-3 text-sm font-medium text-indigo-50 hover:translate-x-2 transition-transform duration-300 cursor-default">
                   <CheckCircle2 size={18} className={feature.color} />
@@ -192,15 +213,15 @@ export default function LoginSignup() {
             {/* Company Information & Footer */}
             <div className="flex flex-col gap-4 p-4 bg-indigo-700/30 rounded-xl backdrop-blur-sm border border-indigo-500/20 hover:bg-indigo-700/40 transition-colors">
               <div className="text-xs text-indigo-100/90 leading-relaxed font-medium">
-                <p>Acme Inc. HQ</p>
-                <p>12 Innovation Way, Tech City</p>
-                <p className="mt-1 opacity-75">contact@acmesuite.com</p>
+                <p>{t('hero.location')}</p>
+                <p>{t('hero.address')}</p>
+                <p className="mt-1 opacity-75">{t('hero.contact')}</p>
               </div>
               <div className="h-px bg-indigo-400/30 w-full"></div>
               <div className="flex gap-4 text-[10px] font-bold tracking-wide uppercase text-indigo-200">
-                <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms</a>
-                <a href="#" className="hover:text-white transition-colors">Help</a>
+                <a href="#" className="hover:text-white transition-colors">{t('hero.links.privacy')}</a>
+                <a href="#" className="hover:text-white transition-colors">{t('hero.links.terms')}</a>
+                <a href="#" className="hover:text-white transition-colors">{t('hero.links.help')}</a>
               </div>
             </div>
           </div>
@@ -212,10 +233,10 @@ export default function LoginSignup() {
           <div className="max-w-sm mx-auto w-full">
             <div className="mb-8">
               <h2 className={`text-2xl font-bold mb-2 transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {isLogin ? 'Hello Again!' : 'Create Account'}
+                {isLogin ? t('heading.login') : t('heading.signup')}
               </h2>
               <p className={`text-sm transition-colors ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                {isLogin ? 'Welcome back, you\'ve been missed!' : 'Get started with your free 30-day trial.'}
+                {isLogin ? t('heading.loginSub') : t('heading.signupSub')}
               </p>
             </div>
 
@@ -225,13 +246,13 @@ export default function LoginSignup() {
                 onClick={() => setIsLogin(true)}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${isLogin ? (isDark ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm border border-gray-100') : 'text-slate-400 hover:text-slate-500'}`}
               >
-                Log In
+                {t('tabs.login')}
               </button>
               <button
                 onClick={() => setIsLogin(false)}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${!isLogin ? (isDark ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm border border-gray-100') : 'text-slate-400 hover:text-slate-500'}`}
               >
-                Sign Up
+                {t('tabs.signup')}
               </button>
             </div>
 
@@ -240,8 +261,8 @@ export default function LoginSignup() {
 
               <div className="animate-slide-up stagger-1">
                 <Input
-                  label="Email"
-                  placeholder="Email"
+                  label={t('fields.email')}
+                  placeholder={t('fields.email')}
                   icon={<Mail className="w-6 h-6 pt-1" />}
                   name="email"
                   register={register}
@@ -253,8 +274,8 @@ export default function LoginSignup() {
 
               <div className="animate-slide-up stagger-2">
                 <PasswordInput
-                  label="Password"
-                  placeholder="Password"
+                  label={t('fields.password')}
+                  placeholder={t('fields.password')}
                   icon={<Lock className="w-6 h-6 pt-1" />}
                   name="password"
                   register={register}
@@ -268,8 +289,8 @@ export default function LoginSignup() {
               {!isLogin && (
                 <div className="animate-slide-up stagger-3">
                   <PasswordInput
-                    label="Confirm Password"
-                    placeholder="Confirm Password"
+                    label={t('fields.confirmPassword')}
+                    placeholder={t('fields.confirmPassword')}
                     icon={<Lock className="w-6 h-6 pt-1" />}
                     name="confirmPassword"
                     register={register}
@@ -283,7 +304,7 @@ export default function LoginSignup() {
               {isLogin && (
                 <div className="flex justify-end animate-slide-up stagger-3">
                   <a href="#" className={`text-xs font-semibold hover:underline transition-colors ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                    Recovery Password
+                    {t('actions.recover')}
                   </a>
                 </div>
               )}
@@ -292,7 +313,7 @@ export default function LoginSignup() {
                 <CommonButton
                   className="h-12"
                   type="submit" loading={isLoading} disabled={isLoading || !isValid} icon={<ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />} iconPosition="right">
-                  {isLogin ? 'Login' : 'Register'}
+                  {isLogin ? t('actions.login') : t('actions.register')}
                 </CommonButton>
               </div>
             </form>
@@ -302,7 +323,7 @@ export default function LoginSignup() {
                 <div className={`w-full border-t transition-colors ${isDark ? 'border-slate-800' : 'border-gray-200'}`}></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase tracking-wide">
-                <span className={`px-3 transition-colors ${isDark ? 'bg-slate-900 text-slate-500' : 'bg-white text-slate-400'}`}>Or</span>
+                <span className={`px-3 transition-colors ${isDark ? 'bg-slate-900 text-slate-500' : 'bg-white text-slate-400'}`}>{t('actions.or')}</span>
               </div>
             </div>
 
@@ -316,7 +337,7 @@ export default function LoginSignup() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
               } iconPosition="left">
-                <span className="font-semibold text-sm">Sign in with Google</span>
+                <span className="font-semibold text-sm">{t('actions.google')}</span>
               </CommonButton>
             </div>
 

@@ -1,0 +1,11 @@
+{
+  "serverUnavailable": "Cannot reach the server",
+  "userInfoMissing": "Unable to fetch your profile",
+  "welcome": "Welcome",
+  "fetchUser": "Fetching your profile",
+  "updateCategories": "Updating categories",
+  "complete": "Complete",
+  "unableToConnect": "Unable to connect",
+  "retry": "Try again"
+}
+

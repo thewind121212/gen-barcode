@@ -14,6 +14,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import UserMenu from '@Jade/components/nav-bar/user';
+import i18n, { handleChangeLanguage } from "@Jade/i18n";
 
 interface SidebarProps {
     setActiveTab: (tab: string) => void;
@@ -25,6 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const [language, setLanguage] = useState(i18n.language || 'en');
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -62,6 +64,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         };
     }, [isExpanded]);
 
+    useEffect(() => {
+        const listener = (lng: string) => setLanguage(lng);
+        i18n.on('languageChanged', listener);
+        return () => {
+            i18n.off('languageChanged', listener);
+        };
+    }, []);
+
     return (
         <aside
             ref={sidebarRef}
@@ -77,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
 
             {/* Logo Area */}
-            <div className="h-20 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <div className="h-20 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 duration-300">
                 <div className="flex items-center gap-3 cursor-pointer overflow-hidden">
                     <div className="bg-linear-to-br from-blue-600 to-indigo-600 p-2 rounded-xl text-white dark:shadow-none shrink-0">
                         <BarChart3 className="w-6 h-6" />
@@ -106,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {menuItems.map((item) => (
                     <div
                         key={item.id}
-                        className={`transition-all cursor-pointer ${isExpanded && 'duration-0!'} duration-200`}
+                        className={`transition-all cursor-pointer ${isExpanded && 'duration-0!'} duration-300`}
                         style={{
                             width: isExpanded ? '200px' : '52px'
                         }}
@@ -116,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 navigate(item.url);
                             }}
                             className={`
-                group flex items-center ${isExpanded ? 'justify-between px-4' : 'justify-center px-2'} py-3.5 rounded-xl text-sm font-medium transition-all duration-200
+                group flex items-center ${isExpanded ? 'justify-between px-4' : 'justify-center px-2'} py-3.5 rounded-xl text-sm font-medium transition-all duration-300
                 ${isActiveTab(item.url)
                                     ? "bg-blue-50/80 text-blue-700 shadow-sm ring-1 ring-blue-100 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/40"
                                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-gray-50"}
@@ -141,8 +151,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     ${isExpanded ? "justify-start" : "justify-center"}
                 `}
             >
-                <div className="transition-transform duration-300">
-                    <ThemeToggle />
+                <div className={`flex items-center gap-2 transition-transform duration-300 ${isExpanded ? '' : 'flex-col'}`}>
+                    <button
+                        onClick={handleChangeLanguage}
+                        className="flex items-center gap-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors cursor-pointer"
+                        title="Change language"
+                    >
+                        <div className="w-4 h-4">
+                            {language?.toUpperCase() || 'EN'}
+                        </div>
+                    </button>
+                    <div>
+                        <ThemeToggle />
+                    </div>
                 </div>
             </div>
 

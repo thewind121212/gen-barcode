@@ -86,35 +86,41 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
       </button>
 
       {/* Dropdown Menu */}
-      {openState && (
-        <div
-          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right dark:bg-gray-900 dark:border-gray-800 dark:shadow-2xl"
-          onMouseEnter={clearCloseTimer}
-          onMouseLeave={() => {
-            clearCloseTimer();
-            closeTimerRef.current = setTimeout(() => handleClose(), 200);
-          }}
-        >
-          {actions.map((action, index) => (
-            <button
-              key={index}
-              onClick={(e) => {
-                e.stopPropagation();
-                action.onClick();
-                handleClose();
-              }}
-              className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors
-                ${action.danger
-                  ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-100 dark:hover:bg-gray-800 dark:hover:text-indigo-300'
-                }`}
-            >
-              {action.icon && <action.icon size={16} />}
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div
+        className={`
+          absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50
+          origin-top-right transition-all duration-200 ease-out
+          ${openState
+            ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
+          }
+          dark:bg-gray-900 dark:border-gray-800 dark:shadow-2xl
+        `}
+        onMouseEnter={clearCloseTimer}
+        onMouseLeave={() => {
+          clearCloseTimer();
+          closeTimerRef.current = setTimeout(() => handleClose(), 180);
+        }}
+      >
+        {actions.map((action, index) => (
+          <button
+            key={index}
+            onClick={(e) => {
+              e.stopPropagation();
+              action.onClick();
+              handleClose();
+            }}
+            className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors
+              ${action.danger
+                ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-100 dark:hover:bg-gray-800 dark:hover:text-indigo-300'
+              }`}
+          >
+            {action.icon && <action.icon size={16} />}
+            {action.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

@@ -1,12 +1,15 @@
 import {
   ListMainCategory,
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
-import { Edit2Icon, EyeIcon, LayoutGrid, List, Plus, Trash2Icon } from "lucide-react";
+import { Edit2Icon, EyeIcon, Info, LayoutGrid, List, Plus, Trash2Icon } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
+import CommonButton from "@Jade/core-design/input/CommonButton";
+import CreateCategoryDialog from "@Jade/components/category-module/CreateCategoryDialog";
+import { useModal } from "@Jade/core-design/modal/ModalBase";
 
 export type Category = {
   id: string;
@@ -39,24 +42,24 @@ export type CategoryStats = {
 };
 
 const INITIAL_CATEGORIES: Category[] = [
-  {
-    id: "7c5f2bde-1b9c-4a04-9ab1-f46a02c8ffba",
-    name: "Electronics",
-    color: "bg-blue-100 text-blue-800",
-    subCategoriesCount: 2,
-  },
-  {
-    id: "4b0e8e2d-8c55-4c8e-9f2c-0f7e8d1ac7c1",
-    name: "Groceries",
-    color: "bg-green-100 text-green-800",
-    subCategoriesCount: 4,
-  },
-  {
-    id: "1f6f7a5c-26f4-4f6d-8c63-7a3a9c9e5d2b",
-    name: "Clothing",
-    color: "bg-purple-100 text-purple-800",
-    subCategoriesCount: 0,
-  },
+  // {
+  //   id: "7c5f2bde-1b9c-4a04-9ab1-f46a02c8ffba",
+  //   name: "Electronics",
+  //   color: "bg-blue-100 text-blue-800",
+  //   subCategoriesCount: 2,
+  // },
+  // {
+  //   id: "4b0e8e2d-8c55-4c8e-9f2c-0f7e8d1ac7c1",
+  //   name: "Groceries",
+  //   color: "bg-green-100 text-green-800",
+  //   subCategoriesCount: 4,
+  // },
+  // {
+  //   id: "1f6f7a5c-26f4-4f6d-8c63-7a3a9c9e5d2b",
+  //   name: "Clothing",
+  //   color: "bg-purple-100 text-purple-800",
+  //   subCategoriesCount: 0,
+  // },
 ];
 
 const INITIAL_ITEMS: Item[] = [
@@ -114,17 +117,17 @@ const COLOR_OPTIONS = [
 const MENU_ACTIONS: ActionMenuItem[] = [
   {
     label: "View",
-    onClick: () => {},
+    onClick: () => { },
     icon: EyeIcon,
   },
   {
     label: "Edit",
-    onClick: () => {},
+    onClick: () => { },
     icon: Edit2Icon,
   },
   {
     label: "Delete",
-    onClick: () => {},
+    onClick: () => { },
     icon: Trash2Icon,
     danger: true,
   },
@@ -155,20 +158,10 @@ const CategoriesView = () => {
     "grid"
   );
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const mainModal = useModal();
 
   const handleCreateCategory = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!newCategory.name.trim()) return;
-
-    const category: Category = {
-      id: `cat_${Date.now()}`,
-      name: newCategory.name.trim(),
-      color: newCategory.color,
-      subCategoriesCount: 0,
-    };
-
-    setCategories((prev) => [...prev, category]);
-    setNewCategory({ name: "", color: COLOR_OPTIONS[0].value });
+    mainModal.open();
   };
 
   return (
@@ -187,22 +180,20 @@ const CategoriesView = () => {
         <div className="flex bg-white rounded-lg border border-gray-200 p-1 dark:bg-gray-900 dark:border-gray-800">
           <button
             onClick={() => setCategoryViewMode("grid")}
-            className={`p-2 rounded transition-all ${
-              categoryViewMode === "grid"
-                ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
-                : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-            }`}
+            className={`p-2 rounded transition-all ${categoryViewMode === "grid"
+              ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
+              : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+              }`}
             title="Grid View"
           >
             <LayoutGrid size={18} />
           </button>
           <button
             onClick={() => setCategoryViewMode("list")}
-            className={`p-2 rounded transition-all ${
-              categoryViewMode === "list"
-                ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
-                : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-            }`}
+            className={`p-2 rounded transition-all ${categoryViewMode === "list"
+              ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
+              : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+              }`}
             title="List View"
           >
             <List size={18} />
@@ -214,56 +205,76 @@ const CategoriesView = () => {
         {/* Create Category Form - Compact */}
         <div className="lg:col-span-1">
           <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 sticky top-4 dark:bg-gray-900 dark:border-gray-800">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <Plus size={18} className="text-indigo-500" /> Add Category
-            </h3>
-            <form onSubmit={handleCreateCategory} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 dark:text-gray-400">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newCategory.name}
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, name: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
-                  placeholder="e.g. Summer Collection"
-                />
+            <CommonButton
+              onClick={() => mainModal.open()}
+              className="w-full h-10 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm dark:hover:bg-indigo-500"
+              icon={<Plus size={18} />}
+            >
+              Create Main Category
+            </CommonButton>
+            <div className="mt-8">
+              <div className="flex items-center gap-2 mb-4 text-gray-800 dark:text-gray-200">
+                <Info size={18} className="text-indigo-500" />
+                <h3 className="font-bold text-sm uppercase tracking-wide">Quick Guide</h3>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 dark:text-gray-400">
-                  Color
-                </label>
-                <div className="grid grid-cols-6 gap-2">
-                  {COLOR_OPTIONS.map((color) => (
-                    <button
-                      key={color.label}
-                      type="button"
-                      onClick={() =>
-                        setNewCategory({ ...newCategory, color: color.value })
-                      }
-                      className={`h-6 w-full rounded flex items-center justify-center transition-all ${color.value} ${
-                        newCategory.color === color.value
-                          ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500 dark:ring-offset-gray-900"
-                          : "opacity-70 hover:opacity-100"
-                      }`}
-                      title={color.label}
-                    />
-                  ))}
+              <div className="space-y-6 relative">
+                {/* Connecting Line */}
+                <div className="absolute left-3.5 top-2 bottom-4 w-0.5 bg-gray-100 dark:bg-gray-800" />
+
+                {/* Step 1 */}
+                <div className="relative flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-white border-2 border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm z-10 dark:bg-gray-800 dark:border-indigo-900 dark:text-indigo-400">
+                    1
+                  </div>
+                  <div className="pt-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Create Main Layer</h4>
+                    <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
+                      Start by using the button above to create your top-level categories.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="relative flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-white border-2 border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm z-10 dark:bg-gray-800 dark:border-indigo-900 dark:text-indigo-400">
+                    2
+                  </div>
+                  <div className="pt-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Enter Details</h4>
+                    <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
+                      Click on any category card to enter it and view its contents.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="relative flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-white border-2 border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm z-10 dark:bg-gray-800 dark:border-indigo-900 dark:text-indigo-400">
+                    3
+                  </div>
+                  <div className="pt-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Nest Layers</h4>
+                    <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
+                      Create sub-layers easily. You can nest up to <span className="font-bold text-indigo-600 dark:text-indigo-400">5 levels</span> deep.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="relative flex gap-4">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-white border-2 border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm z-10 dark:bg-gray-800 dark:border-indigo-900 dark:text-indigo-400">
+                    4
+                  </div>
+                  <div className="pt-1">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Assign Items</h4>
+                    <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
+                      Add items to any specific layer you are currently viewing.
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              <button
-                type="submit"
-                  className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm dark:hover:bg-indigo-500"
-              >
-                Create Category
-              </button>
-            </form>
+            </div>
           </div>
         </div>
 
@@ -291,14 +302,13 @@ const CategoriesView = () => {
                   <div
                     key={cat.id}
                     id={cat.id}
-                    className={`bg-white border border-gray-200 hover:border-indigo-300 hover:bg-gray-100 hover:dark:bg-gray-800 transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-indigo-500 ${
-                      categoryViewMode === "grid"
-                        ? "p-4 rounded-xl shadow-sm hover:shadow-md"
-                        : "p-3 rounded-lg flex items-center shadow-sm"
-                    } 
+                    className={`bg-white border border-gray-200 hover:border-indigo-300 hover:bg-gray-100 hover:dark:bg-gray-800 transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-indigo-500 ${categoryViewMode === "grid"
+                      ? "p-4 rounded-xl shadow-sm hover:shadow-md"
+                      : "p-3 rounded-lg flex items-center shadow-sm"
+                      } 
                     ${isMenuOpen && "bg-gray-100! dark:bg-gray-800! border-indigo-300! dark:border-indigo-500! shadow-md!"}
                     `
-                  }
+                    }
                   >
                     {categoryViewMode === "grid" ? (
                       <CardMainCategory
@@ -328,6 +338,7 @@ const CategoriesView = () => {
           )}
         </div>
       </div>
+      <CreateCategoryDialog mainModal={mainModal} />
     </div>
   );
 };
