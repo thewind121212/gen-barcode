@@ -96,7 +96,6 @@ export default function LoginSignup() {
 
   const successCallback = () => {
     navigate(redirect || "/", { replace: true });
-    setIsLoading(false);
   }
 
   const onSubmit = async (data: SignupForm) => {
@@ -107,6 +106,7 @@ export default function LoginSignup() {
     else {
       await signUpWithCallback(data.email, data.password, successCallback);
     }
+    setIsLoading(false);
   };
 
   if (isContextLoading || hasSession) {

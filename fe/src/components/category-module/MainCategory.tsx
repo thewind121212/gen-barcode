@@ -2,7 +2,6 @@ import {
   ListMainCategory,
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
 import { Edit2Icon, EyeIcon, Info, LayoutGrid, List, Plus, Trash2Icon } from "lucide-react";
-import type React from "react";
 import { useState } from "react";
 
 import CreateCategoryDialog from "@Jade/components/category-module/CreateCategoryDialog";
@@ -27,11 +26,6 @@ export type Item = {
   price: number;
   quantity: number;
   minStock: number;
-};
-
-type NewCategory = {
-  name: string;
-  color: string;
 };
 
 export type CategoryStats = {
@@ -120,17 +114,13 @@ const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
 };
 
 const CategoriesView = () => {
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [categories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [items] = useState<Item[]>(INITIAL_ITEMS);
   const [categoryViewMode, setCategoryViewMode] = useState<"grid" | "list">(
     "grid"
   );
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const mainModal = useModal();
-
-  const handleCreateCategory = (e: React.FormEvent<HTMLFormElement>) => {
-    mainModal.open();
-  };
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 pt-10">

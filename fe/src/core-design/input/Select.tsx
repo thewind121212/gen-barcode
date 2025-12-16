@@ -1,5 +1,5 @@
 import { AlertCircle, Check, ChevronDown } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import type { FieldValues, RegisterOptions, UseFormRegister } from 'react-hook-form';
 
 interface SelectOption {
@@ -50,14 +50,14 @@ const Select = ({
 
   const selectedOption = options.find(opt => opt.value === value);
 
-  const closeDropdown = () => {
+  const closeDropdown = useCallback(() => {
     if (!isOpen) return;
     setIsClosing(true);
     setTimeout(() => {
       setIsOpen(false);
       setIsClosing(false);
     }, 200);
-  };
+  }, [isOpen]);
 
   const toggleDropdown = () => {
     if (isOpen) closeDropdown();
@@ -87,16 +87,13 @@ const Select = ({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
-  const hasValue = selectedOption != null;
+  }, [closeDropdown]);
 
   return (
     <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''} ${className || ''}`} ref={containerRef}>
 
       {/* Hidden input for react-hook-form integration */}
       {register && (
-        // eslint-disable-next-line jsx-a11y/no-redundant-roles
         <input
           type="hidden"
           name={name}
