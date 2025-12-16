@@ -1,6 +1,6 @@
-import  { useMemo, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export type IconName = keyof typeof LucideIcons;
 
@@ -36,8 +36,13 @@ export function IconPickerContent({
       .slice(0, 100);
   }, [search]);
 
+  const handleDoubleClick = (iconName: IconName) => {
+    onSelect(iconName);
+    onClose();
+  };
+
   return (
-    <div className="flex flex-col h-full max-h-[70vh]">
+    <div className="flex flex-col h-full">
       <div className="px-8 pt-6 pb-2">
         <div className="flex items-center rounded-xl px-4 py-3 border transition-all bg-gray-50 border-gray-200 focus-within:border-indigo-500 dark:bg-slate-950 dark:border-slate-800 dark:focus-within:border-indigo-500">
           <LucideIcons.Search size={18} className="opacity-50 mr-3" />
@@ -62,10 +67,8 @@ export function IconPickerContent({
           return (
             <button
               key={iconName}
-              onClick={() => {
-                onSelect(iconName);
-                onClose();
-              }}
+              onClick={() => onSelect(iconName)}
+              onDoubleClick={() => handleDoubleClick(iconName)}
               className={`flex items-center justify-center p-3 rounded-xl transition-all border aspect-square ${
                 selectedIcon === iconName
                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg scale-110'

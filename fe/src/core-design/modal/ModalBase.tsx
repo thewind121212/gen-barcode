@@ -1,13 +1,30 @@
-import { useState, type ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
+
+
+export enum ModalId {
+  MAIN = "main-category-dialog",
+  COLOR = "color-picker-dialog",
+  ICON = "icon-picker-dialog",
+}
 
 type ModalProps = {
   isOpen: boolean;
   isClosing?: boolean;
   onClose: () => void;
-  title?: string;
+  title: string;
   children: ReactNode;
   maxWidthClass?: string;
+  layer?: number;
+  xIcon?: boolean;
+  subtitle?: string;
+  blurEffect?: boolean;
+  className?: string;
+  showCancelButton?: boolean;
+  showConfirmButton?: boolean;
+  confirmButtonText?: string;
+  cancelButtonText?: string;
+  onConfirm?: () => void;
 };
 
 export type UseModalReturn = {
@@ -17,48 +34,93 @@ export type UseModalReturn = {
   close: () => void;
 };
 
+const PREFIX_LAYER = "6";
+
 const Modal = ({
   isOpen,
   isClosing = false,
   onClose,
+  layer = 0,
   title,
+  subtitle,
+  xIcon = true,
   children,
-  maxWidthClass = 'max-w-lg'
+  maxWidthClass = 'max-w-lg',
+  className = '',
+  blurEffect = true,
+  showCancelButton = true,
+  showConfirmButton = true,
+  confirmButtonText = 'Confirm',
+  cancelButtonText = 'Cancel',
+  onConfirm = () => {},
 }: ModalProps) => {
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  }, [isOpen]);
+
   if (!isOpen && !isClosing) return null;
 
+  const styledLayer = {
+    "zIndex": `${PREFIX_LAYER}${layer?.toString()}`
+  }
+
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 font-sans">
+    <div className={`fixed inset-0 flex items-center justify-center p-4 font-sans left-0 top-0 ${className} max-h-screen`}
+      style={styledLayer}
+    >
       <div
-        className={`absolute inset-0 bg-black/40 backdrop-blur-sm ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+        className={`absolute inset-0 bg-black/40 ${blurEffect || layer === 0 ? 'backdrop-blur-sm' : ''} ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
         onClick={onClose}
       />
 
       <div
         className={`
-          relative w-full ${maxWidthClass} rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]
+          relative w-full ${maxWidthClass} rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]
           ${isClosing ? 'animate-spring-down' : 'animate-spring-up'} 
           bg-white text-slate-900 border border-gray-100
           dark:bg-slate-900 dark:text-white dark:border-slate-800
         `}
       >
-        {title && (
-          <div
-            className="px-8 py-5 border-b flex justify-between items-center border-gray-100 dark:border-slate-800"
-          >
-            <h3 className="font-bold text-lg">{title}</h3>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full transition-colors hover:bg-gray-100 text-slate-500 dark:hover:bg-slate-800 dark:text-slate-400"
-              aria-label="Close modal"
-              type="button"
-            >
-              <X size={20} />
-            </button>
+        <div className="px-8 py-4 border-b flex items-center justify-between border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h2>
+            <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">{subtitle}</p>
           </div>
-        )}
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full transition-colors hover:bg-gray-200 text-slate-500 dark:text-slate-400 dark:hover:bg-slate-800"
+            type="button"
+          >
+            {xIcon && (
+              <X size={20} />
+            )}
+          </button>
+        </div>
 
         <div className="flex-1 overflow-y-auto">{children}</div>
+        <div className="px-8 py-6 border-t flex items-center justify-end gap-3 border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
+          {
+            showCancelButton && (
+              <button
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-500 hover:text-slate-800 hover:bg-gray-200 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800">
+                {cancelButtonText || 'Cancel'}
+              </button>
+            )
+          }
+          {
+            showConfirmButton && (
+              <button onClick={onConfirm} className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
+                {confirmButtonText || 'Create Category'}
+              </button>
+            )
+          }
+        </div>
       </div>
 
       <style>{`

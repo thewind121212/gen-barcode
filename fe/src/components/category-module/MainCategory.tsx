@@ -150,10 +150,6 @@ const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
 const CategoriesView = () => {
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [items] = useState<Item[]>(INITIAL_ITEMS);
-  const [newCategory, setNewCategory] = useState<NewCategory>({
-    name: "",
-    color: COLOR_OPTIONS[0].value,
-  });
   const [categoryViewMode, setCategoryViewMode] = useState<"grid" | "list">(
     "grid"
   );

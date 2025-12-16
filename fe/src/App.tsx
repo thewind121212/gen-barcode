@@ -1,5 +1,7 @@
 import Generator from "@Jade/components/Generator";
 import OnboardingComponent from "@Jade/components/Onboarding";
+import Auth from "@Jade/components/auth-moudule/Auth";
+import LoadingScreen from "@Jade/components/loading/AppLoading";
 import { Sidebar } from "@Jade/components/nav-bar/net";
 import CategoryPage from "@Jade/page/Category";
 import { store } from '@Jade/store/global.store';
@@ -10,8 +12,6 @@ import { BrowserRouter, Outlet, Route, Routes, useLocation } from "react-router-
 import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
 import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
 import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
-import Auth from "@Jade/components/auth-moudule/Auth";
-import LoadingScreen from "@Jade/components/loading/AppLoading";
 
 
 // Create a client for TanStack Query

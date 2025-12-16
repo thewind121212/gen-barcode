@@ -3,14 +3,15 @@ import React from 'react';
 import type { FieldValues, RegisterOptions, UseFormRegister } from 'react-hook-form';
 
 interface InputProps {
-    label: string;
+    label?: string;
     icon?: React.ReactNode;
     error?: string;
     success?: boolean;
     expandOnError?: boolean;
     className?: string;
+    floatingLabel?: boolean;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    register: UseFormRegister<any>;
+    register?: UseFormRegister<any>;
     registerOptions?: RegisterOptions<FieldValues, string>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
@@ -25,23 +26,24 @@ const Input = ({
     className,
     register,
     registerOptions,
+    floatingLabel = true,
     ...props
 }: InputProps) => {
     return (
-        <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''} ${className || ''}`}>
+        <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''}`}>
 
             <input
                 {...props}
                 placeholder=" " 
-                {...register(props.name, { ...registerOptions })}
+                {...(register ? register(props.name, { ...registerOptions }) : {})}
                 className={`
             peer
             w-full
             bg-transparent
             rounded-xl
-            border-2
+            border
             px-4
-            py-4
+            py-3
             outline-none
             transition-all
             duration-200
@@ -51,17 +53,19 @@ const Input = ({
             font-medium
             tracking-wide
             ${error
-                        ? 'border-red-500 focus:border-red-500 focus:shadow-[0_0_0_4px_rgba(239,68,68,0.2)]'
+                        ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                         : success
-                            ? 'border-emerald-500 focus:border-emerald-500 focus:shadow-[0_0_0_4px_rgba(16,185,129,0.2)]'
-                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 focus:shadow-[0_0_0_4px_rgba(99,102,241,0.2)]'
+                            ? 'border-emerald-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
                     }
   
             ${icon ? 'pl-12' : ''}
+            ${className || ''}
           `}
             />
 
             {/* Floating Label */}
+            {label && (
             <label
                 className={`
             absolute
@@ -88,15 +92,13 @@ const Input = ({
                             : 'text-slate-400 peer-placeholder-shown:text-slate-500 peer-focus:text-indigo-500'
                     }
   
-            peer-placeholder-shown:top-5
-            peer-placeholder-shown:translate-y-0
-            peer-placeholder-shown:scale-100
-            peer-placeholder-shown:font-medium
+            ${floatingLabel ? 'peer-placeholder-shown:top-5 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-placeholder-shown:font-medium' : ''}
             ${icon ? 'peer-placeholder-shown:left-12' : 'peer-placeholder-shown:left-4'}
           `}
             >
                 {label}
             </label>
+            )}
 
             {/* Leading Icon (Optional) */}
             {icon && (

@@ -9,7 +9,7 @@ type ColorPickerContentProps = {
 export default function ColorPicker({
     selectedColor,
     onSelect,
-    onClose
+    onClose,
 }: ColorPickerContentProps) {
     return (
         <ColorPickerContent
@@ -58,9 +58,14 @@ export const quickColors = [...allColors.slice(0, 5)];
 function ColorPickerContent({
     selectedColor,
     onSelect,
-    onClose
+    onClose,
 }: ColorPickerContentProps) {
     const selectedName = allColors.find(c => c.id === selectedColor)?.name || 'Custom';
+
+    const handleDoubleClick = (colorId: string) => {
+        onSelect(colorId);
+        onClose();
+    };
 
     return (
         <>
@@ -68,11 +73,12 @@ function ColorPickerContent({
                 <p className="text-xs mb-4 text-slate-500 dark:text-slate-400">
                     Selected: <span className="font-semibold text-indigo-500 dark:text-indigo-400">{selectedName}</span>
                 </p>
-                <div className="grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-[50vh] overflow-y-auto">
+                <div className="p-3 grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-[50vh] overflow-y-auto">
                     {allColors.map((c) => (
                         <button
                             key={c.id}
                             onClick={() => onSelect(c.id)}
+                            onDoubleClick={() => handleDoubleClick(c.id)}
                             className={`w-10 h-10 rounded-full ${c.bg} transition-all duration-300 flex items-center justify-center shadow-sm ${selectedColor === c.id
                                     ? `ring-4 ${c.ring} ring-offset-2 ring-offset-white dark:ring-offset-slate-900 scale-110`
                                     : 'hover:scale-110 opacity-90 hover:opacity-100'
@@ -83,16 +89,6 @@ function ColorPickerContent({
                         </button>
                     ))}
                 </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-8 py-5 border-t flex justify-end border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
-                <button
-                    onClick={onClose}
-                    className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 active:scale-95"
-                >
-                    Done
-                </button>
             </div>
         </>
     );
