@@ -5,10 +5,10 @@ import { Edit2Icon, EyeIcon, Info, LayoutGrid, List, Plus, Trash2Icon } from "lu
 import type React from "react";
 import { useState } from "react";
 
+import CreateCategoryDialog from "@Jade/components/category-module/CreateCategoryDialog";
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
-import CreateCategoryDialog from "@Jade/components/category-module/CreateCategoryDialog";
 import { useModal } from "@Jade/core-design/modal/ModalBase";
 
 export type Category = {
@@ -42,24 +42,24 @@ export type CategoryStats = {
 };
 
 const INITIAL_CATEGORIES: Category[] = [
-  // {
-  //   id: "7c5f2bde-1b9c-4a04-9ab1-f46a02c8ffba",
-  //   name: "Electronics",
-  //   color: "bg-blue-100 text-blue-800",
-  //   subCategoriesCount: 2,
-  // },
-  // {
-  //   id: "4b0e8e2d-8c55-4c8e-9f2c-0f7e8d1ac7c1",
-  //   name: "Groceries",
-  //   color: "bg-green-100 text-green-800",
-  //   subCategoriesCount: 4,
-  // },
-  // {
-  //   id: "1f6f7a5c-26f4-4f6d-8c63-7a3a9c9e5d2b",
-  //   name: "Clothing",
-  //   color: "bg-purple-100 text-purple-800",
-  //   subCategoriesCount: 0,
-  // },
+  {
+    id: "7c5f2bde-1b9c-4a04-9ab1-f46a02c8ffba",
+    name: "Electronics",
+    color: "bg-blue-100 text-blue-800",
+    subCategoriesCount: 2,
+  },
+  {
+    id: "4b0e8e2d-8c55-4c8e-9f2c-0f7e8d1ac7c1",
+    name: "Groceries",
+    color: "bg-green-100 text-green-800",
+    subCategoriesCount: 4,
+  },
+  {
+    id: "1f6f7a5c-26f4-4f6d-8c63-7a3a9c9e5d2b",
+    name: "Clothing",
+    color: "bg-purple-100 text-purple-800",
+    subCategoriesCount: 0,
+  },
 ];
 
 const INITIAL_ITEMS: Item[] = [
@@ -85,34 +85,6 @@ const INITIAL_ITEMS: Item[] = [
   },
 ];
 
-const COLOR_OPTIONS = [
-  { label: "Blue", value: "bg-blue-100 text-blue-800" },
-  { label: "Green", value: "bg-green-100 text-green-800" },
-  { label: "Purple", value: "bg-purple-100 text-purple-800" },
-  { label: "Orange", value: "bg-orange-100 text-orange-800" },
-  { label: "Red", value: "bg-red-100 text-red-800" },
-  { label: "Gray", value: "bg-gray-100 text-gray-800" },
-  { label: "Indigo", value: "bg-indigo-100 text-indigo-800" },
-  { label: "Teal", value: "bg-teal-100 text-teal-800" },
-  { label: "Cyan", value: "bg-cyan-100 text-cyan-800" },
-  { label: "Emerald", value: "bg-emerald-100 text-emerald-800" },
-  { label: "Lime", value: "bg-lime-100 text-lime-800" },
-  { label: "Amber", value: "bg-amber-100 text-amber-800" },
-  { label: "Yellow", value: "bg-yellow-100 text-yellow-800" },
-  { label: "Rose", value: "bg-rose-100 text-rose-800" },
-  { label: "Pink", value: "bg-pink-100 text-pink-800" },
-  { label: "Fuchsia", value: "bg-fuchsia-100 text-fuchsia-800" },
-  { label: "Sky", value: "bg-sky-100 text-sky-800" },
-  { label: "Slate", value: "bg-slate-100 text-slate-800" },
-  { label: "Stone", value: "bg-stone-100 text-stone-800" },
-  { label: "Zinc", value: "bg-zinc-100 text-zinc-800" },
-  { label: "Neutral", value: "bg-neutral-100 text-neutral-800" },
-  { label: "Emerald Dark", value: "bg-emerald-200 text-emerald-900" },
-  { label: "Indigo Soft", value: "bg-indigo-50 text-indigo-700" },
-  { label: "Orange Deep", value: "bg-orange-200 text-orange-900" },
-  { label: "Rose Soft", value: "bg-rose-50 text-rose-700" },
-  { label: "Blue Gray", value: "bg-blue-gray-100 text-blue-gray-800" },
-];
 
 const MENU_ACTIONS: ActionMenuItem[] = [
   {

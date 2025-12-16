@@ -8,13 +8,14 @@ import type { LucideIcon } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
+import { useParams } from 'react-router-dom';
 
 type CategoryStatus = 'active' | 'inactive' | 'archived';
 
 type CategoryFormValues = {
     name: string;
     status: CategoryStatus;
-    parent: string;
+    parentId?: string;
     description: string;
     color: string;
     icon: string;
@@ -23,7 +24,7 @@ type CategoryFormValues = {
 const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
     name: yup.string().required('Name is required'),
     status: yup.mixed<CategoryStatus>().oneOf(['active', 'inactive', 'archived']).required('Status is required'),
-    parent: yup.string().optional().default(''),
+    parentId: yup.string().uuid("parentId must be a valid UUID").optional().default(''),
     description: yup.string().optional().default(''),
     color: yup.string().optional().default('indigo-400'),
     icon: yup.string().optional().default('LayoutGrid'),
@@ -39,12 +40,13 @@ type CreateCategoryDialogProps = {
 export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialogProps) {
     const colorModal = useModal();
     const iconModal = useModal();
+    const { id } = useParams();
     const {handleSubmit ,register, watch, setValue, formState: { errors } } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
         defaultValues: {
             name: '',
             status: 'active',
-            parent: '',
+            parentId: '',
             description: '',
             color: 'indigo-400',
             icon: 'LayoutGrid',
@@ -52,7 +54,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     });
 
     const status = watch('status');
-    const parent = watch('parent');
+    const parentId = watch('parentId');
     const color = watch('color');
     const icon = watch('icon');
 
@@ -85,7 +87,6 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     }
 
     const onSubmit = (data: CategoryFormValues) => {
-
     };
 
     return (
@@ -137,11 +138,12 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                         </div>
 
                         <div className="space-y-6">
+                            {!Boolean(id) && (
                             <div className="relative flex flex-col transition-all gap-1 space-y-2">
                                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
                                 <Select
-                                    name="parent"
-                                    value={parent}
+                                    name="parentId"
+                                    value={parentId}
                                     register={register}
                                     options={[
                                         { value: '', label: 'No Parent (Root Category)' },
@@ -152,7 +154,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                     icon={LucideIcons.LayoutGrid}
                                 />
                             </div>
-
+                            )}
                             <div className="space-y-2 flex flex-col gap-1">
                                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</label>
                                 <textarea

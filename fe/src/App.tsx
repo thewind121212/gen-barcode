@@ -88,6 +88,7 @@ function App() {
             <Route path="/" element={<CategoryPage />} />
             <Route path="/barcode-generator" element={<Generator />} />
             <Route path="/categories" element={<CategoryPage />} />
+            <Route path="/categories/:id" element={<CategoryPage />} />
             <Route path="/onboarding" element={<OnboardingComponent />} />
             <Route path="/printer" element={<Generator />} />
             <Route path="/settings" element={<Generator />} />
