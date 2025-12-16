@@ -44,7 +44,7 @@ const PasswordInput = ({
             rounded-xl
             border
             px-4
-            py-3
+            py-4
             outline-none
             transition-all
             duration-200
