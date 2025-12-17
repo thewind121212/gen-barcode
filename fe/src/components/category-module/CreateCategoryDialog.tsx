@@ -61,11 +61,9 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     const icon = useWatch({ control, name: 'icon' });
 
     const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
-    const [iconLoading, setIconLoading] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
-        setIconLoading(true);
 
         const loader = dynamicIconImports[icon as IconName] ?? dynamicIconImports['layout-grid'];
 
@@ -78,11 +76,6 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
             .catch(() => {
                 if (isMounted) {
                     setSelectedIcon(() => LayoutGrid);
-                }
-            })
-            .finally(() => {
-                if (isMounted) {
-                    setIconLoading(false);
                 }
             });
 
@@ -235,11 +228,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
 
                                 <div className="flex items-end gap-4">
                                     <div className="size-[42px] rounded-xl flex items-center justify-center shadow-lg transition-all bg-white text-indigo-600 border border-indigo-100 dark:bg-slate-800 dark:text-white">
-                                        {iconLoading ? (
-                                            <div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />
-                                        ) : (
-                                            <SelectedIcon size={24} />
-                                        )}
+                                        <SelectedIcon size={24} />
                                     </div>
 
                                     <button

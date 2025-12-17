@@ -49,7 +49,6 @@ export function notFound(req: Request, res: Response, next: NextFunction) {
 export async function handlerCheckToken(req: Request, res: Response<ErrorResponse>, next: NextFunction) {
   try {
     const session = await Session.getSession(req, res, { sessionRequired: false });
-    console.log("session", session);
     if (!session) {
       ErrorResponses.unauthorized(res, "Your Request Is Not Auth");
       return; // Stop execution here
