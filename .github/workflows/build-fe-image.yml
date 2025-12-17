@@ -3,14 +3,16 @@ name: Build FE Image
 on:
   push:
     branches:
-      - master
+      - main
+      - test
   pull_request:
     branches:
       - master
+      - main
+      - test
 
 jobs:
   build-and-push:
-    if: github.event.pull_request.merged == true
     name: Build and push FE image
     runs-on: ubuntu-latest
     permissions:
