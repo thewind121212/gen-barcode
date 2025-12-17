@@ -1,14 +1,17 @@
+import { lazy } from "react";
 import {
   ListMainCategory,
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
 import { Edit2Icon, EyeIcon, Info, LayoutGrid, List, Plus, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 
-import CreateCategoryDialog from "@Jade/components/category-module/CreateCategoryDialog";
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
-import { useModal } from "@Jade/core-design/modal/ModalBase";
+import { ModalId, useModal } from "@Jade/core-design/modal/ModalBase";
+
+// Lazy import CreateCategoryDialog
+const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 export type Category = {
   id: string;
@@ -120,7 +123,7 @@ const CategoriesView = () => {
     "grid"
   );
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const mainModal = useModal();
+  const mainModal = useModal(ModalId.MAIN);
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 pt-10">

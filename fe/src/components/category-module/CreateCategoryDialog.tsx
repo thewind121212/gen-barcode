@@ -1,14 +1,18 @@
+import { lazy } from 'react';
 import InputCommon from '@Jade/core-design/input/CommonInput';
 import Select from '@Jade/core-design/input/Select';
-import ColorPicker, { allColors, quickColors } from '@Jade/core-design/modal/ColorPicker';
-import { IconPickerContent, type IconName } from '@Jade/core-design/modal/IconPicker';
-import { Modal, useModal, type UseModalReturn } from '@Jade/core-design/modal/ModalBase';
+import { allColors, quickColors } from '@Jade/core-design/modal/ColorPicker';
+import type { IconName } from '@Jade/core-design/modal/IconPicker';
+import { Modal, ModalId, useModal, type UseModalReturn } from '@Jade/core-design/modal/ModalBase';
 import { yupResolver } from "@hookform/resolvers/yup";
 import type { LucideIcon } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { useParams } from 'react-router-dom';
+// Lazy import ColorPicker and IconPicker
+const ColorPicker = lazy(() => import('@Jade/core-design/modal/ColorPicker'));
+const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
 
 type CategoryStatus = 'active' | 'inactive' | 'archived';
 
@@ -38,8 +42,8 @@ type CreateCategoryDialogProps = {
 };
 
 export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialogProps) {
-    const colorModal = useModal();
-    const iconModal = useModal();
+    const colorModal = useModal(ModalId.COLOR);
+    const iconModal = useModal(ModalId.ICON);
     const { id } = useParams();
     const {handleSubmit ,register, watch, setValue, formState: { errors } } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
@@ -93,9 +97,11 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     return (
         <>
             <Modal
+                modalId={mainModal.modalId}
                 isOpen={mainModal.isOpen}
                 isClosing={mainModal.isClosing}
                 onClose={mainModal.close}
+                layer={mainModal.layer}
                 maxWidthClass="max-w-2xl"
                 title="Create New Category"
                 subtitle="Organize your items with a new classification."
@@ -230,11 +236,12 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
 
             </Modal>
             <Modal
+                modalId={colorModal.modalId}
                 isOpen={colorModal.isOpen}
                 isClosing={colorModal.isClosing}
                 onClose={colorModal.close}
                 title="Select Color Tag"
-                layer={1}
+                layer={colorModal.layer}
                 blurEffect={false}
                 showCancelButton={false}
                 showConfirmButton={true}
@@ -249,11 +256,12 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
             </Modal>
 
             <Modal
+                modalId={iconModal.modalId}
                 isOpen={iconModal.isOpen}
                 isClosing={iconModal.isClosing}
                 onClose={iconModal.close}
                 title="Select Icon"
-                layer={2}
+                layer={iconModal.layer}
                 blurEffect={false}
                 showCancelButton={false}
                 showConfirmButton={true}

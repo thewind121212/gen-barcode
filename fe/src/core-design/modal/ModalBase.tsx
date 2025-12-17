@@ -1,14 +1,14 @@
 import { X } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, type ReactNode } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
+import { finishClosingModal, openModal, selectModalStack, startClosingModal } from '@Jade/store/modal.store';
+import type { RootState } from '@Jade/store/global.store';
+import { MODAL_ANIMATION_DURATION_MS, ModalId, type ModalKey } from '@Jade/types/modal';
 
-export enum ModalId {
-  MAIN = "main-category-dialog",
-  COLOR = "color-picker-dialog",
-  ICON = "icon-picker-dialog",
-}
 
 type ModalProps = {
+  modalId: ModalKey;
   isOpen: boolean;
   isClosing?: boolean;
   onClose: () => void;
@@ -30,6 +30,8 @@ type ModalProps = {
 export type UseModalReturn = {
   isOpen: boolean;
   isClosing: boolean;
+  layer: number;
+  modalId: ModalKey;
   open: () => void;
   close: () => void;
 };
@@ -37,10 +39,11 @@ export type UseModalReturn = {
 const PREFIX_LAYER = "6";
 
 const Modal = ({
+  modalId,
   isOpen,
   isClosing = false,
   onClose,
-  layer = 0,
+  layer,
   title,
   subtitle,
   xIcon = true,
@@ -55,18 +58,37 @@ const Modal = ({
   onConfirm = () => {},
 }: ModalProps) => {
 
+  const modalStack = useSelector((state: RootState) => selectModalStack(state));
+  const isTopLayer = modalStack[modalStack.length - 1]?.id === modalId;
+  const derivedLayer = typeof layer === 'number'
+    ? layer
+    : Math.max(modalStack.findIndex((modal) => modal.id === modalId), 0);
+
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-  }, [isOpen]);
+    document.body.style.overflow = modalStack.length ? 'hidden' : 'auto';
+    return () => {
+      if (!modalStack.length) {
+        document.body.style.overflow = 'auto';
+      }
+    };
+  }, [modalStack.length]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isTopLayer) {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isTopLayer, onClose]);
 
   if (!isOpen && !isClosing) return null;
 
   const styledLayer = {
-    "zIndex": `${PREFIX_LAYER}${layer?.toString()}`
+    "zIndex": `${PREFIX_LAYER}${derivedLayer.toString()}`
   }
 
   return (
@@ -74,7 +96,7 @@ const Modal = ({
       style={styledLayer}
     >
       <div
-        className={`absolute inset-0 bg-black/40 ${blurEffect || layer === 0 ? 'backdrop-blur-sm' : ''} ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+        className={`absolute inset-0 bg-black/40 ${blurEffect || derivedLayer === 0 ? 'backdrop-blur-sm' : ''} ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
         onClick={onClose}
       />
 
@@ -149,25 +171,30 @@ const Modal = ({
   );
 };
 
-const useModal = (): UseModalReturn => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+const useModal = (modalId: ModalKey, closeDelayMs = MODAL_ANIMATION_DURATION_MS): UseModalReturn => {
+  const dispatch = useDispatch();
+  const modalStack = useSelector((state: RootState) => selectModalStack(state));
+  const currentIndex = modalStack.findIndex((modal) => modal.id === modalId);
+  const currentModal = currentIndex >= 0 ? modalStack[currentIndex] : undefined;
 
-  const open = () => {
-    setIsClosing(false);
-    setIsOpen(true);
-  };
+  const layer = currentIndex >= 0 ? currentIndex : modalStack.length;
+  const isOpen = Boolean(currentModal);
+  const isClosing = currentModal?.isClosing ?? false;
 
-  const close = () => {
-    setIsClosing(true);
+  const open = useCallback(() => {
+    dispatch(openModal(modalId));
+  }, [dispatch, modalId]);
+
+  const close = useCallback(() => {
+    if (!isOpen || isClosing) return;
+    dispatch(startClosingModal(modalId));
     setTimeout(() => {
-      setIsOpen(false);
-      setIsClosing(false);
-    }, 250);
-  };
+      dispatch(finishClosingModal(modalId));
+    }, closeDelayMs);
+  }, [dispatch, modalId, closeDelayMs, isOpen, isClosing]);
 
-  return { isOpen, isClosing, open, close };
+  return { isOpen, isClosing, layer, modalId, open, close };
 };
 
-export { Modal, useModal };
+export { Modal, useModal, ModalId };
 

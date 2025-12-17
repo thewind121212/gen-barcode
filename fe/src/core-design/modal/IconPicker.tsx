@@ -13,7 +13,7 @@ type IconPickerContentProps = {
 const isLucideIcon = (icon: unknown): icon is LucideIcon =>
     typeof icon === 'function' || typeof icon === 'object';
 
-export function IconPickerContent({
+export default function IconPickerContent({
     selectedIcon,
     onSelect,
     onClose,
