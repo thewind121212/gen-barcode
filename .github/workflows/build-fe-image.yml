@@ -37,9 +37,10 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
-          context: ./fe
-          file: ./fe/Dockerfile
+          context: .
+          file: ./DockerfileFe
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: 
+            API_URL=${{ secrets.API_URL }}

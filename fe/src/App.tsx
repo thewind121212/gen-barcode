@@ -1,7 +1,7 @@
 import Generator from "@Jade/components/Generator";
 import OnboardingComponent from "@Jade/components/Onboarding";
 import Auth from "@Jade/components/auth-moudule/Auth";
-import LoadingScreen from "@Jade/components/loading/AppLoading";
+import LoadingScreen from "@Jade/components/loading/AppLoader";
 import SplashScreen from "@Jade/components/loading/SplashScreen";
 import { Sidebar } from "@Jade/components/nav-bar/net";
 import CategoryPage from "@Jade/page/Category";

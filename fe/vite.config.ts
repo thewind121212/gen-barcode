@@ -26,6 +26,13 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
+              if (id.includes('lucide-react/dist/esm/icons/')) {
+                const iconName = id.split('/icons/')[1]?.split('.')[0] || 'icon'
+                const bucket = iconName.charAt(0).toLowerCase() || 'icon'
+                return `icons-${bucket}`
+              }
+              // Keep the dynamic map small; don't force its own chunk
+              if (id.includes('lucide-react/dynamicIconImports')) return
               if (id.includes('@tanstack')) return 'react-query'
               if (id.includes('i18next')) return 'i18n'
               if (id.includes('supertokens')) return 'auth'
