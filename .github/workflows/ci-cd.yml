@@ -82,7 +82,6 @@ jobs:
         with:
           tag-prefix: ${{ github.ref_name == 'master' && 'dev-' || 'test-' }}
           default: patch
-          # These lines prevent the action from committing or tagging the repo
           skip-commit: 'true'
           skip-tag: 'true'
 
