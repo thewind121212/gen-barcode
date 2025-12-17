@@ -1,5 +1,8 @@
 import Generator from "@Jade/components/Generator";
 import OnboardingComponent from "@Jade/components/Onboarding";
+import Auth from "@Jade/components/auth-moudule/Auth";
+import LoadingScreen from "@Jade/components/loading/AppLoader";
+import SplashScreen from "@Jade/components/loading/SplashScreen";
 import { Sidebar } from "@Jade/components/nav-bar/net";
 import CategoryPage from "@Jade/page/Category";
 import { store } from '@Jade/store/global.store';
@@ -9,9 +12,8 @@ import { Provider } from 'react-redux';
 import { BrowserRouter, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
 import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
-import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
-import Auth from "@Jade/components/auth-moudule/Auth";
-import LoadingScreen from "@Jade/components/loading/appLoading";
+import Session, { SessionAuth, useSessionContext } from "supertokens-auth-react/recipe/session";
+import type { ReactNode } from "react";
 
 
 // Create a client for TanStack Query
@@ -35,6 +37,19 @@ SuperTokens.init({
   recipeList: [EmailPassword.init(), Session.init()],
 });
 
+function SessionLoadingBoundary({ children }: { children: ReactNode }) {
+  const session = useSessionContext();
+
+  if (session.loading) {
+    return (
+      <SplashScreen>
+        <div className="h-[50px]"/>
+      </SplashScreen>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 function ProtectedLayout() {
   const location = useLocation();
@@ -65,35 +80,38 @@ function ProtectedLayout() {
 function App() {
   return (
     <SuperTokensWrapper>
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        toastOptions={{
-          className: `
-              [--toast-bg:#ffffff] [--toast-fg:#0f172a] [--toast-border:#e2e8f0]
-              dark:[--toast-bg:#0f172a] dark:[--toast-fg:#e2e8f0] dark:[--toast-border:#1f2937]
-            `,
-          style: {
-            background: "var(--toast-bg)",
-            color: "var(--toast-fg)",
-            border: "1px solid var(--toast-border)",
-            boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.15)",
-          },
-        }}
-      />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<CategoryPage />} />
-            <Route path="/barcode-generator" element={<Generator />} />
-            <Route path="/categories" element={<CategoryPage />} />
-            <Route path="/onboarding" element={<OnboardingComponent />} />
-            <Route path="/printer" element={<Generator />} />
-            <Route path="/settings" element={<Generator />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <SessionLoadingBoundary>
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            className: `
+                [--toast-bg:#ffffff] [--toast-fg:#0f172a] [--toast-border:#e2e8f0]
+                dark:[--toast-bg:#0f172a] dark:[--toast-fg:#e2e8f0] dark:[--toast-border:#1f2937]
+              `,
+            style: {
+              background: "var(--toast-bg)",
+              color: "var(--toast-fg)",
+              border: "1px solid var(--toast-border)",
+              boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.15)",
+            },
+          }}
+        />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route element={<ProtectedLayout />}>
+              <Route path="/" element={<CategoryPage />} />
+              <Route path="/barcode-generator" element={<Generator />} />
+              <Route path="/categories" element={<CategoryPage />} />
+              <Route path="/categories/:id" element={<CategoryPage />} />
+              <Route path="/onboarding" element={<OnboardingComponent />} />
+              <Route path="/printer" element={<Generator />} />
+              <Route path="/settings" element={<Generator />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </SessionLoadingBoundary>
     </SuperTokensWrapper>
   );
 }

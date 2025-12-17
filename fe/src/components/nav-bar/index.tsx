@@ -26,7 +26,7 @@ export default function Nav() {
                 <div className="flex justify-between h-16">
                     {/* Left Side */}
                     <div className="flex">
-                        <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                        <div className="shrink-0 flex items-center gap-2 cursor-pointer">
                             <div className="bg-blue-600 p-1.5 rounded-lg text-white shadow-sm">
                                 <BarChart3 className="w-6 h-6" />
                             </div>
@@ -57,7 +57,7 @@ export default function Nav() {
                     {/* Right Side */}
                     <div className="flex items-center gap-4">
                         <div className="hidden md:flex items-center gap-3 pl-4 border-l border-gray-200">
-                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm border-2 border-white cursor-pointer">Xu</div>
+                            <div className="h-9 w-9 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm border-2 border-white cursor-pointer">Xu</div>
                             <button onClick={handlerSignOut} className="ml-2 p-2 bg-gray-50 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all border border-transparent hover:border-red-100 group" title="Đăng xuất">
                                 {!signOutLoading && <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                                 {signOutLoading && <Loader className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}

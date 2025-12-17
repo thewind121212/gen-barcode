@@ -1,5 +1,6 @@
 import { toast } from "react-hot-toast";
 import { signIn, signUp } from "supertokens-web-js/recipe/emailpassword";
+import i18n from "@Jade/i18n";
 
 export async function signInWithCallback(email: string, password: string, successCallback: () => void) {
     try {
@@ -20,7 +21,7 @@ export async function signInWithCallback(email: string, password: string, succes
                 }
             })
         } else if (response.status === "WRONG_CREDENTIALS_ERROR") {
-            toast.error("Email password combination is incorrect.")
+            toast.error(i18n.t('auth:toast.wrongCredentials'))
         } else if (response.status === "SIGN_IN_NOT_ALLOWED") {
             toast.error(response.reason)
         } else {
@@ -31,7 +32,7 @@ export async function signInWithCallback(email: string, password: string, succes
         if (err.isSuperTokensGeneralError === true) {
             toast.error(err.message);
         } else {
-            toast.error("Oops! Something went wrong.");
+            toast.error(i18n.t('auth:toast.genericError'));
         }
     }
 }
@@ -66,7 +67,7 @@ export async function signUpWithCallback(email: string, password: string, succes
         if (err.isSuperTokensGeneralError === true) {
             toast.error(err.message);
         } else {
-            toast.error("Oops! Something went wrong.");
+            toast.error(i18n.t('auth:toast.genericError'));
         }
     }
 }

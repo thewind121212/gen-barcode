@@ -1,5 +1,5 @@
 import { AlertTriangle, FolderTree } from "lucide-react";
-import type { Category, CategoryStats } from "../../../components/category-module/MainCategory";
+import type { Category, CategoryStats } from "@Jade/components/category-module/MainCategory";
 import { useNavigate } from "react-router-dom";
 import ActionMenu, { type ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 

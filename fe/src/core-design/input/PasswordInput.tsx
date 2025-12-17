@@ -42,7 +42,7 @@ const PasswordInput = ({
             w-full
             bg-transparent
             rounded-xl
-            border-2
+            border
             px-4
             py-4
             outline-none
@@ -54,10 +54,10 @@ const PasswordInput = ({
             font-medium
             tracking-wide
             ${error
-                        ? 'border-red-500 focus:border-red-500 focus:shadow-[0_0_0_4px_rgba(239,68,68,0.2)]'
+                        ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                         : success
-                            ? 'border-emerald-500 focus:border-emerald-500 focus:shadow-[0_0_0_4px_rgba(16,185,129,0.2)]'
-                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 focus:shadow-[0_0_0_4px_rgba(99,102,241,0.2)]'
+                            ? 'border-emerald-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
                     }
   
             ${icon ? 'pl-12' : ''}

@@ -1,0 +1,111 @@
+import dynamicIconImports from 'lucide-react/dynamicIconImports';
+import { Search } from 'lucide-react';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
+
+export type IconName = keyof typeof dynamicIconImports;
+
+type IconPickerContentProps = {
+    selectedIcon: IconName;
+    onSelect: (iconName: IconName) => void;
+    onClose: () => void;
+};
+
+const IconPreview = ({ iconName }: { iconName: IconName }) => {
+    const [iconState, setIconState] = useState<{
+        name: IconName;
+        component: ComponentType<{ size?: number }> | null;
+    }>({ name: iconName, component: null });
+
+    useEffect(() => {
+        let cancelled = false;
+        dynamicIconImports[iconName]().then((mod) => {
+            if (!cancelled) {
+                setIconState({ name: iconName, component: mod.default });
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [iconName]);
+
+    const isCurrent = iconState.name === iconName;
+    if (!isCurrent || !iconState.component) {
+        return <div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />;
+    }
+
+    const IconComponent = iconState.component;
+    return <IconComponent size={24} />;
+};
+
+export default function IconPickerContent({
+    selectedIcon,
+    onSelect,
+    onClose,
+}: IconPickerContentProps) {
+    const [search, setSearch] = useState('');
+
+    const filteredIcons = useMemo<IconName[]>(() => {
+        const iconKeys = Object.keys(dynamicIconImports) as IconName[];
+
+        const filtered = search
+            ? iconKeys.filter((iconName) =>
+                iconName.toLowerCase().includes(search.toLowerCase())
+            )
+            : iconKeys;
+
+        return filtered
+            .slice(0, 100);
+    }, [search]);
+
+    const handleDoubleClick = (iconName: IconName) => {
+        onSelect(iconName);
+        onClose();
+    };
+
+    return (
+        <div className="flex flex-col h-full w-full">
+            <div className="px-8 pt-6 pb-2">
+                <div className="flex items-center rounded-xl px-4 py-3 border transition-all bg-gray-50 border-gray-200 focus-within:border-indigo-500 dark:bg-slate-950 dark:border-slate-800 dark:focus-within:border-indigo-500">
+                    <div className="opacity-50 mr-3">
+                        <Search size={18} />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search icons..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="bg-transparent border-none outline-none w-full text-sm font-medium"
+                        autoFocus
+                    />
+                </div>
+            </div>
+
+            <div className="relative w-full min-h-[400px]">
+                <div className="p-8 absolute top-0 left-0 right-0 bottom-0 grid grid-cols-6 sm:grid-cols-8 gap-3 overflow-y-auto">
+                    {filteredIcons.map((iconName) => {
+                        return (
+                            <button
+                                key={iconName}
+                                onClick={() => onSelect(iconName)}
+                                onDoubleClick={() => handleDoubleClick(iconName)}
+                                className={`flex items-center justify-center p-3 rounded-xl transition-all border aspect-square ${selectedIcon === iconName
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg scale-110'
+                                        : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-gray-200 hover:shadow-md dark:bg-slate-800 dark:border-slate-800 dark:hover:bg-slate-700 dark:hover:border-slate-600'
+                                    }`}
+                                title={iconName}
+                                type="button"
+                            >
+                                <IconPreview iconName={iconName} />
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="px-8 py-3 border-t text-[10px] text-center opacity-50 border-gray-100 dark:border-slate-800">
+                Showing top {filteredIcons.length} results
+            </div>
+        </div>
+    );
+}
+
