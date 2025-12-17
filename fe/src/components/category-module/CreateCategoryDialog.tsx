@@ -87,6 +87,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     }
 
     const onSubmit = (data: CategoryFormValues) => {
+        console.log(data);
     };
 
     return (

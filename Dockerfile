@@ -29,6 +29,8 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copy source and build.
 COPY ./fe .
+# using VITE_API_BASE_URL appen to file .env.production
+RUN echo "VITE_API_BASE_URL=${API_URL}" >> .env.production
 RUN npm run build
 
 # Runtime: serve static build with Node using `serve`.
