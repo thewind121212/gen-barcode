@@ -18,7 +18,6 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import * as yup from "yup";
-import SplashScreen from '@Jade/components/loading/SplashScreen';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import i18n, { handleChangeLanguage } from "@Jade/i18n";
@@ -110,7 +109,7 @@ export default function LoginSignup() {
   };
 
   if (isContextLoading || hasSession) {
-    return <SplashScreen />
+    return <></>
   }
 
   const onSubmitHandler = handleSubmit(onSubmit);

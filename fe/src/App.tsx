@@ -42,7 +42,9 @@ function SessionLoadingBoundary({ children }: { children: ReactNode }) {
 
   if (session.loading) {
     return (
-      <SplashScreen/>
+      <SplashScreen>
+        <div className="h-[50px]"/>
+      </SplashScreen>
     );
   }
 

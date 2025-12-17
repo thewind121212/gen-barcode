@@ -26,7 +26,6 @@ COPY ./fe .
 # Create a fresh .env.production file using the ARGs
 # This replaces the "ADD" command
 RUN echo "VITE_API_BASE_URL=${API_URL}" > .env.production
-RUN echo "VITE_BASE_URL=${BASE_URL}" >> .env.production
 
 RUN npm run build
 
