@@ -1,17 +1,16 @@
-import { lazy } from 'react';
+import { Suspense, lazy, useMemo } from 'react';
 import InputCommon from '@Jade/core-design/input/CommonInput';
 import Select from '@Jade/core-design/input/Select';
-import { allColors, quickColors } from '@Jade/core-design/modal/ColorPicker';
+import ColorPicker, { allColors, quickColors } from '@Jade/core-design/modal/ColorPicker';
 import type { IconName } from '@Jade/core-design/modal/IconPicker';
 import { Modal, ModalId, useModal, type UseModalReturn } from '@Jade/core-design/modal/ModalBase';
 import { yupResolver } from "@hookform/resolvers/yup";
-import type { LucideIcon } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import dynamicIconImports from 'lucide-react/dynamicIconImports';
+import { Activity, Check, LayoutGrid, Palette, Plus, Upload } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { useParams } from 'react-router-dom';
-// Lazy import ColorPicker and IconPicker
-const ColorPicker = lazy(() => import('@Jade/core-design/modal/ColorPicker'));
+// Lazy import IconPicker
 const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
 
 type CategoryStatus = 'active' | 'inactive' | 'archived';
@@ -31,11 +30,8 @@ const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
     parentId: yup.string().uuid("parentId must be a valid UUID").optional().default(''),
     description: yup.string().optional().default(''),
     color: yup.string().optional().default('indigo-400'),
-    icon: yup.string().optional().default('LayoutGrid'),
+    icon: yup.string().optional().default('layout-grid'),
 });
-
-const isLucideIcon = (icon: unknown): icon is LucideIcon =>
-    typeof icon === 'function' || typeof icon === 'object';
 
 type CreateCategoryDialogProps = {
     mainModal: UseModalReturn;
@@ -53,7 +49,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
             parentId: '',
             description: '',
             color: 'indigo-400',
-            icon: 'LayoutGrid',
+            icon: 'layout-grid',
         },
     });
 
@@ -62,11 +58,10 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     const color = watch('color');
     const icon = watch('icon');
 
-    const SelectedIcon: LucideIcon = isLucideIcon(
-        LucideIcons[icon as IconName]
-    )
-        ? (LucideIcons[icon as IconName] as LucideIcon)
-        : LucideIcons.LayoutGrid;
+    const SelectedIcon = useMemo(() => {
+        const loader = dynamicIconImports[icon as IconName] ?? dynamicIconImports['layout-grid'];
+        return lazy(loader);
+    }, [icon]);
 
     const handleColorSelect = (colorId: string) => {
         setValue('color', colorId, { shouldValidate: true });
@@ -139,7 +134,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                         { value: 'inactive', label: 'Inactive' },
                                         { value: 'archived', label: 'Archived' },
                                     ]}
-                                    icon={LucideIcons.Activity}
+                                    icon={Activity}
                                 />
                             </div>
                         </div>
@@ -158,7 +153,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                         { value: '2', label: 'Services' },
                                         { value: '3', label: 'Digital Assets' },
                                     ]}
-                                    icon={LucideIcons.LayoutGrid}
+                                    icon={LayoutGrid}
                                 />
                             </div>
                             )}
@@ -177,7 +172,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
 
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    <LucideIcons.Palette size={14} /> Color Tag
+                                    <Palette size={14} /> Color Tag
                                 </label>
                                 <div className="flex items-center gap-3">
                                     <div className="flex gap-2 duration-200 transition-all">
@@ -191,7 +186,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                                     }`}
                                                 title={c.name}
                                             >
-                                                {color === c.id && <LucideIcons.Check size={14} className="text-white" strokeWidth={3} />}
+                                                {color === c.id && <Check size={14} className="text-white" strokeWidth={3} />}
                                             </button>
                                         ))}
                                     </div>
@@ -200,19 +195,21 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                         onClick={colorModal.open}
                                         className="w-8 h-8 rounded-full border-dashed border-2 flex items-center justify-center transition-all border-gray-300 hover:border-gray-500 text-slate-400 hover:text-slate-600 dark:border-slate-600 dark:hover:border-slate-400 dark:hover:text-white"
                                     >
-                                        <LucideIcons.Plus size={16} />
+                                        <Plus size={16} />
                                     </button>
                                 </div>
                             </div>
 
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    <LucideIcons.LayoutGrid size={14} /> Category Icon
+                                    <LayoutGrid size={14} /> Category Icon
                                 </label>
 
                                 <div className="flex items-end gap-4">
                                     <div className="size-[42px] rounded-xl flex items-center justify-center shadow-lg transition-all bg-white text-indigo-600 border border-indigo-100 dark:bg-slate-800 dark:text-white">
-                                        <SelectedIcon size={24} />
+                                        <Suspense fallback={<div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />}>
+                                            <SelectedIcon size={24} />
+                                        </Suspense>
                                     </div>
 
                                     <button
@@ -225,7 +222,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                         onClick={iconModal.open}
                                         className="flex items-center justify-between gap-1 px-4 py-2.5 rounded-xl border transition-all bg-gray-50 border-gray-200 hover:border-gray-300 text-slate-600 dark:bg-slate-950 dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
                                     >
-                                        <LucideIcons.Upload size={16} className="text-green-500 dark:text-green-300" />
+                                        <Upload size={16} className="text-green-500 dark:text-green-300" />
                                         <span className="text-xs opacity-70 bg-green-500/10 text-green-500 dark:bg-green-300/20 dark:text-green-300 px-2 py-0.5 rounded">Upload</span>
                                     </button>
                                 </div>

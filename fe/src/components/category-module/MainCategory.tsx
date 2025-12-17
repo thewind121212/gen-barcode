@@ -11,6 +11,7 @@ import CommonButton from "@Jade/core-design/input/CommonButton";
 import { ModalId, useModal } from "@Jade/core-design/modal/ModalBase";
 
 // Lazy import CreateCategoryDialog
+// Dynamic import to avoid circular dependency
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 export type Category = {

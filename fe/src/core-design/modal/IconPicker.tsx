@@ -1,8 +1,8 @@
-import type { LucideIcon } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
-import { useMemo, useState } from 'react';
+import dynamicIconImports from 'lucide-react/dynamicIconImports';
+import { Search } from 'lucide-react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 
-export type IconName = keyof typeof LucideIcons;
+export type IconName = keyof typeof dynamicIconImports;
 
 type IconPickerContentProps = {
     selectedIcon: IconName;
@@ -10,8 +10,19 @@ type IconPickerContentProps = {
     onClose: () => void;
 };
 
-const isLucideIcon = (icon: unknown): icon is LucideIcon =>
-    typeof icon === 'function' || typeof icon === 'object';
+const IconPreview = ({ iconName }: { iconName: IconName }) => {
+    const IconComponent = useMemo(() => lazy(dynamicIconImports[iconName]), [iconName]);
+
+    return (
+        <Suspense
+            fallback={
+                <div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />
+            }
+        >
+            <IconComponent size={24} />
+        </Suspense>
+    );
+};
 
 export default function IconPickerContent({
     selectedIcon,
@@ -21,9 +32,7 @@ export default function IconPickerContent({
     const [search, setSearch] = useState('');
 
     const filteredIcons = useMemo<IconName[]>(() => {
-        const iconKeys = (Object.keys(LucideIcons) as IconName[]).filter((key) =>
-            /^[A-Z]/.test(key)
-        );
+        const iconKeys = Object.keys(dynamicIconImports) as IconName[];
 
         const filtered = search
             ? iconKeys.filter((iconName) =>
@@ -32,7 +41,6 @@ export default function IconPickerContent({
             : iconKeys;
 
         return filtered
-            .filter((iconName) => isLucideIcon(LucideIcons[iconName]))
             .slice(0, 100);
     }, [search]);
 
@@ -45,7 +53,9 @@ export default function IconPickerContent({
         <div className="flex flex-col h-full w-full">
             <div className="px-8 pt-6 pb-2">
                 <div className="flex items-center rounded-xl px-4 py-3 border transition-all bg-gray-50 border-gray-200 focus-within:border-indigo-500 dark:bg-slate-950 dark:border-slate-800 dark:focus-within:border-indigo-500">
-                    <LucideIcons.Search size={18} className="opacity-50 mr-3" />
+                    <div className="opacity-50 mr-3">
+                        <Search size={18} />
+                    </div>
                     <input
                         type="text"
                         placeholder="Search icons..."
@@ -60,11 +70,6 @@ export default function IconPickerContent({
             <div className="relative w-full min-h-[400px]">
                 <div className="p-8 absolute top-0 left-0 right-0 bottom-0 grid grid-cols-6 sm:grid-cols-8 gap-3 overflow-y-auto">
                     {filteredIcons.map((iconName) => {
-                        const iconCandidate = LucideIcons[iconName];
-                        if (!isLucideIcon(iconCandidate)) return null;
-
-                        const IconComponent = iconCandidate as React.ComponentType<{ size?: number; className?: string }>;
-
                         return (
                             <button
                                 key={iconName}
@@ -77,7 +82,7 @@ export default function IconPickerContent({
                                 title={iconName}
                                 type="button"
                             >
-                                <IconComponent size={24} />
+                                <IconPreview iconName={iconName} />
                             </button>
                         );
                     })}
