@@ -3,14 +3,10 @@ name: Build FE Image
 on:
   push:
     branches:
-      - main
-      - test
+      - master
   pull_request:
     branches:
-      - main
-      - test
-    types:
-      - closed
+      - master
 
 jobs:
   build-and-push:
