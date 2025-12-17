@@ -8,7 +8,7 @@ import { useState } from "react";
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
-import { ModalId, useModal } from "@Jade/core-design/modal/ModalBase";
+import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 
 // Lazy import CreateCategoryDialog
 // Dynamic import to avoid circular dependency

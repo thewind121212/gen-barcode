@@ -1,6 +1,6 @@
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { Search } from 'lucide-react';
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
 
 export type IconName = keyof typeof dynamicIconImports;
 
@@ -11,17 +11,30 @@ type IconPickerContentProps = {
 };
 
 const IconPreview = ({ iconName }: { iconName: IconName }) => {
-    const IconComponent = useMemo(() => lazy(dynamicIconImports[iconName]), [iconName]);
+    const [iconState, setIconState] = useState<{
+        name: IconName;
+        component: ComponentType<{ size?: number }> | null;
+    }>({ name: iconName, component: null });
 
-    return (
-        <Suspense
-            fallback={
-                <div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />
+    useEffect(() => {
+        let cancelled = false;
+        dynamicIconImports[iconName]().then((mod) => {
+            if (!cancelled) {
+                setIconState({ name: iconName, component: mod.default });
             }
-        >
-            <IconComponent size={24} />
-        </Suspense>
-    );
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [iconName]);
+
+    const isCurrent = iconState.name === iconName;
+    if (!isCurrent || !iconState.component) {
+        return <div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />;
+    }
+
+    const IconComponent = iconState.component;
+    return <IconComponent size={24} />;
 };
 
 export default function IconPickerContent({

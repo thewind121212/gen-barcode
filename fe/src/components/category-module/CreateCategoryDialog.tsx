@@ -1,13 +1,15 @@
-import { Suspense, lazy, useMemo } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import InputCommon from '@Jade/core-design/input/CommonInput';
 import Select from '@Jade/core-design/input/Select';
-import ColorPicker, { allColors, quickColors } from '@Jade/core-design/modal/ColorPicker';
+import ColorPicker from '@Jade/core-design/modal/ColorPicker';
+import { allColors, quickColors } from '@Jade/core-design/modal/colorOptions';
 import type { IconName } from '@Jade/core-design/modal/IconPicker';
-import { Modal, ModalId, useModal, type UseModalReturn } from '@Jade/core-design/modal/ModalBase';
+import Modal from '@Jade/core-design/modal/ModalBase';
+import { ModalId, useModal, type UseModalReturn } from '@Jade/core-design/modal/useModal';
 import { yupResolver } from "@hookform/resolvers/yup";
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
-import { Activity, Check, LayoutGrid, Palette, Plus, Upload } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { Activity, Check, LayoutGrid, Palette, Plus, Upload, type LucideIcon } from 'lucide-react';
+import { useForm, useWatch } from 'react-hook-form';
 import * as yup from "yup";
 import { useParams } from 'react-router-dom';
 // Lazy import IconPicker
@@ -41,7 +43,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     const colorModal = useModal(ModalId.COLOR);
     const iconModal = useModal(ModalId.ICON);
     const { id } = useParams();
-    const {handleSubmit ,register, watch, setValue, formState: { errors } } = useForm<CategoryFormValues>({
+    const {handleSubmit ,register, control, setValue, formState: { errors } } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
         defaultValues: {
             name: '',
@@ -53,14 +55,40 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
         },
     });
 
-    const status = watch('status');
-    const parentId = watch('parentId');
-    const color = watch('color');
-    const icon = watch('icon');
+    const status = useWatch({ control, name: 'status' });
+    const parentId = useWatch({ control, name: 'parentId' });
+    const color = useWatch({ control, name: 'color' });
+    const icon = useWatch({ control, name: 'icon' });
 
-    const SelectedIcon = useMemo(() => {
+    const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
+    const [iconLoading, setIconLoading] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+        setIconLoading(true);
+
         const loader = dynamicIconImports[icon as IconName] ?? dynamicIconImports['layout-grid'];
-        return lazy(loader);
+
+        loader()
+            .then((mod) => {
+                if (isMounted && mod?.default) {
+                    setSelectedIcon(() => mod.default);
+                }
+            })
+            .catch(() => {
+                if (isMounted) {
+                    setSelectedIcon(() => LayoutGrid);
+                }
+            })
+            .finally(() => {
+                if (isMounted) {
+                    setIconLoading(false);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
     }, [icon]);
 
     const handleColorSelect = (colorId: string) => {
@@ -140,7 +168,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                         </div>
 
                         <div className="space-y-6">
-                            {!Boolean(id) && (
+                            {!id && (
                             <div className="relative flex flex-col transition-all gap-1 space-y-2">
                                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
                                 <Select
@@ -207,9 +235,11 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
 
                                 <div className="flex items-end gap-4">
                                     <div className="size-[42px] rounded-xl flex items-center justify-center shadow-lg transition-all bg-white text-indigo-600 border border-indigo-100 dark:bg-slate-800 dark:text-white">
-                                        <Suspense fallback={<div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />}>
+                                        {iconLoading ? (
+                                            <div className="h-6 w-6 rounded bg-gray-200 animate-pulse dark:bg-slate-700" />
+                                        ) : (
                                             <SelectedIcon size={24} />
-                                        </Suspense>
+                                        )}
                                     </div>
 
                                     <button
