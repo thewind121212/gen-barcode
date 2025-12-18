@@ -3,15 +3,30 @@ WORKDIR /app
 
 # Define mandatory arguments (no default values)
 ARG API_URL
+ARG APP_VERSION
+ARG BASE_URL
 
 # Validation: Build will fail if these are not provided
 RUN if [ -z "$API_URL" ]; then \
-      echo "ERROR: API_URL and BASE_URL are required."; \
+      echo "ERROR: API_URL is required."; \
       exit 1; \
     fi
 
+RUN if [ -z "$APP_VERSION" ]; then \
+      echo "ERROR: APP_VERSION is required."; \
+      exit 1; \
+    fi
+
+RUN if [ -z "$BASE_URL" ]; then \
+      echo "ERROR: BASE_URL is required."; \
+      exit 1; \
+    fi
+
+
 # Set Envs for the build process
 ENV VITE_API_BASE_URL=${API_URL}
+ENV APP_VERSION=${APP_VERSION}
+ENV VITE_WEBSITE_BASE_URL=${BASE_URL}
 
 # Install dependencies
 COPY ./tsconfig.base.json /tsconfig.base.json
@@ -20,18 +35,21 @@ COPY ./fe/tsconfig*.json ./
 COPY ./fe/vite.config.ts ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+
+
 # Copy source code
 COPY ./fe .
 
 # Create a fresh .env.production file using the ARGs
 # This replaces the "ADD" command
-RUN echo "VITE_API_BASE_URL=${API_URL}" > .env.production
+RUN printf "VITE_API_BASE_URL=%s\nAPP_VERSION=%s\nVITE_WEBSITE_BASE_URL=%s\n" "${API_URL}" "${APP_VERSION}" "${WEBSITE_BASE_URL}" > .env.production
 
 RUN npm run build
 
 # --- Runtime Stage ---
 FROM node:20-alpine AS runner
 WORKDIR /app
+ARG NODE_ENV
 ENV NODE_ENV=production
 ENV PORT=4140
 
