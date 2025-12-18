@@ -3,8 +3,8 @@ name: CD For Kuru
 on:
   push:
     branches:
-      - master
-      - test
+      - release-dev
+      - release-test
 
 jobs:
   lint-commits:
@@ -135,7 +135,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag-prefix: ${{ github.ref_name == 'master' && 'fe-dev-' || 'fe-test-' }}
+          tag-prefix: ${{ github.ref_name == 'release-dev' && 'fe-dev-' || 'fe-test-' }}
           default: patch
           skip-commit: 'true'
           skip-tag: 'true'
@@ -151,6 +151,11 @@ jobs:
       contents: write
       packages: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -231,7 +236,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGEJSON_DIR: "be"
         with:
-          tag-prefix: ${{ github.ref_name == 'master' && 'be-dev-' || 'be-test-' }}
+          tag-prefix: ${{ github.ref_name == 'release-dev' && 'be-dev-' || 'be-test-' }}
           default: patch
           skip-commit: "true"
           skip-tag: "true"
