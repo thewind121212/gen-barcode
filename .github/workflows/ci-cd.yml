@@ -39,6 +39,31 @@ jobs:
           git log -1 --pretty=%B "${{ github.sha }}" \
             | npx commitlint --verbose 
 
+  detect-changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      fe: ${{ steps.filter.outputs.fe }}
+      be: ${{ steps.filter.outputs.be }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            fe:
+              - 'fe/**'
+            be:
+              - 'be/**'
+            shared:
+              - 'packages/**'
+              - 'libs/**'
+              - 'Dockerfile*'
+
   lint-check-fe:
     runs-on: ubuntu-latest
     needs: lint-commits
@@ -93,9 +118,11 @@ jobs:
     
   build-fe-image-push:
     name: Build and push FE image
-    needs: [lint-check-fe, lint-check-be]
+    needs: [lint-check-fe, lint-check-be, detect-changes]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: ${{ github.event_name == 'push'
+          && (startsWith(github.event.head_commit.message, 'fix(fe') || startsWith(github.event.head_commit.message, 'feat(fe') || startsWith(github.event.head_commit.message, 'chore(fe') || startsWith(github.event.head_commit.message, 'feat!(fe') || startsWith(github.event.head_commit.message, 'fix(full') || startsWith(github.event.head_commit.message, 'feat(full') || startsWith(github.event.head_commit.message, 'chore(full') || startsWith(github.event.head_commit.message, 'feat!(full'))
+          && (needs.detect-changes.outputs.fe == 'true' || needs.detect-changes.outputs.shared == 'true') }}
     permissions:
       contents: read # 'write' is no longer needed if we don't commit
       packages: write
@@ -106,16 +133,14 @@ jobs:
         with:
           fetch-depth: '0'
 
-      # 1. CALCULATE VERSION (In-memory only)
-      - name: 'Get Next Version'
-        id: version_bump
+      - name: Compute FE version
+        id: fe_version
         uses: 'phips28/gh-action-bump-version@master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag-prefix: ${{ github.ref_name == 'master' && 'dev-' || 'test-' }}
+          tag-prefix: ${{ github.ref_name == 'master' && 'fe-dev-' || 'fe-test-' }}
           default: patch
-          check-last-commit-only: 'true'
           skip-commit: 'true'
           skip-tag: 'true'
           skip-push: 'true'
@@ -139,7 +164,75 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/jade-fe:${{ steps.version_bump.outputs.newTag }}
+            ghcr.io/${{ github.repository_owner }}/jade-fe:${{ steps.fe_version.outputs.newTag }}
           build-args: 
             API_URL=${{ secrets.API_URL }}
+      - name: Persist FE version (tag)
+        run: |
+          TAG="${{ steps.fe_version.outputs.newTag }}"
+          git fetch --tags
+          if git rev-parse "$TAG" >/dev/null 2>&1; then exit 0; fi
+          git tag "$TAG"
+          git push origin "$TAG"
+
+  build-be-image-push:
+    name: Build and push BE image
+    needs: [lint-check-fe, lint-check-be, detect-changes]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push'
+          && (startsWith(github.event.head_commit.message, 'fix(be') || startsWith(github.event.head_commit.message, 'feat(be') || startsWith(github.event.head_commit.message, 'chore(be') || startsWith(github.event.head_commit.message, 'feat!(be') || startsWith(github.event.head_commit.message, 'fix(full') || startsWith(github.event.head_commit.message, 'feat(full') || startsWith(github.event.head_commit.message, 'chore(full') || startsWith(github.event.head_commit.message, 'feat!(full'))
+          && (needs.detect-changes.outputs.be == 'true' || needs.detect-changes.outputs.shared == 'true') }}
+    permissions:
+      contents: read # 'write' is no longer needed if we don't commit
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Compute BE version
+        id: be_version
+        uses: phips28/gh-action-bump-version@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGEJSON_DIR: "be"
+        with:
+          tag-prefix: ${{ github.ref_name == 'master' && 'be-dev-' || 'be-test-' }}
+          default: patch
+          skip-commit: "true"
+          skip-tag: "true"
+          skip-push: "true"
+
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. BUILD AND PUSH 
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./DockerfileBe
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/ciri-be:${{ steps.be_version.outputs.newTag }}
+          build-args: 
+            API_URL=${{ secrets.API_URL }}
+      - name: Persist BE version (tag)
+        run: |
+          TAG="${{ steps.be_version.outputs.newTag }}"
+          git fetch --tags
+          if git rev-parse "$TAG" >/dev/null 2>&1; then exit 0; fi
+          git tag "$TAG"
+          git push origin "$TAG"
   
