@@ -3,7 +3,6 @@ name: CD For Kuru
 on:
   push:
     branches:
-      - release-dev
       - release-test
 
 jobs:
@@ -52,7 +51,7 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
-          base: master
+          base: release-test
           filters: |
             fe:
               - 'fe/**'
@@ -136,7 +135,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag-prefix: ${{ github.ref_name == 'release-dev' && 'fe-dev-' || 'fe-test-' }}
+          tag-prefix: fe-test-
           default: patch
           skip-commit: 'true'
           skip-tag: 'true'
@@ -209,7 +208,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGEJSON_DIR: "be"
         with:
-          tag-prefix: ${{ github.ref_name == 'master' && 'be-dev-' || 'be-test-' }}
+          tag-prefix: be-test-
           default: patch
           skip-commit: "true"
           skip-tag: "true"
@@ -229,20 +228,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: '0'
-
-      - name: Compute BE version
-        id: be_version
-        uses: phips28/gh-action-bump-version@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PACKAGEJSON_DIR: "be"
-        with:
-          tag-prefix: ${{ github.ref_name == 'release-dev' && 'be-dev-' || 'be-test-' }}
-          default: patch
-          skip-commit: "true"
-          skip-tag: "true"
-          skip-push: "true"
-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
