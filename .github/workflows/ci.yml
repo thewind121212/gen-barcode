@@ -19,6 +19,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # Cache npm to speed up commitlint install
+      - name: Cache npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
       
       # install only commitlint
       - name: Install commitlint
