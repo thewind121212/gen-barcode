@@ -45,32 +45,6 @@ jobs:
           git log -1 --pretty=%B "${{ github.sha }}" \
             | npx commitlint --verbose
 
-  detect-changes:
-    name: Detect changed paths
-    needs: lint-commits
-    runs-on: ubuntu-latest
-    outputs:
-      fe: ${{ steps.filter.outputs.fe }}
-      be: ${{ steps.filter.outputs.be }}
-      shared: ${{ steps.filter.outputs.shared }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          base: release-dev
-          filters: |
-            fe:
-              - 'fe/**'
-            be:
-              - 'be/**'
-            shared:
-              - 'packages/**'
-              - 'libs/**'
-              - 'Dockerfile*'
 
   lint-check-fe:
     runs-on: ubuntu-latest
@@ -126,9 +100,9 @@ jobs:
 
   build-fe-image-push:
     name: Build and push FE image
-    needs: [lint-check-fe, detect-changes]
+    needs: lint-check-fe
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (needs.detect-changes.outputs.fe == 'true' || needs.detect-changes.outputs.shared == 'true')
+    if: github.event_name == 'push'
     permissions:
       contents: write
       packages: write
@@ -162,9 +136,9 @@ jobs:
 
   build-be-image-push:
     name: Build and push BE image
-    needs: [lint-check-be, detect-changes]
+    needs: lint-check-be
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (needs.detect-changes.outputs.be == 'true' || needs.detect-changes.outputs.shared == 'true')
+    if: github.event_name == 'push'
     permissions:
       contents: write
       packages: write
