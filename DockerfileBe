@@ -15,6 +15,9 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 # Copy backend source
 COPY ./be .
 
+# Set a dummy DATABASE_URL so prisma.config.ts can load during build
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/postgres"
+
 # Generate Prisma client and build TypeScript to JavaScript
 RUN npx prisma generate && \
   # Ensure Prisma client path matches our imports
