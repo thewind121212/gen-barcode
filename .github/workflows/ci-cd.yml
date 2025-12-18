@@ -25,7 +25,7 @@ jobs:
       
       # install only commitlint
       - name: Install commitlint
-        run: npm install -g commitlint
+        run: npm install -g @commitlint/cli @commitlint/config-conventional
 
       - name: Lint PR title
         if: github.event_name == 'pull_request'
