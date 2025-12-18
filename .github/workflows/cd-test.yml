@@ -3,8 +3,7 @@ name: CD For Kuru Test
 on:
   push:
     branches:
-      - master
-      - main
+      - release-test
 
 jobs:
   lint-commits:
