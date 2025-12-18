@@ -115,16 +115,16 @@ jobs:
         run: npm ci
       - name: Lint backend
         run: npm run lint --workspace=be
-    
-  build-fe-image-push:
-    name: Build and push FE image
-    needs: [lint-check-fe, lint-check-be, detect-changes]
+  
+  semantic-release-fe:
+    name: Semantic release FE
+    needs: [lint-check-fe, detect-changes]
     runs-on: ubuntu-latest
+    outputs:
+      fe_version: ${{ steps.fe_version.outputs.newTag }}
     if: github.event_name == 'push' && (needs.detect-changes.outputs.fe == 'true' || needs.detect-changes.outputs.shared == 'true')
     permissions:
       contents: write
-      packages: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -142,7 +142,17 @@ jobs:
           skip-commit: 'true'
           skip-tag: 'true'
           skip-push: 'true'
+    
 
+  build-fe-image-push:
+    name: Build and push FE image
+    needs: [semantic-release-fe, detect-changes]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (needs.detect-changes.outputs.fe == 'true' || needs.detect-changes.outputs.shared == 'true')
+    permissions:
+      contents: write
+      packages: write
+    steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -162,20 +172,48 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/jade-fe:${{ steps.fe_version.outputs.newTag }}
+            ghcr.io/${{ github.repository_owner }}/jade-fe:${{ needs.semantic-release-fe.outputs.fe_version }}
           build-args: 
             API_URL=${{ secrets.API_URL }}
       - name: Persist FE version (tag)
         run: |
-          TAG="${{ steps.fe_version.outputs.newTag }}"
+          TAG="${{ needs.semantic-release-fe.outputs.fe_version }}"
           git fetch --tags
           if git rev-parse "$TAG" >/dev/null 2>&1; then exit 0; fi
           git tag "$TAG"
           git push origin "$TAG"
+  
+  semantic-release-be:
+    name: Semantic release BE
+    needs: [lint-check-be, detect-changes]
+    runs-on: ubuntu-latest
+    outputs:
+      be_version: ${{ steps.be_version.outputs.newTag }}
+    if: github.event_name == 'push' && (needs.detect-changes.outputs.be == 'true' || needs.detect-changes.outputs.shared == 'true')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Compute BE version
+        id: be_version
+        uses: phips28/gh-action-bump-version@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGEJSON_DIR: "be"
+        with:
+          tag-prefix: ${{ github.ref_name == 'master' && 'be-dev-' || 'be-test-' }}
+          default: patch
+          skip-commit: "true"
+          skip-tag: "true"
+          skip-push: "true"
 
   build-be-image-push:
     name: Build and push BE image
-    needs: [lint-check-fe, lint-check-be, detect-changes]
+    needs: [semantic-release-be, detect-changes]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (needs.detect-changes.outputs.be == 'true' || needs.detect-changes.outputs.shared == 'true')
     permissions:
@@ -221,12 +259,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ciri-be:${{ steps.be_version.outputs.newTag }}
+            ghcr.io/${{ github.repository_owner }}/ciri-be:${{ needs.semantic-release-be.outputs.be_version }}
           build-args: 
             API_URL=${{ secrets.API_URL }}
       - name: Persist BE version (tag)
         run: |
-          TAG="${{ steps.be_version.outputs.newTag }}"
+          TAG="${{ needs.semantic-release-be.outputs.be_version }}"
           git fetch --tags
           if git rev-parse "$TAG" >/dev/null 2>&1; then exit 0; fi
           git tag "$TAG"
