@@ -1,4 +1,4 @@
-name: CD For Kuru
+name: CD For Kuru Test
 
 on:
   push:
@@ -19,7 +19,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
+
+      # Cache npm to speed up commitlint install
+      - name: Cache npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       # install only commitlint
       - name: Install commitlint
         run: npm install -g @commitlint/cli @commitlint/config-conventional
@@ -34,11 +43,12 @@ jobs:
         if: github.event_name == 'push'
         run: |
           git log -1 --pretty=%B "${{ github.sha }}" \
-            | npx commitlint --verbose 
+            | npx commitlint --verbose
 
   detect-changes:
     name: Detect changed paths
     runs-on: ubuntu-latest
+    needs: lint-commits
     outputs:
       fe: ${{ steps.filter.outputs.fe }}
       be: ${{ steps.filter.outputs.be }}
@@ -113,38 +123,10 @@ jobs:
         run: npm ci
       - name: Lint backend
         run: npm run lint --workspace=be
-  
-  semantic-release-fe:
-    name: Semantic release FE
-    needs: [lint-check-fe, detect-changes]
-    runs-on: ubuntu-latest
-    outputs:
-      fe_version: ${{ steps.fe_version.outputs.newTag }}
-    if: github.event_name == 'push' && (needs.detect-changes.outputs.fe == 'true' || needs.detect-changes.outputs.shared == 'true')
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
-
-      - name: Compute FE version
-        id: fe_version
-        uses: 'phips28/gh-action-bump-version@master'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag-prefix: fe-test-
-          default: patch
-          skip-commit: 'true'
-          skip-tag: 'true'
-          skip-push: 'true'
-    
 
   build-fe-image-push:
     name: Build and push FE image
-    needs: [semantic-release-fe, detect-changes]
+    needs: [lint-check-fe, detect-changes]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (needs.detect-changes.outputs.fe == 'true' || needs.detect-changes.outputs.shared == 'true')
     permissions:
@@ -166,7 +148,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. BUILD AND PUSH 
+      # 2. BUILD AND PUSH
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
@@ -175,48 +157,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/jade-fe:${{ needs.semantic-release-fe.outputs.fe_version }}
-          build-args: 
-            API_URL=${{ secrets.API_URL }}
-      - name: Persist FE version (tag)
-        run: |
-          TAG="${{ needs.semantic-release-fe.outputs.fe_version }}"
-          git fetch --tags
-          if git rev-parse "$TAG" >/dev/null 2>&1; then exit 0; fi
-          git tag "$TAG"
-          git push origin "$TAG"
-  
-  semantic-release-be:
-    name: Semantic release BE
-    needs: [lint-check-be, detect-changes]
-    runs-on: ubuntu-latest
-    outputs:
-      be_version: ${{ steps.be_version.outputs.newTag }}
-    if: github.event_name == 'push' && (needs.detect-changes.outputs.be == 'true' || needs.detect-changes.outputs.shared == 'true')
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
-
-      - name: Compute BE version
-        id: be_version
-        uses: phips28/gh-action-bump-version@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PACKAGEJSON_DIR: "be"
-        with:
-          tag-prefix: be-test-
-          default: patch
-          skip-commit: "true"
-          skip-tag: "true"
-          skip-push: "true"
+            ghcr.io/${{ github.repository_owner }}/jade-fe:test
+          build-args: API_URL=${{ secrets.API_URL }}
 
   build-be-image-push:
     name: Build and push BE image
-    needs: [semantic-release-be, detect-changes]
+    needs: [lint-check-be, detect-changes]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (needs.detect-changes.outputs.be == 'true' || needs.detect-changes.outputs.shared == 'true')
     permissions:
@@ -227,7 +173,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: '0'
+          fetch-depth: "0"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -239,7 +185,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. BUILD AND PUSH 
+      # 2. BUILD AND PUSH
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
@@ -248,14 +194,39 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ciri-be:${{ needs.semantic-release-be.outputs.be_version }}
-          build-args: 
-            API_URL=${{ secrets.API_URL }}
-      - name: Persist BE version (tag)
+            ghcr.io/${{ github.repository_owner }}/ciri-be:test
+          build-args: API_URL=${{ secrets.API_URL }}
+
+  semantic-release:
+    name: Semantic release
+    needs: [build-fe-image-push, build-be-image-push]
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.newTag }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+
+      - name: Compute version
+        id: version
+        uses: "phips28/gh-action-bump-version@master"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag-prefix: test-
+          default: patch
+          skip-commit: "true"
+          skip-tag: "true"
+          skip-push: "true"
+
+      - name: Persist version (tag)
         run: |
-          TAG="${{ needs.semantic-release-be.outputs.be_version }}"
+          TAG="${{ steps.version.outputs.newTag }}"
           git fetch --tags
           if git rev-parse "$TAG" >/dev/null 2>&1; then exit 0; fi
           git tag "$TAG"
           git push origin "$TAG"
-  
