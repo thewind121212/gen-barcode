@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - release-dev
-      - main
   pull_request:
     branches:
-      - main
+      - test-ci
 
 jobs:
   lint-commits:
