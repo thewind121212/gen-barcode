@@ -30,7 +30,7 @@ SuperTokens.init({
   appInfo: {
     appName: "barcode-generator",
     apiDomain: process.env.VITE_API_BASE_URL || "http://localhost:9190",
-    websiteDomain: process.env.VITE_WEBSITE_BASE_URL || "http://localhost:4140",
+    websiteDomain: process.env.VITE_BASE_URL || "http://localhost:4140",
     apiBasePath: "/auth",
     websiteBasePath: "/auth",
   },
