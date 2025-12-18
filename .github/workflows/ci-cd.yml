@@ -85,6 +85,7 @@ jobs:
           default: patch
           skip-commit: 'true'
           skip-tag: 'true'
+          skip-push: 'true'
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
