@@ -145,7 +145,7 @@ jobs:
     name: Build and push FE image
     needs: [lint-check-fe, semantic-release]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'pull_request'
     permissions:
       contents: write
       packages: write
@@ -184,7 +184,7 @@ jobs:
     name: Build and push BE image
     needs: lint-check-be
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'pull_request'
     permissions:
       contents: write
       packages: write
@@ -221,7 +221,7 @@ jobs:
     name: Deploy release-dev branch
     runs-on: ubuntu-latest
     if: false
-    needs:  semantic-release
+    needs:  [build-fe-image-push, build-be-image-push, semantic-release]
     # if: github.ref == 'refs/heads/release-dev'
     env:
       SOURCE_PATH: ${{ secrets.WEB_SERVER_DEV_WORKDIR }}
