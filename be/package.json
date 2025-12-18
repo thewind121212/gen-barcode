@@ -12,8 +12,8 @@
   "main": "core/index.ts",
   "scripts": {
     "preview": "npx prisma generate && node --env-file=.env dist/core/index.js",
-    "dev": "npx prisma generate && tsx watch --env-file=.env core/index.ts",
-    "build": "tsc",
+    "dev": "tsx watch --env-file=.env core/index.ts",
+    "build": "npx prisma generate && tsc",
     "lint": "eslint --fix core test",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

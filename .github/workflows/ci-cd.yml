@@ -120,9 +120,7 @@ jobs:
     name: Build and push FE image
     needs: [lint-check-fe, lint-check-be, detect-changes]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push'
-          && (startsWith(github.event.head_commit.message, 'fix(fe') || startsWith(github.event.head_commit.message, 'feat(fe') || startsWith(github.event.head_commit.message, 'chore(fe') || startsWith(github.event.head_commit.message, 'feat!(fe') || startsWith(github.event.head_commit.message, 'fix(full') || startsWith(github.event.head_commit.message, 'feat(full') || startsWith(github.event.head_commit.message, 'chore(full') || startsWith(github.event.head_commit.message, 'feat!(full'))
-          && (needs.detect-changes.outputs.fe == 'true' || needs.detect-changes.outputs.shared == 'true') }}
+    if: github.event_name == 'push' && (needs.changes.outputs.fe == 'true' || needs.changes.outputs.shared == 'true')
     permissions:
       contents: read # 'write' is no longer needed if we don't commit
       packages: write
@@ -179,9 +177,7 @@ jobs:
     name: Build and push BE image
     needs: [lint-check-fe, lint-check-be, detect-changes]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push'
-          && (startsWith(github.event.head_commit.message, 'fix(be') || startsWith(github.event.head_commit.message, 'feat(be') || startsWith(github.event.head_commit.message, 'chore(be') || startsWith(github.event.head_commit.message, 'feat!(be') || startsWith(github.event.head_commit.message, 'fix(full') || startsWith(github.event.head_commit.message, 'feat(full') || startsWith(github.event.head_commit.message, 'chore(full') || startsWith(github.event.head_commit.message, 'feat!(full'))
-          && (needs.detect-changes.outputs.be == 'true' || needs.detect-changes.outputs.shared == 'true') }}
+    if: github.event_name == 'push' && (needs.changes.outputs.be == 'true' || needs.changes.outputs.shared == 'true')
     permissions:
       contents: read # 'write' is no longer needed if we don't commit
       packages: write
