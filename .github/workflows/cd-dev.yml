@@ -112,6 +112,20 @@ jobs:
         with:
           fetch-depth: "0"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sync package version with latest dev tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git tag --list "dev-*" --sort=-v:refname | head -n1)
+          if [ -n "$LATEST_TAG" ]; then
+            VERSION="${LATEST_TAG#dev-}"
+            npm version --no-git-tag-version "$VERSION"
+          fi
+
       - name: Compute version
         id: version
         uses: "phips28/gh-action-bump-version@master"
@@ -126,7 +140,7 @@ jobs:
 
   build-fe-image-push:
     name: Build and push FE image
-    needs: lint-check-fe
+    needs: [lint-check-fe, semantic-release]
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     permissions:

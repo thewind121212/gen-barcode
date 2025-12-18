@@ -3,7 +3,8 @@ name: CD For Kuru Test
 on:
   push:
     branches:
-      - release-test
+      - master
+      - main
 
 jobs:
   lint-commits:
@@ -111,6 +112,20 @@ jobs:
         with:
           fetch-depth: "0"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sync package version with latest test tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git tag --list "test-*" --sort=-v:refname | head -n1)
+          if [ -n "$LATEST_TAG" ]; then
+            VERSION="${LATEST_TAG#test-}"
+            npm version --no-git-tag-version "$VERSION"
+          fi
+
       - name: Compute version
         id: version
         uses: "phips28/gh-action-bump-version@master"
@@ -164,7 +179,7 @@ jobs:
 
   build-be-image-push:
     name: Build and push BE image
-    needs: [lint-check-be, semantic-release]
+    needs: lint-check-be
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     permissions:
