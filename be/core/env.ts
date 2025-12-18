@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  PORT: z.coerce.number().default(9190),
   SUPERTOKENS_CONNECTION_URI: z.string().default("https://auth.simplestore.io.vn"),
   APP_NAME: z.string().default("barcode-generator"),
   API_DOMAIN: z.string().default("http://localhost:9190"),
