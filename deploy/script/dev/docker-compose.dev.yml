@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-thewind121212}/jade-fe:dev
+    container_name: jade-fe-dev
+    restart: unless-stopped
+    ports:
+      - "4140:4140"
+    networks:
+      - app_network
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-thewind121212}/ciri-be:dev
+    container_name: ciri-be-dev
+    restart: unless-stopped
+    ports:
+      - "9190:9190"
+    env_file:
+      - .env
+    networks:
+      app_network:
+        ipv4_address: 116.16.1.201
+
+
+networks:
+  app_network:
+    external: true
+    name: ovh-network

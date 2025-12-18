@@ -97,9 +97,35 @@ jobs:
       - name: Lint backend
         run: npm run lint --workspace=be
 
+  semantic-release:
+    name: Semantic release
+    needs: [lint-check-fe, lint-check-be]
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.newTag }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+
+      - name: Compute version
+        id: version
+        uses: "phips28/gh-action-bump-version@master"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag-prefix: test-
+          default: patch
+          skip-commit: "true"
+          skip-tag: "true"
+          skip-push: "true"
+
   build-fe-image-push:
     name: Build and push FE image
-    needs: lint-check-fe
+    needs: [lint-check-fe, semantic-release]
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     permissions:
@@ -131,11 +157,14 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/jade-fe:test
-          build-args: API_URL=${{ secrets.API_URL }}
+          build-args: |
+            API_URL=${{ secrets.API_URL }}
+            BASE_URL=${{ secrets.BASE_URL }}
+            APP_VERSION=${{ needs.semantic-release.outputs.version }}
 
   build-be-image-push:
     name: Build and push BE image
-    needs: lint-check-be
+    needs: [lint-check-be, semantic-release]
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     permissions:
@@ -168,37 +197,42 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/ciri-be:test
-          build-args: API_URL=${{ secrets.API_URL }}
+          build-args: |
+            API_URL=${{ secrets.API_URL }}
 
-  semantic-release:
-    name: Semantic release
-    needs: [build-fe-image-push, build-be-image-push]
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.newTag }}
-    permissions:
-      contents: write
+  deploy:
+    name: Deploy release-test branch
+    runs-on: ubuntu-20.04
+    if: false
+    needs:  semantic-release
+    # if: github.ref == 'refs/heads/release-test'
+    env:
+      SOURCE_PATH: ${{ secrets.WEB_SERVER_TEST_WORKDIR }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: "0"
-
-      - name: Compute version
-        id: version
-        uses: "phips28/gh-action-bump-version@master"
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.WEB_SERVER_STG_KEY }}" > ~/.ssh/serverSSH
+          chmod 600 ~/.ssh/serverSSH
+          cat >>~/.ssh/config <<END
+          Host serverHostDeploy
+            HostName ${{ secrets.WEB_SERVER_STG_HOST }}
+            User root
+            IdentityFile ~/.ssh/serverSSH
+            StrictHostKeyChecking no
+          END
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag-prefix: test-
-          default: patch
-          skip-commit: "true"
-          skip-tag: "true"
-          skip-push: "true"
-
+          SSH_KEY: ${{ secrets.WEB_SERVER_STG_KEY }}
+          SSH_HOST: ${{ secrets.WEB_SERVER_STG_HOST }}
+      - name: SSH to server and run deploy.sh script
+        run:  |
+         ssh serverHostDeploy -t << 'EOF'
+            cd ${{ secrets.WEB_SERVER_TEST_WORKDIR }}
+            sh deploy_test.sh
+         EOF
       - name: Persist version (tag)
         run: |
-          TAG="${{ steps.version.outputs.newTag }}"
+          TAG="${{ needs.semantic-release.outputs.version }}"
           git fetch --tags
           if git rev-parse "$TAG" >/dev/null 2>&1; then exit 0; fi
           git tag "$TAG"
