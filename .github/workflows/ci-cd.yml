@@ -23,9 +23,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install deps
-        run: npm ci
-
       - name: Lint PR title
         if: github.event_name == 'pull_request'
         run: |
