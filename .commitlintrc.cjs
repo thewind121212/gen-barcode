@@ -2,16 +2,16 @@ module.exports = {
     extends: ["@commitlint/config-conventional"],
   
     // Enforce: type(!?)(scope): subject
-    // scope must be: fe|be|full optionally + "-<work>"
+    // scope must start with: fe|be|full|pipeline, optionally + "-<topic>"
     // Examples:
-    // feat!(fe-shop): ...
-    // fix(be): ...
-    // chore(full-auth): ...
+    // feat!(fe): ...
+    // fix(be-ci-cd): ...
+    // chore(pipeline-topic): ...
     parserPreset: {
       parserOpts: {
         headerPattern:
-          /^(\w+)(!)?\((fe|be|full)(-[a-z0-9]+)?\): (.+)$/,
-        headerCorrespondence: ["type", "breaking", "for", "work", "subject"],
+          /^(\w+)(!)?\(((?:fe|be|full|pipeline)(?:-[a-z0-9]+)?)\): (.+)$/,
+        headerCorrespondence: ["type", "breaking", "scope", "subject"],
       },
     },
   
