@@ -1,4 +1,4 @@
-name: CI/CD For Kuru
+name: CD For Kuru
 
 on:
   push:
