@@ -27,20 +27,17 @@ jobs:
       - name: Install commitlint
         run: npm install -g @commitlint/cli @commitlint/config-conventional
 
-      - name: Lint PR title
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "${{ github.event.pull_request.title }}" | npx commitlint
-
       - name: Lint commits in PR
         if: github.event_name == 'pull_request'
         run: |
-          npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
+          git log -1 --pretty=%B "${{ github.event.pull_request.head.sha }}" \
+            | npx commitlint --verbose
 
       - name: Lint latest push commit
         if: github.event_name == 'push'
         run: |
-          npx commitlint --from "${{ github.event.before }}" --to "${{ github.sha }}" --verbose 
+          git log -1 --pretty=%B "${{ github.sha }}" \
+            | npx commitlint --verbose 
 
   lint-check-fe:
     runs-on: ubuntu-latest
