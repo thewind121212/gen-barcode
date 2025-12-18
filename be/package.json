@@ -11,8 +11,8 @@
   "keywords": [],
   "main": "core/index.ts",
   "scripts": {
-    "start": "node --env-file=.env dist/core/index.js",
-    "dev": "tsx watch --env-file=.env core/index.ts",
+    "preview": "npx prisma generate && node --env-file=.env dist/core/index.js",
+    "dev": "npx prisma generate && tsx watch --env-file=.env core/index.ts",
     "build": "tsc",
     "lint": "eslint --fix core test",
     "test": "vitest run",
