@@ -1,0 +1,54 @@
+
+# --- Build stage ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Base tsconfig used by the backend tsconfig
+COPY ./tsconfig.base.json ./tsconfig.base.json
+
+# Install dependencies for the backend (including dev deps for TypeScript build)
+WORKDIR /app/be
+COPY ./be/package.json ./be/package-lock.json* ./
+COPY ./be/tsconfig*.json ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# Copy backend source
+COPY ./be .
+
+# Generate Prisma client and build TypeScript to JavaScript
+RUN npx prisma generate && \
+  # Ensure Prisma client path matches our imports
+  if [ -f generated/prisma/index.js ] && [ ! -f generated/prisma/client.js ]; then \
+    ln -s index.js generated/prisma/client.js; \
+  fi && \
+  npm run build && \
+  mkdir -p node_modules/@Ciri && \
+  cd node_modules/@Ciri && \
+  ln -s ../../dist/core core && \
+  ln -s ../../dist/sentry sentry && \
+  ln -s ../../dist/generated generated && \
+  ln -s ../../dist/config.js config
+
+
+# --- Runtime stage ---
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Install PM2 to manage the Node process in Docker
+RUN npm install -g pm2@5
+
+# Copy built app and runtime dependencies from builder
+COPY --from=builder /app/be/node_modules ./node_modules
+COPY --from=builder /app/be/dist ./dist
+COPY --from=builder /app/be/prisma ./prisma
+COPY --from=builder /app/be/generated ./generated
+COPY --from=builder /app/be/ecosystem.config.cjs ./ecosystem.config.cjs
+
+# Use non-root user for security
+RUN chown -R node:node /app
+USER node
+
+EXPOSE 9190
+
+# Use pm2-runtime with ecosystem file as recommended for Docker
+CMD ["pm2-runtime", "ecosystem.config.cjs", "--only", "ciri-be"]
