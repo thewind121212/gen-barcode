@@ -185,6 +185,8 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/jade-fe:${{ needs.semantic-release-fe.outputs.fe_version }}
           build-args: 
             API_URL=${{ secrets.API_URL }}
+            BASE_URL=${{ secrets.BASE_URL }}
+            APP_VERSION=${{ needs.semantic-release-fe.outputs.fe_version }}
       - name: Persist FE version (tag)
         run: |
           TAG="${{ needs.semantic-release-fe.outputs.fe_version }}"
