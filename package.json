@@ -1,5 +1,5 @@
 {
-    "name": "gen-barcode-monorepo",
+    "name": "kuru",
     "version": "1.0.0",
     "private": true,
     "workspaces": [
