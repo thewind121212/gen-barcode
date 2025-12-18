@@ -63,6 +63,7 @@ jobs:
     name: Build and push FE image
     needs: [lint-check-fe, lint-check-be]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     permissions:
       contents: read # 'write' is no longer needed if we don't commit
       packages: write
