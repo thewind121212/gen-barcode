@@ -1,0 +1,110 @@
+name: CI action for Simple Store
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint-check-fe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      # Setup cache to increase speed
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            fe/node_modules/.vite
+          key: ${{ runner.os }}-vite-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('fe/**.[jt]s', 'fe/**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-${{ hashFiles('**/package-lock.json') }}-
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint frontend
+        run: npm run lint --workspace=fe
+      - name: Build frontend
+        run: npm run build --workspace=fe
+
+  lint-check-be:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      # Setup cache to increase speed
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            fe/node_modules/.vite
+          key: ${{ runner.os }}-vite-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('fe/**.[jt]s', 'fe/**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-${{ hashFiles('**/package-lock.json') }}-
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint backend
+        run: npm run lint --workspace=be
+    
+  build-and-push:
+    name: Build and push FE image
+    needs: [lint-check-fe, lint-check-be]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: read # 'write' is no longer needed if we don't commit
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      # 1. CALCULATE VERSION (In-memory only)
+      - name: 'Get Next Version'
+        id: version_bump
+        uses: 'phips28/gh-action-bump-version@master'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag-prefix: ${{ github.ref_name == 'master' && 'dev-' || 'test-' }}
+          default: patch
+          skip-commit: 'true'
+          skip-tag: 'true'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. BUILD AND PUSH 
+      # Uses the calculated version for the Docker tag
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./DockerfileFe
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/jade-fe:${{ steps.version_bump.outputs.newTag }}
+          build-args: 
+            API_URL=${{ secrets.API_URL }}
