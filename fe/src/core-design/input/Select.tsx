@@ -25,6 +25,7 @@ interface SelectProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   register?: UseFormRegister<any>;
   registerOptions?: RegisterOptions<FieldValues, string>;
+  disabled?: boolean;
 }
 
 const Select = ({
@@ -38,6 +39,7 @@ const Select = ({
   success,
   expandOnError = true,
   className,
+  disabled,
   name,
   register,
   floatingLabel = true,
@@ -60,6 +62,7 @@ const Select = ({
   }, [isOpen]);
 
   const toggleDropdown = () => {
+    if (disabled) return;
     if (isOpen) closeDropdown();
     else setIsOpen(true);
   };
@@ -99,6 +102,7 @@ const Select = ({
           name={name}
           value={value ?? ''}
           ref={registeredField?.ref}
+          disabled={disabled}
         />
       )}
 
@@ -108,6 +112,7 @@ const Select = ({
         onClick={toggleDropdown}
         className={`
           w-full flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-200 outline-none
+          disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-50 dark:disabled:bg-slate-800
           ${isOpen
             ? 'ring-2 ring-indigo-500/20 border-indigo-500'
             : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'
@@ -116,6 +121,7 @@ const Select = ({
           ${error ? 'border-red-500 ring-red-500/20' : ''}
           ${success ? 'border-emerald-500 ring-emerald-500/20' : ''}
         `}
+        disabled={disabled}
       >
         <div className="flex items-center gap-3 overflow-hidden">
           {Icon && (

@@ -37,8 +37,11 @@ RUN npx prisma generate && \
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Install PM2 to manage the Node process in Docker
-RUN npm install -g pm2@5
+# Install Bun (for fast runtime) and PM2 to manage the process
+RUN apk add --no-cache curl bash && \
+  curl -fsSL https://bun.sh/install | bash && \
+  ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
+  npm install -g pm2@5
 
 # Copy built app and runtime dependencies from builder
 COPY --from=builder /app/be/node_modules ./node_modules

@@ -12,10 +12,16 @@ import { Activity, Check, LayoutGrid, Palette, Plus, Upload, type LucideIcon } f
 import { useForm, useWatch } from 'react-hook-form';
 import * as yup from "yup";
 import { useParams } from 'react-router-dom';
+import { useCreateCategory } from '@Jade/services/category/useQuery';
+import toast from 'react-hot-toast';
+import {useSelector} from 'react-redux'
+import { NIL as NIL_UUID } from 'uuid';
+import type { RootState } from '@Jade/store/global.store';
+
 // Lazy import IconPicker
 const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
 
-type CategoryStatus = 'active' | 'inactive' | 'archived';
+type CategoryStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 
 type CategoryFormValues = {
     name: string;
@@ -28,8 +34,8 @@ type CategoryFormValues = {
 
 const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
     name: yup.string().required('Name is required'),
-    status: yup.mixed<CategoryStatus>().oneOf(['active', 'inactive', 'archived']).required('Status is required'),
-    parentId: yup.string().uuid("parentId must be a valid UUID").optional().default(''),
+    status: yup.mixed<CategoryStatus>().oneOf(['ACTIVE', 'INACTIVE', 'ARCHIVED']).required('Status is required'),
+    parentId: yup.string().optional().uuid("parentId must be a valid UUID"),
     description: yup.string().optional().default(''),
     color: yup.string().optional().default('indigo-400'),
     icon: yup.string().optional().default('layout-grid'),
@@ -43,12 +49,12 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     const colorModal = useModal(ModalId.COLOR);
     const iconModal = useModal(ModalId.ICON);
     const { id } = useParams();
-    const {handleSubmit ,register, control, setValue, formState: { errors } } = useForm<CategoryFormValues>({
+    const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
         defaultValues: {
             name: '',
-            status: 'active',
-            parentId: '',
+            status: 'ACTIVE',
+            parentId: NIL_UUID,
             description: '',
             color: 'indigo-400',
             icon: 'layout-grid',
@@ -59,6 +65,18 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     const parentId = useWatch({ control, name: 'parentId' });
     const color = useWatch({ control, name: 'color' });
     const icon = useWatch({ control, name: 'icon' });
+    const storeId = useSelector((state: RootState) => state.app.storeId);
+
+    const { mutate: createCategory, isPending: isLoadingCreateCategory } = useCreateCategory({
+        onSuccess: () => {
+            toast.success('Category created successfully');
+            reset();
+            mainModal.close();
+        },
+        onError: (error) => {
+            toast.error('Failed to create category:' + error?.message);
+        },
+    });
 
     const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
 
@@ -106,8 +124,32 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
         return quickColors;
     }
 
+
     const onSubmit = (data: CategoryFormValues) => {
-        
+        const layerRequest = id ? undefined : "0"
+        // if parentId is provided, then layer must be get from be first and recheck at be 
+        if (id && !layerRequest) {
+            toast.error('Layer is required');
+            return;
+        }
+        if (layerRequest === undefined) {
+            toast.error('Layer is required');
+            return;
+        }
+        if (!storeId) {
+            toast.error('Store ID is required');
+            return;
+        }
+        createCategory({
+            name: data.name,
+            status: data.status,
+            parentId: parentId,
+            layer: layerRequest,
+            description: data.description,
+            colorSettings: data.color,
+            icon: data.icon,
+            storeId: storeId,
+        });
     };
 
     return (
@@ -123,10 +165,14 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                 subtitle="Organize your items with a new classification."
                 blurEffect={true}
                 className={"mb-0"}
-                onConfirm={handleSubmit(onSubmit)}
+                onConfirm={() => handleSubmit(onSubmit)()}
+                isLoading={isLoadingCreateCategory}
             >
                 <div className="relative w-full overflow-hidden transition-all duration-300 z-50 animate-in fade-in zoom-in-95 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 dark:shadow-black/50">
-                    <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="p-8 space-y-6"
+                    >
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2 flex flex-col gap-1">
@@ -151,9 +197,9 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                     registerOptions={{ required: true }}
                                     error={errors.status?.message}
                                     options={[
-                                        { value: 'active', label: 'Active' },
-                                        { value: 'inactive', label: 'Inactive' },
-                                        { value: 'archived', label: 'Archived' },
+                                        { value: 'ACTIVE', label: 'Active' },
+                                        { value: 'INACTIVE', label: 'Inactive' },
+                                        { value: 'ARCHIVED', label: 'Archived' },
                                     ]}
                                     icon={Activity}
                                 />
@@ -161,23 +207,22 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                         </div>
 
                         <div className="space-y-6">
-                            {!id && (
-                            <div className="relative flex flex-col transition-all gap-1 space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
-                                <Select
-                                    name="parentId"
-                                    value={parentId}
-                                    register={register}
-                                    options={[
-                                        { value: '', label: 'No Parent (Root Category)' },
-                                        { value: '1', label: 'Products' },
-                                        { value: '2', label: 'Services' },
-                                        { value: '3', label: 'Digital Assets' },
-                                    ]}
-                                    icon={LayoutGrid}
-                                />
-                            </div>
-                            )}
+                                <div className="relative flex flex-col transition-all gap-1 space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
+                                    <Select
+                                        name="parentId"
+                                        value={parentId}
+                                        register={register}
+                                        disabled={!id}
+                                        options={[
+                                            { value: '', label: 'No Parent (Root Category)' },
+                                            { value: '1', label: 'Products' },
+                                            { value: '2', label: 'Services' },
+                                            { value: '3', label: 'Digital Assets' },
+                                        ]}
+                                        icon={LayoutGrid}
+                                    />
+                                </div>
                             <div className="space-y-2 flex flex-col gap-1">
                                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</label>
                                 <textarea
@@ -200,6 +245,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                         {quickColorsList().map((c) => (
                                             <button
                                                 key={c.id}
+                                                type="button"
                                                 onClick={() => handleColorSelect(c.id)}
                                                 className={`w-8 h-8 rounded-full ${c.bg} transition-all duration-200 flex items-center justify-center shadow-sm ${color === c.id
                                                     ? `ring-2 ring-offset-2 scale-110 ${c.ring} ring-offset-white dark:ring-offset-slate-900`
@@ -213,6 +259,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                     </div>
 
                                     <button
+                                        type="button"
                                         onClick={colorModal.open}
                                         className="w-8 h-8 rounded-full border-dashed border-2 flex items-center justify-center transition-all border-gray-300 hover:border-gray-500 text-slate-400 hover:text-slate-600 dark:border-slate-600 dark:hover:border-slate-400 dark:hover:text-white"
                                     >
@@ -232,12 +279,14 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                                     </div>
 
                                     <button
+                                        type="button"
                                         onClick={iconModal.open}
                                         className="flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all bg-gray-50 border-gray-200 hover:border-gray-300 text-slate-600 dark:bg-slate-950 dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
                                     >
                                         <span className="text-xs opacity-70 bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-400 px-2 py-0.5 rounded">More</span>
                                     </button>
                                     <button
+                                        type="button"
                                         onClick={iconModal.open}
                                         className="flex items-center justify-between gap-1 px-4 py-2.5 rounded-xl border transition-all bg-gray-50 border-gray-200 hover:border-gray-300 text-slate-600 dark:bg-slate-950 dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
                                     >

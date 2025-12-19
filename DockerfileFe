@@ -44,7 +44,7 @@ COPY ./fe .
 
 # Create a fresh .env.production file using the ARGs
 # This replaces the "ADD" command
-RUN printf "VITE_API_BASE_URL=%s\nAPP_VERSION=%s\nVITE_BASE_URL=%s\n" "${API_URL}" "${APP_VERSION}" "${BASE_URL}" > .env.production
+RUN printf "VITE_API_BASE_URL=%s\nVITE_APP_VERSION=%s\nVITE_BASE_URL=%s\n" "${API_URL}" "${APP_VERSION}" "${BASE_URL}" > .env.production
 
 RUN npm run build
 

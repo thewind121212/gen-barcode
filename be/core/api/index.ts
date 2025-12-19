@@ -3,6 +3,7 @@ import express from "express";
 import type MessageResponse from "@Ciri/core/interfaces/message-response";
 
 import storeRoutes from "@Ciri/core/api/store/store.routes";
+import categoryRoutes from "./category/category.routes";
 import { handlerCheckToken } from "@Ciri/core/middlewares";
 
 const router = express.Router();
@@ -17,5 +18,5 @@ router.get<object, MessageResponse>("/", (_req, res) => {
 router.use(handlerCheckToken);
 
 router.use("/store", storeRoutes);
-
+router.use("/category", categoryRoutes);
 export default router;

@@ -1,10 +1,11 @@
 // this is code generated usequery for api
 import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { CreateCategoryRequest, CreateCategoryResponse, GetCategoryRequest, GetCategoryResponse, RemoveCategoryRequest, RemoveCategoryResponse } from "@Jade/types/category.d";
+import type { CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIDResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, RemoveCategoryRequest, RemoveCategoryResponse } from "@Jade/types/category.d";
 import {
     createCategory,
-    getCategory,
+    getCategoryById,
     removeCategory,
+    getCategoryOverview,
 } from "./api";
 
 type ApiSuccessResponse<T> = {
@@ -21,10 +22,10 @@ export const useCreateCategory = ({ onSuccess, onError }: { onSuccess?: (data: A
     });
 };
 
-export const useGetCategory = (request: GetCategoryRequest, options?: UseQueryOptions<ApiSuccessResponse<GetCategoryResponse>, Error, GetCategoryRequest>) => {
-    return useQuery<ApiSuccessResponse<GetCategoryResponse>, Error, GetCategoryRequest>({
-        queryKey: ["category", "GetCategory", request],
-        queryFn: () => getCategory(request) as unknown as ApiSuccessResponse<GetCategoryResponse>,
+export const useGetCategoryById = (request: GetCategoryByIdRequest, options?: UseQueryOptions<ApiSuccessResponse<GetCategoryByIDResponse>, Error, GetCategoryByIdRequest>) => {
+    return useQuery<ApiSuccessResponse<GetCategoryByIDResponse>, Error, GetCategoryByIdRequest>({
+        queryKey: ["category", "GetCategoryById", request],
+        queryFn: () => getCategoryById(request) as unknown as ApiSuccessResponse<GetCategoryByIDResponse>,
         ...options,
     });
 };
@@ -34,6 +35,14 @@ export const useRemoveCategory = ({ onSuccess, onError }: { onSuccess?: (data: A
         mutationFn: (request: RemoveCategoryRequest) => removeCategory(request),
         onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<RemoveCategoryResponse>),
         onError: (error) => onError?.(error),
+    });
+};
+
+export const useGetCategoryOverview = (request: GetCategoryOverviewRequest, options?: UseQueryOptions<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, GetCategoryOverviewRequest>) => {
+    return useQuery<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, GetCategoryOverviewRequest>({
+        queryKey: ["category", "GetCategoryOverview", request],
+        queryFn: () => getCategoryOverview(request) as unknown as ApiSuccessResponse<GetCategoryOverviewResponse>,
+        ...options,
     });
 };
 

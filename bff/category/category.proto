@@ -9,10 +9,13 @@ package category;
 
 message CreateCategoryRequest {
     string name = 1;
-    option string parent_id = 2;
-    option string colorSettings = 3;
+    optional string parentId = 2;
+    string colorSettings = 3;
     string layer = 4;
     optional string description = 5;
+    string status = 6;
+    string icon = 7;
+    string storeId = 8;
 }
 
 
@@ -20,27 +23,56 @@ message CreateCategoryResponse {
     optional string category_id = 1;
 }
 
-message GetCategoryResponse {
-  optional string category_id = 1;
+
+message GetCategoryByIDResponse {
+  optional string categoryId = 1;
   optional string name = 2;
-  optional string parent_id = 3;
+  optional string parentId = 3;
   optional string description = 4;
   optional string colorSettings = 5;
   optional string layer = 6;
-  optional string imageUrl = 7;
-  optional int32 sub_categories_count = 8;
+  optional string icon = 7;
+  optional int32 subCategoriesCount = 8;
+  optional string status = 9;
+  string storeId = 10;
 }
 
-message GetCategoryRequest {
-  string category_id = 1;
+message CategoryOverview {
+  optional string categoryId = 1;
+  optional string name = 2;
+  optional string parentId = 3;
+  optional string description = 4;
+  optional string colorSettings = 5;
+  optional string layer = 6;
+  optional string icon = 7;
+  optional int32 subCategoriesCount = 8;
+  optional string status = 9;
+  string storeId = 10;
+  int32 itemCount = 11;
+  int64 totalValue = 13;
+  int32 lowStockCount = 14;
+
+}
+
+message GetCategoryOverviewResponse {
+  repeated CategoryOverview categoryOverviews = 1;
+}
+
+message GetCategoryOverviewRequest {
+  string storeId = 1;
+}
+
+
+message GetCategoryByIdRequest {
+   string categoryId = 1;
 }
 
 message RemoveCategoryRequest {
-  repeated string category_ids = 1;
+  repeated string categoryIds = 1;
 }
 
 message RemoveCategoryResponse {
-  int32 removed_count = 1;
+  int32 removedCount = 1;
 }
 
 service UserService {
@@ -50,7 +82,7 @@ service UserService {
       body: "*"
     };
   }
-  rpc GetCategory(GetCategoryRequest) returns (GetCategoryResponse) {
+  rpc GetCategoryById(GetCategoryByIdRequest) returns (GetCategoryByIDResponse) {
     option (google.api.http) = {
       get: "/v1/category/GetCategory"
       body: "*"
@@ -59,6 +91,12 @@ service UserService {
   rpc RemoveCategory(RemoveCategoryRequest) returns (RemoveCategoryResponse) {
     option (google.api.http) = {
       post: "/v1/category/RemoveCategory"
+      body: "*"
+    };
+  }
+  rpc GetCategoryOverview(GetCategoryOverviewRequest) returns (GetCategoryOverviewResponse) {
+    option (google.api.http) = {
+      get: "/v1/category/GetCategoryOverview"
       body: "*"
     };
   }

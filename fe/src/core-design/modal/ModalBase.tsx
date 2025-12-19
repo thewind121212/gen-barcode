@@ -1,10 +1,10 @@
-import { X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { useSelector } from 'react-redux';
-
 import { selectModalStack } from '@Jade/store/modal.store';
 import type { RootState } from '@Jade/store/global.store';
 import { ModalId, type ModalKey } from '@Jade/types/modal';
+import Spinner from '@Jade/core-design/loader/Spinner';
 
 
 type ModalProps = {
@@ -24,6 +24,7 @@ type ModalProps = {
   showConfirmButton?: boolean;
   confirmButtonText?: string;
   cancelButtonText?: string;
+  isLoading?: boolean;
   onConfirm?: () => void;
 };
 
@@ -46,7 +47,8 @@ const Modal = ({
   showConfirmButton = true,
   confirmButtonText = 'Confirm',
   cancelButtonText = 'Cancel',
-  onConfirm = () => {},
+  isLoading = false,
+  onConfirm = () => { },
 }: ModalProps) => {
 
   const modalStack = useSelector((state: RootState) => selectModalStack(state));
@@ -120,9 +122,10 @@ const Modal = ({
         <div className="flex-1 overflow-y-auto">{children}</div>
         <div className="px-8 py-6 border-t flex items-center justify-end gap-3 border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
           {
-            showCancelButton && (
+            showCancelButton && !isLoading && (
               <button
                 onClick={onClose}
+                disabled={isLoading}
                 className="px-5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-500 hover:text-slate-800 hover:bg-gray-200 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800">
                 {cancelButtonText || 'Cancel'}
               </button>
@@ -130,8 +133,12 @@ const Modal = ({
           }
           {
             showConfirmButton && (
-              <button onClick={onConfirm} className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
-                {confirmButtonText || 'Create Category'}
+              <button onClick={onConfirm}
+                disabled={isLoading}
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
+                {isLoading ? <Spinner /> : (
+                  confirmButtonText
+                )}
               </button>
             )
           }

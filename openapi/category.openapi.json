@@ -43,8 +43,8 @@
     },
     "/category/GetCategory": {
       "get": {
-        "operationId": "GetCategory",
-        "summary": "GetCategory",
+        "operationId": "GetCategoryById",
+        "summary": "GetCategoryById",
         "tags": [
           "category"
         ],
@@ -54,7 +54,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetCategoryResponse"
+                  "$ref": "#/components/schemas/GetCategoryByIDResponse"
                 }
               }
             }
@@ -102,6 +102,37 @@
           }
         }
       }
+    },
+    "/category/GetCategoryOverview": {
+      "get": {
+        "operationId": "GetCategoryOverview",
+        "summary": "GetCategoryOverview",
+        "tags": [
+          "category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetCategoryOverviewResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -112,16 +143,35 @@
           "name": {
             "type": "string"
           },
+          "parentId": {
+            "type": "string"
+          },
+          "colorSettings": {
+            "type": "string"
+          },
           "layer": {
             "type": "string"
           },
           "description": {
             "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
           }
         },
         "required": [
           "name",
-          "layer"
+          "colorSettings",
+          "layer",
+          "status",
+          "icon",
+          "storeId"
         ]
       },
       "CreateCategoryResponse": {
@@ -132,7 +182,7 @@
           }
         }
       },
-      "GetCategoryResponse": {
+      "GetCategoryByIDResponse": {
         "type": "object",
         "properties": {
           "categoryId": {
@@ -153,16 +203,101 @@
           "layer": {
             "type": "string"
           },
-          "imageUrl": {
+          "icon": {
             "type": "string"
           },
           "subCategoriesCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storeId"
+        ]
+      },
+      "CategoryOverview": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colorSettings": {
+            "type": "string"
+          },
+          "layer": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "subCategoriesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalValue": {
+            "type": "string",
+            "format": "int64"
+          },
+          "lowStockCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "storeId",
+          "itemCount",
+          "totalValue",
+          "lowStockCount"
+        ]
+      },
+      "GetCategoryOverviewResponse": {
+        "type": "object",
+        "properties": {
+          "categoryOverviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryOverview"
+            }
           }
         }
       },
-      "GetCategoryRequest": {
+      "GetCategoryOverviewRequest": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storeId"
+        ]
+      },
+      "GetCategoryByIdRequest": {
         "type": "object",
         "properties": {
           "categoryId": {

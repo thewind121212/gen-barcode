@@ -5,6 +5,7 @@ import express from "express";
 import type { CreateStoreResponse, GetUserInfoResponse } from "@Ciri/types/store";
 
 import { createStoreSchema } from "@Ciri/core/dto/store/create-store.dto";
+
 import { getUserInfoSchema } from "@Ciri/core/dto/store/get-user-info.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { StoreService } from "@Ciri/core/services/store.service";
@@ -16,13 +17,15 @@ const router = express.Router();
 const storeService = new StoreService();
 
 export type CreateStoreRequestBody = z.infer<typeof createStoreSchema>;
-export type CreateStoreResponseServices = CreateStoreResponse & {
-  error: string | null;
-};
+export type CreateStoreResponseServices = {
+      resData: CreateStoreResponse | null;
+      error: string | null;
+    };
 export type GetUserInfoRequestBody = z.infer<typeof getUserInfoSchema>;
-export type GetUserInfoResponseServices = GetUserInfoResponse & {
-  error: string | null;
-};
+export type GetUserInfoResponseServices = {
+      resData: GetUserInfoResponse | null;
+      error: string | null;
+    };
 
 router.post(
   "/CreateStore",
@@ -36,7 +39,11 @@ router.post(
         ErrorResponses.badRequest(res, response.error);
         return;
       }
-      sendSuccessResponse<CreateStoreResponse>(res, 201, response);
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<CreateStoreResponse>(res, 201, response.resData);
     }
     catch (error) {
       UnitLogger(
@@ -62,7 +69,11 @@ router.post(
         ErrorResponses.badRequest(res, response.error);
         return;
       }
-      sendSuccessResponse<GetUserInfoResponse>(res, 201, response);
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<GetUserInfoResponse>(res, 201, response.resData);
     }
     catch (error) {
       UnitLogger(
