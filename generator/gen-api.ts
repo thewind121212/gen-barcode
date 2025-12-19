@@ -364,7 +364,8 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
     let responseServicesName = `${toCamelCase(method.name)}ResponseServices`;
     responseServicesName = responseServicesName.charAt(0).toUpperCase() + responseServicesName.slice(1);
     output += `export type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
-    output += `export type ${responseServicesName} = ${method.responseType} & {
+    output += `export type ${responseServicesName} = {
+      resData: ${method.responseType} | null;
       error: string | null;
     };\n`;
   });
@@ -390,7 +391,11 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
         ErrorResponses.badRequest(res, response.error);
         return;
       }
-      sendSuccessResponse<${method.responseType}>(res, 201, response);
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<${method.responseType}>(res, 201, response.resData);
     }
     catch (error) {
       UnitLogger(
@@ -417,7 +422,11 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
         ErrorResponses.badRequest(res, response.error);
         return;
       }
-      sendSuccessResponse<${method.responseType}>(res, 200, response);
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<${method.responseType}>(res, 200, response.resData);
     }
     catch (error) {
       UnitLogger(
