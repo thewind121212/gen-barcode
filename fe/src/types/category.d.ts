@@ -2,26 +2,56 @@
 //==================================================
 export interface CreateCategoryRequest {
   name: string;
+  parentId?: string;
+  colorSettings: string;
   layer: string;
   description?: string;
+  status: string;
+  icon: string;
 }
 
 export interface CreateCategoryResponse {
   categoryId?: string;
 }
 
-export interface GetCategoryResponse {
+export interface GetCategoryByIDResponse {
   categoryId?: string;
   name?: string;
   parentId?: string;
   description?: string;
   colorSettings?: string;
   layer?: string;
-  imageUrl?: string;
+  icon?: string;
   subCategoriesCount?: number;
+  status?: string;
+  storeId: string;
 }
 
-export interface GetCategoryRequest {
+export interface CategoryOverview {
+  categoryId?: string;
+  name?: string;
+  parentId?: string;
+  description?: string;
+  colorSettings?: string;
+  layer?: string;
+  icon?: string;
+  subCategoriesCount?: number;
+  status?: string;
+  storeId: string;
+  itemCount: number;
+  totalValue: number;
+  lowStockCount: number;
+}
+
+export interface GetCategoryOverviewResponse {
+  categoryOverviews: CategoryOverview[];
+}
+
+export interface GetCategoryOverviewRequest {
+  storeId: string;
+}
+
+export interface GetCategoryByIdRequest {
   categoryId: string;
 }
 

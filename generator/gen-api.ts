@@ -6,7 +6,7 @@ export interface RpcMethod {
   name: string;
   requestType: string;
   responseType: string;
-  httpMethod: "post" | "get";
+  httpMethod: "post" | "get" | "put" | "patch";
   httpPath: string;
 }
 
@@ -56,7 +56,7 @@ export const extractRpcMethods = (namespace: protobuf.Namespace, packageName: st
         const json = typeof method.toJSON === "function" ? method.toJSON() : {};
         const options = (json as any).options || {};
 
-        let httpOption: { post?: string; get?: string } = {};
+        let httpOption: { post?: string; get?: string; put?: string; patch?: string } = {};
 
         if (Array.isArray((json as any).parsedOptions)) {
           for (const entry of (json as any).parsedOptions as any[]) {
@@ -79,7 +79,7 @@ export const extractRpcMethods = (namespace: protobuf.Namespace, packageName: st
           }
         }
 
-        let httpMethod: "post" | "get" = "post";
+        let httpMethod: "post" | "get" | "put" | "patch" = "post";
         let httpPath = `/${packageName}/${method.name}`;
 
         if (httpOption.post) {
@@ -88,6 +88,12 @@ export const extractRpcMethods = (namespace: protobuf.Namespace, packageName: st
         } else if (httpOption.get) {
           httpMethod = "get";
           httpPath = httpOption.get;
+        } else if (httpOption.put) {
+          httpMethod = "put";
+          httpPath = httpOption.put;
+        } else if (httpOption.patch) {
+          httpMethod = "patch";
+          httpPath = httpOption.patch;
         }
 
         // Clean up the path - extract the endpoint part
@@ -141,6 +147,11 @@ import type { ${importTypes} } from "@Jade/types/${packageName}.d";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const buildHeaders = (storeId?: string) => ({
+  "Content-Type": "application/json",
+  ...(storeId ? { "x-store-id": storeId } : {}),
+});
+
 `;
 
   if (apiVersionConfig) {
@@ -193,19 +204,17 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
   methods.forEach((method) => {
     const funcName = toCamelCase(method.name);
 
-    if (method.httpMethod === "post") {
+    if (method.httpMethod === "get") {
       const urlTemplate = apiVersionConfig
-        ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}\``
-        : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}\``;
+        ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}?\${params}\``
+        : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\``;
 
-      output += `export const ${funcName} = async (request: ${method.requestType}): Promise<${method.responseType}> => {
+      output += `export const ${funcName} = async (request: ${method.requestType}, storeId?: string): Promise<${method.responseType}> => {
+  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
   const response = await fetch(${urlTemplate}, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    method: "GET",
+    headers: buildHeaders(storeId),
     credentials: "include",
-    body: JSON.stringify(request),
   });
 
   const data = await response.json();
@@ -221,19 +230,17 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
 
 `;
     } else {
-      // GET method
       const urlTemplate = apiVersionConfig
-        ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}?\${params}\``
-        : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\``;
+        ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}\``
+        : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}\``;
+      const httpVerb = method.httpMethod.toUpperCase();
 
-      output += `export const ${funcName} = async (request: ${method.requestType}): Promise<${method.responseType}> => {
-  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
+      output += `export const ${funcName} = async (request: ${method.requestType}, storeId?: string): Promise<${method.responseType}> => {
   const response = await fetch(${urlTemplate}, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    method: "${httpVerb}",
+    headers: buildHeaders(storeId),
     credentials: "include",
+    body: JSON.stringify(request),
   });
 
   const data = await response.json();
@@ -266,7 +273,7 @@ const generateFrontendUseQuery = (methods: RpcMethod[], packageName: string): st
   });
 
   const importTypes = Array.from(imports).sort().join(", ");
-  // check the method is get or post and import right for react query
+  // check the method is get or others and import right for react query
   const hasMutation = methods.some((method) => method.httpMethod !== "get");
   const hasQuery = methods.some((method) => method.httpMethod === "get");
   const reactQueryImports = [
@@ -295,22 +302,22 @@ type ApiSuccessResponse<T> = {
     const funcName = toCamelCase(method.name);
     const hookName = `use${method.name}`;
 
-    if (method.httpMethod === "post") {
-      output += `export const ${hookName} = ({ onSuccess, onError }: { onSuccess?: (data: ApiSuccessResponse<${method.responseType}>) => void, onError?: (error: Error) => void }) => {
-    return useMutation<${method.responseType}, Error, ${method.requestType}>({
-        mutationFn: (request: ${method.requestType}) => ${funcName}(request),
-        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<${method.responseType}>),
-        onError: (error) => onError?.(error),
+    if (method.httpMethod === "get") {
+      output += `export const ${hookName} = (request: ${method.requestType}, storeId?: string, options?: UseQueryOptions<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>) => {
+    return useQuery<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>({
+        queryKey: ["${packageName}", "${method.name}", request],
+        queryFn: () => ${funcName}(request, storeId) as unknown as ApiSuccessResponse<${method.responseType}>,
+        ...options,
     });
 };
 
 `;
     } else {
-      output += `export const ${hookName} = (request: ${method.requestType}, options?: UseQueryOptions<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>) => {
-    return useQuery<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>({
-        queryKey: ["${packageName}", "${method.name}", request],
-        queryFn: () => ${funcName}(request) as unknown as ApiSuccessResponse<${method.responseType}>,
-        ...options,
+      output += `export const ${hookName} = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<${method.responseType}>) => void, onError?: (error: Error) => void }) => {
+    return useMutation<${method.responseType}, Error, ${method.requestType}>({
+        mutationFn: (request: ${method.requestType}) => ${funcName}(request, storeId),
+        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<${method.responseType}>),
+        onError: (error) => onError?.(error),
     });
 };
 
@@ -327,24 +334,38 @@ const generateBackendRoutes = (methods: RpcMethod[], packageName: string): strin
   const serviceName = packageName.charAt(0).toUpperCase() + packageName.slice(1) + "Service";
   const serviceFileName = `${packageName}.service`;
 
-  // Collect all response types
-  const responseTypes = methods.map((m) => m.responseType);
+  const hasBodyMethods = methods.some((m) => m.httpMethod !== "get");
 
-  let output = `import type { z } from "zod";
+  // Collect all response types (GET handlers don't need request types here)
+  const responseTypes = methods.map((m) => m.responseType);
+  const typeImports = Array.from(new Set([...responseTypes])).sort();
+
+  let output = "";
+
+  if (hasBodyMethods) {
+    output += `import type { z } from "zod";
 
 import express from "express";
 
-import type { ${responseTypes.join(", ")} } from "@Ciri/types/${packageName}";
+import type { ${typeImports.join(", ")} } from "@Ciri/types/${packageName}";
 `;
+  } else {
+    output += `import express from "express";
 
-  // Import each schema from its own DTO file (one file per method)
-  methods.forEach((method) => {
-    const schemaName = `${toCamelCase(method.name)}Schema`;
-    const dtoImportPath = `@Ciri/core/dto/${packageName}/${toKebabCase(method.name)}.dto`;
-    output += `
+import type { ${typeImports.join(", ")} } from "@Ciri/types/${packageName}";
+`;
+  }
+
+  // Import each schema from its own DTO file (non-GET only)
+  methods
+    .filter((method) => method.httpMethod !== "get")
+    .forEach((method) => {
+      const schemaName = `${toCamelCase(method.name)}Schema`;
+      const dtoImportPath = `@Ciri/core/dto/${packageName}/${toKebabCase(method.name)}.dto`;
+      output += `
 import { ${schemaName} } from "${dtoImportPath}";
 `;
-  });
+    });
 
   output += `import { getContext } from "@Ciri/core/middlewares";
 import { ${serviceName} } from "@Ciri/core/services/${serviceFileName}";
@@ -359,12 +380,17 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
 
   // Add type definitions for each method
   methods.forEach((method) => {
-    const schemaName = `${toCamelCase(method.name)}Schema`;
-    const typeName = `${method.name}RequestBody`;
     let responseServicesName = `${toCamelCase(method.name)}ResponseServices`;
     responseServicesName = responseServicesName.charAt(0).toUpperCase() + responseServicesName.slice(1);
-    output += `export type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
-    output += `export type ${responseServicesName} = ${method.responseType} & {
+
+    if (method.httpMethod !== "get") {
+      const schemaName = `${toCamelCase(method.name)}Schema`;
+      const typeName = `${method.name}RequestBody`;
+      output += `export type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
+    }
+
+    output += `export type ${responseServicesName} = {
+      resData: ${method.responseType} | null;
       error: string | null;
     };\n`;
   });
@@ -373,24 +399,24 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
 
   // Add routes for each method
   methods.forEach((method) => {
-    const schemaName = `${toCamelCase(method.name)}Schema`;
-    const typeName = `${method.name}RequestBody`;
     const serviceMethod = method.name;
 
-    if (method.httpMethod === "post") {
-      output += `router.post(
+    if (method.httpMethod === "get") {
+      output += `router.get(
   "/${method.httpPath}",
-  validateBody<${typeName}>(${schemaName}),
   async (req, res, next): Promise<void> => {
     try {
       const ctx = getContext(req);
-      const validatedBody = getValidatedBody<${typeName}>(req);
-      const response = await ${toCamelCase(serviceName)}.${serviceMethod}(ctx, validatedBody);
+      const response = await ${toCamelCase(serviceName)}.${serviceMethod}(ctx);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;
       }
-      sendSuccessResponse<${method.responseType}>(res, 201, response);
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<${method.responseType}>(res, 200, response.resData);
     }
     catch (error) {
       UnitLogger(
@@ -406,18 +432,25 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
 
 `;
     } else {
-      // GET method
-      output += `router.get(
+      const schemaName = `${toCamelCase(method.name)}Schema`;
+      const typeName = `${method.name}RequestBody`;
+      output += `router.${method.httpMethod}(
   "/${method.httpPath}",
+  validateBody<${typeName}>(${schemaName}),
   async (req, res, next): Promise<void> => {
     try {
       const ctx = getContext(req);
-      const response = await ${toCamelCase(serviceName)}.${serviceMethod}(ctx, req.query as ${typeName});
+      const validatedBody = getValidatedBody<${typeName}>(req);
+      const response = await ${toCamelCase(serviceName)}.${serviceMethod}(ctx, validatedBody);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;
       }
-      sendSuccessResponse<${method.responseType}>(res, 200, response);
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<${method.responseType}>(res, ${method.httpMethod === "post" ? "201" : "200"}, response.resData);
     }
     catch (error) {
       UnitLogger(

@@ -4,14 +4,11 @@ import {
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
 import { Edit2Icon, EyeIcon, Info, LayoutGrid, List, Plus, Trash2Icon } from "lucide-react";
 import { useState } from "react";
-
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 
-// Lazy import CreateCategoryDialog
-// Dynamic import to avoid circular dependency
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 export type Category = {
@@ -40,24 +37,6 @@ export type CategoryStats = {
 };
 
 const INITIAL_CATEGORIES: Category[] = [
-  {
-    id: "7c5f2bde-1b9c-4a04-9ab1-f46a02c8ffba",
-    name: "Electronics",
-    color: "bg-blue-100 text-blue-800",
-    subCategoriesCount: 2,
-  },
-  {
-    id: "4b0e8e2d-8c55-4c8e-9f2c-0f7e8d1ac7c1",
-    name: "Groceries",
-    color: "bg-green-100 text-green-800",
-    subCategoriesCount: 4,
-  },
-  {
-    id: "1f6f7a5c-26f4-4f6d-8c63-7a3a9c9e5d2b",
-    name: "Clothing",
-    color: "bg-purple-100 text-purple-800",
-    subCategoriesCount: 0,
-  },
 ];
 
 const INITIAL_ITEMS: Item[] = [
@@ -116,6 +95,7 @@ const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
     lowStockCount,
   };
 };
+
 
 const CategoriesView = () => {
   const [categories] = useState<Category[]>(INITIAL_CATEGORIES);

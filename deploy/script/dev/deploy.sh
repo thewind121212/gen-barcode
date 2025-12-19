@@ -22,8 +22,10 @@ fi
 IMG_TAG=$(jq -r '.IMG_TAG' "${JSON_FILE}")
 FE_IP=$(jq -r '.FE_IP' "${JSON_FILE}")
 BE_IP=$(jq -r '.BE_IP' "${JSON_FILE}")
+FE_CONTAINER_NAME=$(jq -r '.FE_CONTAINER_NAME' "${JSON_FILE}")
+BE_CONTAINER_NAME=$(jq -r '.BE_CONTAINER_NAME' "${JSON_FILE}")
 
-if [ -z "${IMG_TAG}" ] || [ -z "${FE_IP}" ] || [ -z "${BE_IP}" ]; then
+if [ -z "${IMG_TAG}" ] || [ -z "${FE_IP}" ] || [ -z "${BE_IP}" || [ -z "${FE_CONTAINER_NAME}" ] || [ -z "${BE_CONTAINER_NAME}" ] ]; then
   echo "deploy.json must contain non-empty IMG_TAG, FE_IP, and BE_IP fields." >&2
   exit 1
 fi
@@ -32,6 +34,9 @@ fi
 export IMG_TAG
 export FE_IP
 export BE_IP
+export FE_CONTAINER_NAME
+export BE_CONTAINER_NAME
+
 if [ ! -f "${ENV_FILE}" ]; then
   echo "Missing .env file in ${SCRIPT_DIR}" >&2
   exit 1

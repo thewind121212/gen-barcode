@@ -3,6 +3,7 @@ module.exports = {
     {
       name: "ciri-be",
       script: "dist/core/index.js",
+      interpreter: "bun",
       // Use 1 instance by default; can be overridden via PM2 env/CLI
       instances: 1,
       exec_mode: "fork",

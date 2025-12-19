@@ -14,4 +14,10 @@ export class StoreMemberRepository {
       where: { storeId },
     });
   }
+
+  async findByStoreAndUser(storeId: string, userId: string) {
+    return prisma.storeMember.findFirst({
+      where: { storeId, userId },
+    });
+  }
 }

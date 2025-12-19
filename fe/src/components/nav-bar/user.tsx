@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { LogOut, Settings } from 'lucide-react';
 import { signOut } from "supertokens-auth-react/recipe/session";
 
+const appVersion = import.meta.env.VITE_APP_VERSION || null
 
 export default function UserMenu() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -72,6 +73,13 @@ export default function UserMenu() {
                         <LogOut size={18} />
                         <span>Log Out</span>
                     </button>
+                    {
+                        appVersion && (
+                            <div className="w-full text-left px-1 py-2.5 pl-4 text-xs text-slate-700 dark:text-slate-100 flex items-center gap-3 transition-colors cursor-default">
+                                {appVersion}
+                            </div>
+                        )
+                    }
                 </div>
             </div>
 
