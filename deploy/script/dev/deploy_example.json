@@ -1,5 +1,7 @@
 {
   "IMG_TAG": "you-image-tag",
   "FE_IP": "your-fe-ip",
-  "BE_IP": "your-be-ip"
+  "BE_IP": "your-be-ip",
+  "FE_CONTAINER_NAME": "your-fe-container-name",
+  "BE_CONTAINER_NAME": "your-be-container-name"
 }
