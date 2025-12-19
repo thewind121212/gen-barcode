@@ -234,7 +234,7 @@ jobs:
           chmod 600 ~/.ssh/serverSSH
           cat >>~/.ssh/config <<END
           Host serverHostDeploy
-            HostName ${{ secrets.WEB_SERVER_STG_HOST }}
+            HostName ${{ secrets.WEB_SERVER_DEV_HOST }}
             User debian
             IdentityFile ~/.ssh/serverSSH
             StrictHostKeyChecking no
