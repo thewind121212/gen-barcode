@@ -4,6 +4,11 @@ import type { CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIDResp
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const buildHeaders = (storeId?: string) => ({
+  "Content-Type": "application/json",
+  ...(storeId ? { "x-store-id": storeId } : {}),
+});
+
 
 export enum ApiVersion {
   API_VERSION_UNSPECIFIED = 0,
@@ -20,12 +25,11 @@ const API_VERSION_PATHS: Record<ApiVersion, string> = {
 
 const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
 
-export const createCategory = async (request: CreateCategoryRequest): Promise<CreateCategoryResponse> => {
+export const createCategory = async (request: CreateCategoryRequest, storeId?: string): Promise<CreateCategoryResponse> => {
+  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/CreateCategory`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: buildHeaders(resolvedStoreId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -41,14 +45,13 @@ export const createCategory = async (request: CreateCategoryRequest): Promise<Cr
   return data;
 };
 
-export const getCategoryById = async (request: GetCategoryByIdRequest): Promise<GetCategoryByIDResponse> => {
-  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
-  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategory?${params}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+export const getCategoryById = async (request: GetCategoryByIdRequest, storeId?: string): Promise<GetCategoryByIDResponse> => {
+  const resolvedStoreId = storeId ?? (request as any)?.storeId;
+  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryById`, {
+    method: "POST",
+    headers: buildHeaders(resolvedStoreId),
     credentials: "include",
+    body: JSON.stringify(request),
   });
 
   const data = await response.json();
@@ -62,12 +65,11 @@ export const getCategoryById = async (request: GetCategoryByIdRequest): Promise<
   return data;
 };
 
-export const removeCategory = async (request: RemoveCategoryRequest): Promise<RemoveCategoryResponse> => {
+export const removeCategory = async (request: RemoveCategoryRequest, storeId?: string): Promise<RemoveCategoryResponse> => {
+  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/RemoveCategory`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: buildHeaders(resolvedStoreId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -83,13 +85,12 @@ export const removeCategory = async (request: RemoveCategoryRequest): Promise<Re
   return data;
 };
 
-export const getCategoryOverview = async (request: GetCategoryOverviewRequest): Promise<GetCategoryOverviewResponse> => {
+export const getCategoryOverview = async (request: GetCategoryOverviewRequest, storeId?: string): Promise<GetCategoryOverviewResponse> => {
   const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
+  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryOverview?${params}`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: buildHeaders(resolvedStoreId),
     credentials: "include",
   });
 

@@ -8,7 +8,6 @@ export interface CreateCategoryRequest {
   description?: string;
   status: string;
   icon: string;
-  storeId: string;
 }
 
 export interface CreateCategoryResponse {

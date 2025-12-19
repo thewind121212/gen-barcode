@@ -8,6 +8,8 @@ import type ErrorResponse from "@Ciri/core/interfaces/error-response";
 
 import { guardStoreid } from "@Ciri/config";
 import { ErrorResponses } from "@Ciri/core/utils/error-response";
+import prisma from "@Ciri/core/prisma";
+
 
 export type RequestContext = {
   userId: string;
@@ -16,13 +18,21 @@ export type RequestContext = {
 };
 
 function extractStoreId(req: Request): string | undefined {
+  // Prefer header (supports legacy alias)
+  const fromHeader = req.header("x-store-id") || req.header("store-xiid");
+  if (typeof fromHeader === "string" && fromHeader.trim()) {
+    return fromHeader.trim();
+  }
+
   const fromBody = typeof req.body?.storeId === "string" ? req.body.storeId : undefined;
-  if (fromBody)
+  if (fromBody) {
     return fromBody;
+  }
 
   const fromQuery = typeof req.query?.storeId === "string" ? req.query.storeId : undefined;
-  if (fromQuery)
+  if (fromQuery) {
     return fromQuery;
+  }
 
   const fromParams = typeof req.params?.storeId === "string" ? req.params.storeId : undefined;
   return fromParams;
@@ -58,6 +68,15 @@ export async function handlerCheckToken(req: Request, res: Response<ErrorRespons
       const storeId = extractStoreId(req);
       if (!storeId) {
         ErrorResponses.badRequest(res, "storeId is missing");
+        return;
+      }
+
+      // Ensure the current user has access to this store
+      const member = await prisma.storeMember.findFirst({
+        where: { storeId, userId: session.getUserId() },
+      });
+      if (!member) {
+        ErrorResponses.forbidden(res, "You do not have access to this store");
         return;
       }
     }

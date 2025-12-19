@@ -41,8 +41,8 @@
         }
       }
     },
-    "/category/GetCategory": {
-      "get": {
+    "/category/GetCategoryById": {
+      "post": {
         "operationId": "GetCategoryById",
         "summary": "GetCategoryById",
         "tags": [
@@ -60,16 +60,16 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "categoryId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetCategoryByIdRequest"
+              }
             }
           }
-        ]
+        }
       }
     },
     "/category/RemoveCategory": {
@@ -160,9 +160,6 @@
           },
           "icon": {
             "type": "string"
-          },
-          "storeId": {
-            "type": "string"
           }
         },
         "required": [
@@ -170,8 +167,7 @@
           "colorSettings",
           "layer",
           "status",
-          "icon",
-          "storeId"
+          "icon"
         ]
       },
       "CreateCategoryResponse": {

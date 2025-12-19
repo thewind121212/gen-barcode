@@ -15,7 +15,6 @@ message CreateCategoryRequest {
     optional string description = 5;
     string status = 6;
     string icon = 7;
-    string storeId = 8;
 }
 
 
@@ -84,7 +83,7 @@ service UserService {
   }
   rpc GetCategoryById(GetCategoryByIdRequest) returns (GetCategoryByIDResponse) {
     option (google.api.http) = {
-      get: "/v1/category/GetCategory"
+      post: "/v1/category/GetCategoryById"
       body: "*"
     };
   }

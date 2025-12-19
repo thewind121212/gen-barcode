@@ -68,6 +68,7 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
     const storeId = useSelector((state: RootState) => state.app.storeId);
 
     const { mutate: createCategory, isPending: isLoadingCreateCategory } = useCreateCategory({
+        storeId: storeId,
         onSuccess: () => {
             toast.success('Category created successfully');
             reset();
@@ -148,7 +149,6 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
             description: data.description,
             colorSettings: data.color,
             icon: data.icon,
-            storeId: storeId,
         });
     };
 

@@ -10,7 +10,6 @@ export const createCategorySchema = z.object({
   colorSettings: z.string().trim().min(1).optional(),
   layer: z.string().trim().min(1, "layer is required"),
   description: z.string().trim().optional(),
-  storeId: z.uuidv4("storeId must be a valid UUID"),
   status: z.enum(["ACTIVE", "INACTIVE", "ARCHIVED"]),
 });
 

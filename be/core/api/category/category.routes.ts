@@ -2,12 +2,13 @@ import type { z } from "zod";
 
 import express from "express";
 
-import type { CreateCategoryResponse, GetCategoryByIDResponse, RemoveCategoryResponse, GetCategoryOverviewResponse } from "@Ciri/types/category";
+import type { CreateCategoryResponse, GetCategoryByIDResponse, GetCategoryOverviewResponse, RemoveCategoryResponse } from "@Ciri/types/category";
 
 import { createCategorySchema } from "@Ciri/core/dto/category/create-category.dto";
+
 import { getCategoryByIdSchema } from "@Ciri/core/dto/category/get-category-by-id.dto";
+
 import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
-import { getCategoryOverviewSchema } from "@Ciri/core/dto/category/get-category-overview.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { CategoryService } from "@Ciri/core/services/category.service";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
@@ -32,7 +33,6 @@ export type RemoveCategoryResponseServices = {
       resData: RemoveCategoryResponse | null;
       error: string | null;
     };
-export type GetCategoryOverviewRequestBody = z.infer<typeof getCategoryOverviewSchema>;
 export type GetCategoryOverviewResponseServices = {
       resData: GetCategoryOverviewResponse | null;
       error: string | null;
@@ -68,12 +68,14 @@ router.post(
   },
 );
 
-router.get(
-  "/GetCategory",
+router.post(
+  "/GetCategoryById",
+  validateBody<GetCategoryByIdRequestBody>(getCategoryByIdSchema),
   async (req, res, next): Promise<void> => {
     try {
       const ctx = getContext(req);
-      const response = await categoryService.GetCategoryById(ctx, req.query as GetCategoryByIdRequestBody);
+      const validatedBody = getValidatedBody<GetCategoryByIdRequestBody>(req);
+      const response = await categoryService.GetCategoryById(ctx, validatedBody);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;
@@ -82,7 +84,7 @@ router.get(
         ErrorResponses.badRequest(res, "No response data");
         return;
       }
-      sendSuccessResponse<GetCategoryByIDResponse>(res, 200, response.resData);
+      sendSuccessResponse<GetCategoryByIDResponse>(res, 201, response.resData);
     }
     catch (error) {
       UnitLogger(
@@ -131,7 +133,7 @@ router.get(
   async (req, res, next): Promise<void> => {
     try {
       const ctx = getContext(req);
-      const response = await categoryService.GetCategoryOverview(ctx, req.query as GetCategoryOverviewRequestBody);
+      const response = await categoryService.GetCategoryOverview(ctx);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;

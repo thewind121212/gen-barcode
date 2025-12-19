@@ -2,11 +2,14 @@ import { validate as validateUuid, NIL as NIL_UUID } from "uuid";
 import type {
   CreateCategoryRequestBody,
   CreateCategoryResponseServices,
-  GetCategoryRequestBody,
-  GetCategoryResponseServices,
-  RemoveCategoryRequestBody,
   RemoveCategoryResponseServices,
+  GetCategoryByIdResponseServices,
+  GetCategoryOverviewResponseServices,
+  GetCategoryByIdRequestBody,
 } from "@Ciri/core/api/category/category.routes";
+import type {
+  RemoveCategoryRequest,
+} from "@Ciri/types/category";
 import type { RequestContext } from "@Ciri/core/middlewares";
 import type { Prisma } from "@Ciri/generated/prisma/client.js";
 
@@ -84,7 +87,7 @@ export class CategoryService {
     }
   }
 
-  async GetCategory(ctx: RequestContext, req: GetCategoryRequestBody): Promise<GetCategoryResponseServices> {
+  async GetCategoryById(ctx: RequestContext, req: GetCategoryByIdRequestBody): Promise<GetCategoryByIdResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);
 
@@ -105,9 +108,6 @@ export class CategoryService {
         layer: category.layer,
         icon: category.icon ?? undefined,
         subCategoriesCount,
-        lowStockCount: 0,
-        itemCount: 0,
-        totalValue: 0,
         storeId: storeId,
         },
         error: null,
@@ -121,7 +121,7 @@ export class CategoryService {
     }
   }
 
-  async RemoveCategory(ctx: RequestContext, req: RemoveCategoryRequestBody): Promise<RemoveCategoryResponseServices> {
+  async RemoveCategory(ctx: RequestContext, req: RemoveCategoryRequest): Promise<RemoveCategoryResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);
 
@@ -131,6 +131,38 @@ export class CategoryService {
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Category Remove", LogLevel.ERROR, (error as Error).message);
+      return { resData: null, error: (error as Error).message };
+    }
+  }
+
+  async GetCategoryOverview(
+    ctx: RequestContext,
+  ): Promise<GetCategoryOverviewResponseServices> {
+    try {
+      const storeId = this.ensureStoreId(ctx);
+      const categories = await this.categoryRepo.findAllByStore(storeId);
+
+      const categoryOverviews = categories.map((category) => ({
+        categoryId: category.id,
+        name: category.name,
+        parentId: category.parentId ?? undefined,
+        description: category.description ?? undefined,
+        colorSettings: category.colorSettings ?? undefined,
+        layer: category.layer,
+        icon: category.icon ?? undefined,
+        subCategoriesCount: category._count?.children ?? 0,
+        status: category.status,
+        storeId,
+        // Item stats are not yet tracked; default to zero.
+        itemCount: 0,
+        totalValue: 0,
+        lowStockCount: 0,
+      }));
+
+      return { resData: { categoryOverviews }, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "Category GetOverview", LogLevel.ERROR, (error as Error).message);
       return { resData: null, error: (error as Error).message };
     }
   }
