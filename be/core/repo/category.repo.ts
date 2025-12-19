@@ -24,4 +24,15 @@ export class CategoryRepository {
       where: { id: { in: ids }, storeId },
     });
   }
+
+  async findAllByStore(storeId: string) {
+    return prisma.category.findMany({
+      where: { storeId },
+      include: {
+        _count: {
+          select: { children: true },
+        },
+      },
+    });
+  }
 }

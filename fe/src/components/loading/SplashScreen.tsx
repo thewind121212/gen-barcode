@@ -1,5 +1,7 @@
 import { ShoppingBag } from "lucide-react"
 
+const appVersion = import.meta.env.VITE_APP_VERSION || null
+
 const SplashScreen = ({ children }: { children?: React.ReactNode }) => {
     return (
         <div className="h-screen w-full bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center overflow-hidden font-sans fixed top-0 left-0 z-9999" >
@@ -17,6 +19,14 @@ const SplashScreen = ({ children }: { children?: React.ReactNode }) => {
                         <div className="absolute top-0 left-0 w-full h-full rounded-3xl bg-linear-to-br from-white/20 to-transparent pointer-events-none"></div>
                     </div>
                 </div>
+                {/* app version */}
+                {
+                    appVersion && (
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                            {appVersion}
+                        </p>
+                    )
+                }
                 {children}
             </div>
         </div>

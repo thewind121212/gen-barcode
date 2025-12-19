@@ -33,7 +33,9 @@ export class StoreService {
 
       const storeEnrolled = await this.getStoreEnrolledByUserId(userId);
       if (storeEnrolled >= env.MAX_STORE_BY_USER) {
-        return { storeId: undefined, error: "User has reached the maximum number of stores" };
+        return { resData: {
+          storeId: undefined,
+        }, error: "User has reached the maximum number of stores" };
       }
 
       const { name } = req;
@@ -53,11 +55,11 @@ export class StoreService {
         capacity: 100,
       });
 
-      return { storeId: store.id, error: null };
+      return { resData: { storeId: store.id }, error: null };
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "<Store Create>", LogLevel.ERROR, (error as Error).message);
-      return { storeId: undefined, error: (error as Error).message };
+      return { resData: null, error: (error as Error).message };
     }
   }
 
@@ -72,11 +74,11 @@ export class StoreService {
 
       const storeInfos = storeEntities.map(store => ({ id: store.id, name: store.name }));
 
-      return { email: getEmailFromContext(ctx), name: "", storeInfos, error: null };
+      return { resData: { email: getEmailFromContext(ctx), name: "", storeInfos }, error: null };
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "<Store GetUserInfo>", LogLevel.ERROR, (error as Error).message);
-      return { email: undefined, name: undefined, storeInfos: [], error: (error as Error).message };
+      return { resData: null, error: (error as Error).message };
     }
   }
 }

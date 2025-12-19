@@ -52,7 +52,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: env.WEBSITE_DOMAIN,
-    allowedHeaders: ["content-type", ...supertokens.getAllCORSHeaders()],
+    allowedHeaders: ["content-type", ...supertokens.getAllCORSHeaders(), "x-store-id"],
     credentials: true,
   }),
 );

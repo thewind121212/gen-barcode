@@ -51,12 +51,21 @@ model Storage {
   store    Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
+
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
 model Category {
   id             String    @id @default(uuid())
   name           String
+  status         CategoryStatus
   description    String?
   colorSettings  String?
   layer          String
+  icon           String?
   imageUrl       String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
