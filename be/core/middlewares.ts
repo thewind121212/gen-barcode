@@ -1,14 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
 import type { User } from "supertokens-node";
-
 import supertokens from "supertokens-node";
 import Session from "supertokens-node/recipe/session";
-
 import type ErrorResponse from "@Ciri/core/interfaces/error-response";
-
 import { guardStoreid } from "@Ciri/config";
 import { ErrorResponses } from "@Ciri/core/utils/error-response";
-import prisma from "@Ciri/core/prisma";
+import { getPrisma } from "@Ciri/core/prisma";
 
 
 export type RequestContext = {
@@ -72,6 +69,7 @@ export async function handlerCheckToken(req: Request, res: Response<ErrorRespons
       }
 
       // Ensure the current user has access to this store
+      const prisma = getPrisma();
       const member = await prisma.storeMember.findFirst({
         where: { storeId, userId: session.getUserId() },
       });

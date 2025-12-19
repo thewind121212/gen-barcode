@@ -12,17 +12,17 @@ type ApiSuccessResponse<T> = {
   timestamp: string;
 };
 
-export const useCreateStore = ({ onSuccess, onError }: { onSuccess?: (data: ApiSuccessResponse<CreateStoreResponse>) => void, onError?: (error: Error) => void }) => {
+export const useCreateStore = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<CreateStoreResponse>) => void, onError?: (error: Error) => void }) => {
     return useMutation<CreateStoreResponse, Error, CreateStoreRequest>({
-        mutationFn: (request: CreateStoreRequest) => createStore(request),
+        mutationFn: (request: CreateStoreRequest) => createStore(request, storeId),
         onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<CreateStoreResponse>),
         onError: (error) => onError?.(error),
     });
 };
 
-export const useGetUserInfo = ({ onSuccess, onError }: { onSuccess?: (data: ApiSuccessResponse<GetUserInfoResponse>) => void, onError?: (error: Error) => void }) => {
+export const useGetUserInfo = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<GetUserInfoResponse>) => void, onError?: (error: Error) => void }) => {
     return useMutation<GetUserInfoResponse, Error, GetUserInfoRequest>({
-        mutationFn: (request: GetUserInfoRequest) => getUserInfo(request),
+        mutationFn: (request: GetUserInfoRequest) => getUserInfo(request, storeId),
         onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<GetUserInfoResponse>),
         onError: (error) => onError?.(error),
     });

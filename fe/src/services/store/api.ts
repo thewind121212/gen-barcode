@@ -4,6 +4,11 @@ import type { CreateStoreRequest, CreateStoreResponse, GetUserInfoRequest, GetUs
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const buildHeaders = (storeId?: string) => ({
+  "Content-Type": "application/json",
+  ...(storeId ? { "x-store-id": storeId } : {}),
+});
+
 
 export enum ApiVersion {
   API_VERSION_UNSPECIFIED = 0,
@@ -20,12 +25,11 @@ const API_VERSION_PATHS: Record<ApiVersion, string> = {
 
 const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
 
-export const createStore = async (request: CreateStoreRequest): Promise<CreateStoreResponse> => {
+export const createStore = async (request: CreateStoreRequest, storeId?: string): Promise<CreateStoreResponse> => {
+  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/store/CreateStore`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: buildHeaders(resolvedStoreId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -41,12 +45,11 @@ export const createStore = async (request: CreateStoreRequest): Promise<CreateSt
   return data;
 };
 
-export const getUserInfo = async (request: GetUserInfoRequest): Promise<GetUserInfoResponse> => {
+export const getUserInfo = async (request: GetUserInfoRequest, storeId?: string): Promise<GetUserInfoResponse> => {
+  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/store/GetUserInfo`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: buildHeaders(resolvedStoreId),
     credentials: "include",
     body: JSON.stringify(request),
   });
