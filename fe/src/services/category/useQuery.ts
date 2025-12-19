@@ -38,10 +38,10 @@ export const useRemoveCategory = ({ storeId, onSuccess, onError }: { storeId?: s
     });
 };
 
-export const useGetCategoryOverview = (request: GetCategoryOverviewRequest, options?: UseQueryOptions<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, GetCategoryOverviewRequest>) => {
+export const useGetCategoryOverview = (request: GetCategoryOverviewRequest, storeId?: string, options?: UseQueryOptions<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, GetCategoryOverviewRequest>) => {
     return useQuery<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, GetCategoryOverviewRequest>({
         queryKey: ["category", "GetCategoryOverview", request],
-        queryFn: () => getCategoryOverview(request, (request as any)?.storeId) as unknown as ApiSuccessResponse<GetCategoryOverviewResponse>,
+        queryFn: () => getCategoryOverview(request, storeId) as unknown as ApiSuccessResponse<GetCategoryOverviewResponse>,
         ...options,
     });
 };

@@ -1,17 +1,18 @@
-import { validate as validateUuid, NIL as NIL_UUID } from "uuid";
+import { NIL as NIL_UUID, validate as validateUuid } from "uuid";
+
 import type {
   CreateCategoryRequestBody,
   CreateCategoryResponseServices,
-  RemoveCategoryResponseServices,
+  GetCategoryByIdRequestBody,
   GetCategoryByIdResponseServices,
   GetCategoryOverviewResponseServices,
-  GetCategoryByIdRequestBody,
+  RemoveCategoryResponseServices,
 } from "@Ciri/core/api/category/category.routes";
+import type { RequestContext } from "@Ciri/core/middlewares";
+import type { Prisma } from "@Ciri/generated/prisma/client.js";
 import type {
   RemoveCategoryRequest,
 } from "@Ciri/types/category";
-import type { RequestContext } from "@Ciri/core/middlewares";
-import type { Prisma } from "@Ciri/generated/prisma/client.js";
 
 import { CategoryRepository } from "@Ciri/core/repo/category.repo";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
@@ -42,7 +43,7 @@ export class CategoryService {
       return null;
     }
     if (!parentId) {
-      return null
+      return null;
     }
     return parentId;
   }
@@ -101,23 +102,24 @@ export class CategoryService {
       return {
         resData: {
           categoryId: category.id,
-        name: category.name,
-        parentId: category.parentId ?? NIL_UUID,
-        description: category.description ?? undefined,
-        colorSettings: category.colorSettings ?? undefined,
-        layer: category.layer,
-        icon: category.icon ?? undefined,
-        subCategoriesCount,
-        storeId: storeId,
+          name: category.name,
+          parentId: category.parentId ?? NIL_UUID,
+          description: category.description ?? undefined,
+          colorSettings: category.colorSettings ?? undefined,
+          layer: category.layer,
+          icon: category.icon ?? undefined,
+          subCategoriesCount,
+          storeId,
         },
         error: null,
       };
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Category Get", LogLevel.ERROR, (error as Error).message);
-      return { 
+      return {
         resData: null,
-        error: (error as Error).message };
+        error: (error as Error).message,
+      };
     }
   }
 
@@ -142,7 +144,7 @@ export class CategoryService {
       const storeId = this.ensureStoreId(ctx);
       const categories = await this.categoryRepo.findAllByStore(storeId);
 
-      const categoryOverviews = categories.map((category) => ({
+      const categoryOverviews = categories.map(category => ({
         categoryId: category.id,
         name: category.name,
         parentId: category.parentId ?? undefined,

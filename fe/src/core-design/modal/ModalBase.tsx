@@ -1,4 +1,4 @@
-import { Loader2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { useSelector } from 'react-redux';
 import { selectModalStack } from '@Jade/store/modal.store';

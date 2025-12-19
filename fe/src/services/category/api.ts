@@ -26,10 +26,9 @@ const API_VERSION_PATHS: Record<ApiVersion, string> = {
 const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
 
 export const createCategory = async (request: CreateCategoryRequest, storeId?: string): Promise<CreateCategoryResponse> => {
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/CreateCategory`, {
     method: "POST",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -46,10 +45,9 @@ export const createCategory = async (request: CreateCategoryRequest, storeId?: s
 };
 
 export const getCategoryById = async (request: GetCategoryByIdRequest, storeId?: string): Promise<GetCategoryByIDResponse> => {
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryById`, {
     method: "POST",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -66,10 +64,9 @@ export const getCategoryById = async (request: GetCategoryByIdRequest, storeId?:
 };
 
 export const removeCategory = async (request: RemoveCategoryRequest, storeId?: string): Promise<RemoveCategoryResponse> => {
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/RemoveCategory`, {
     method: "POST",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -87,10 +84,9 @@ export const removeCategory = async (request: RemoveCategoryRequest, storeId?: s
 
 export const getCategoryOverview = async (request: GetCategoryOverviewRequest, storeId?: string): Promise<GetCategoryOverviewResponse> => {
   const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryOverview?${params}`, {
     method: "GET",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
   });
 

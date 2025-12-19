@@ -211,10 +211,9 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
 
       output += `export const ${funcName} = async (request: ${method.requestType}, storeId?: string): Promise<${method.responseType}> => {
   const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(${urlTemplate}, {
     method: "GET",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
   });
 
@@ -237,10 +236,9 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
       const httpVerb = method.httpMethod.toUpperCase();
 
       output += `export const ${funcName} = async (request: ${method.requestType}, storeId?: string): Promise<${method.responseType}> => {
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(${urlTemplate}, {
     method: "${httpVerb}",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -305,10 +303,10 @@ type ApiSuccessResponse<T> = {
     const hookName = `use${method.name}`;
 
     if (method.httpMethod === "get") {
-      output += `export const ${hookName} = (request: ${method.requestType}, options?: UseQueryOptions<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>) => {
+      output += `export const ${hookName} = (request: ${method.requestType}, storeId?: string, options?: UseQueryOptions<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>) => {
     return useQuery<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>({
         queryKey: ["${packageName}", "${method.name}", request],
-        queryFn: () => ${funcName}(request, (request as any)?.storeId) as unknown as ApiSuccessResponse<${method.responseType}>,
+        queryFn: () => ${funcName}(request, storeId) as unknown as ApiSuccessResponse<${method.responseType}>,
         ...options,
     });
 };

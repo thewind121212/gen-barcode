@@ -26,10 +26,9 @@ const API_VERSION_PATHS: Record<ApiVersion, string> = {
 const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
 
 export const createStore = async (request: CreateStoreRequest, storeId?: string): Promise<CreateStoreResponse> => {
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/store/CreateStore`, {
     method: "POST",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
     body: JSON.stringify(request),
   });
@@ -46,10 +45,9 @@ export const createStore = async (request: CreateStoreRequest, storeId?: string)
 };
 
 export const getUserInfo = async (request: GetUserInfoRequest, storeId?: string): Promise<GetUserInfoResponse> => {
-  const resolvedStoreId = storeId ?? (request as any)?.storeId;
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/store/GetUserInfo`, {
     method: "POST",
-    headers: buildHeaders(resolvedStoreId),
+    headers: buildHeaders(storeId),
     credentials: "include",
     body: JSON.stringify(request),
   });

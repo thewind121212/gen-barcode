@@ -5,9 +5,7 @@ import express from "express";
 import type { CreateCategoryResponse, GetCategoryByIDResponse, GetCategoryOverviewResponse, RemoveCategoryResponse } from "@Ciri/types/category";
 
 import { createCategorySchema } from "@Ciri/core/dto/category/create-category.dto";
-
 import { getCategoryByIdSchema } from "@Ciri/core/dto/category/get-category-by-id.dto";
-
 import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { CategoryService } from "@Ciri/core/services/category.service";
@@ -20,23 +18,23 @@ const categoryService = new CategoryService();
 
 export type CreateCategoryRequestBody = z.infer<typeof createCategorySchema>;
 export type CreateCategoryResponseServices = {
-      resData: CreateCategoryResponse | null;
-      error: string | null;
-    };
+  resData: CreateCategoryResponse | null;
+  error: string | null;
+};
 export type GetCategoryByIdRequestBody = z.infer<typeof getCategoryByIdSchema>;
 export type GetCategoryByIdResponseServices = {
-      resData: GetCategoryByIDResponse | null;
-      error: string | null;
-    };
+  resData: GetCategoryByIDResponse | null;
+  error: string | null;
+};
 export type RemoveCategoryRequestBody = z.infer<typeof removeCategorySchema>;
 export type RemoveCategoryResponseServices = {
-      resData: RemoveCategoryResponse | null;
-      error: string | null;
-    };
+  resData: RemoveCategoryResponse | null;
+  error: string | null;
+};
 export type GetCategoryOverviewResponseServices = {
-      resData: GetCategoryOverviewResponse | null;
-      error: string | null;
-    };
+  resData: GetCategoryOverviewResponse | null;
+  error: string | null;
+};
 
 router.post(
   "/CreateCategory",

@@ -33,7 +33,7 @@ export class StoreService {
 
       const storeEnrolled = await this.getStoreEnrolledByUserId(userId);
       if (storeEnrolled >= env.MAX_STORE_BY_USER) {
-        return { resData : {
+        return { resData: {
           storeId: undefined,
         }, error: "User has reached the maximum number of stores" };
       }
