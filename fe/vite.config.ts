@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
-    // Allow BASE_URL to be set via build arg VITE_BASE_URL (defaults to '/')
+    // Base path for assets: prefer VITE_BASE_URL, then VITE_WEBSITE_BASE_URL, fallback '/'
     base: env.VITE_BASE_URL || '/',
     plugins: [react(), tailwindcss()],
     resolve: {

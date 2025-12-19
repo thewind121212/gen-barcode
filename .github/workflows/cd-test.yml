@@ -100,6 +100,7 @@ jobs:
   semantic-release:
     name: Semantic release
     needs: [lint-check-fe, lint-check-be]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.newTag }}
@@ -110,6 +111,20 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: "0"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sync package version with latest test tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git tag --list "test-*" --sort=-v:refname | head -n1)
+          if [ -n "$LATEST_TAG" ]; then
+            VERSION="${LATEST_TAG#test-}"
+            npm version --no-git-tag-version "$VERSION"
+          fi
 
       - name: Compute version
         id: version
@@ -164,7 +179,7 @@ jobs:
 
   build-be-image-push:
     name: Build and push BE image
-    needs: [lint-check-be, semantic-release]
+    needs: lint-check-be
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     permissions:
@@ -202,13 +217,16 @@ jobs:
 
   deploy:
     name: Deploy release-test branch
-    runs-on: ubuntu-20.04
-    if: false
-    needs:  semantic-release
-    # if: github.ref == 'refs/heads/release-test'
+    runs-on: ubuntu-latest
+    needs:  [build-fe-image-push, build-be-image-push, semantic-release]
+    if: github.ref == 'refs/heads/release-test'
     env:
       SOURCE_PATH: ${{ secrets.WEB_SERVER_TEST_WORKDIR }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
@@ -216,20 +234,26 @@ jobs:
           chmod 600 ~/.ssh/serverSSH
           cat >>~/.ssh/config <<END
           Host serverHostDeploy
-            HostName ${{ secrets.WEB_SERVER_STG_HOST }}
+            HostName ${{ secrets.WEB_SERVER_TEST_HOST }}
             User root
             IdentityFile ~/.ssh/serverSSH
             StrictHostKeyChecking no
           END
         env:
-          SSH_KEY: ${{ secrets.WEB_SERVER_STG_KEY }}
-          SSH_HOST: ${{ secrets.WEB_SERVER_STG_HOST }}
+          SSH_KEY: ${{ secrets.WEB_SERVER_TEST_KEY }}
+          SSH_HOST: ${{ secrets.WEB_SERVER_TEST_HOST }}
+      - name: Ensure remote workdir exists
+        run: |
+          ssh serverHostDeploy "mkdir -p ${{ secrets.WEB_SERVER_TEST_WORKDIR }}"
+      - name: Copy deploy files to server
+        run: |
+          scp deploy/script/dev/docker-compose.yml deploy/script/dev/deploy.sh serverHostDeploy:${{ secrets.WEB_SERVER_TEST_WORKDIR }}/
       - name: SSH to server and run deploy.sh script
-        run:  |
-         ssh serverHostDeploy -t << 'EOF'
+        run: |
+          ssh serverHostDeploy -t << 'EOF'
             cd ${{ secrets.WEB_SERVER_TEST_WORKDIR }}
-            sh deploy_test.sh
-         EOF
+            sh deploy.sh
+          EOF
       - name: Persist version (tag)
         run: |
           TAG="${{ needs.semantic-release.outputs.version }}"
