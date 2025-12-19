@@ -12,6 +12,12 @@ COPY ./be/package.json ./be/package-lock.json* ./
 COPY ./be/tsconfig*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+# Bun is required because backend scripts use bunx during build
+RUN apk add --no-cache curl bash && \
+  curl -fsSL https://bun.sh/install | bash && \
+  ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
+  ln -s /root/.bun/bin/bun /usr/local/bin/bunx
+
 # Copy backend source
 COPY ./be .
 
