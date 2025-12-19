@@ -220,12 +220,15 @@ jobs:
   deploy:
     name: Deploy release-dev branch
     runs-on: ubuntu-latest
-    if: false
     needs:  [build-fe-image-push, build-be-image-push, semantic-release]
     # if: github.ref == 'refs/heads/release-dev'
     env:
       SOURCE_PATH: ${{ secrets.WEB_SERVER_DEV_WORKDIR }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
@@ -234,19 +237,22 @@ jobs:
           cat >>~/.ssh/config <<END
           Host serverHostDeploy
             HostName ${{ secrets.WEB_SERVER_STG_HOST }}
-            User root
+            User debian
             IdentityFile ~/.ssh/serverSSH
             StrictHostKeyChecking no
           END
         env:
           SSH_KEY: ${{ secrets.WEB_SERVER_STG_KEY }}
           SSH_HOST: ${{ secrets.WEB_SERVER_STG_HOST }}
+      - name: Copy deploy files to server
+        run: |
+          scp deploy/script/dev/docker-compose.yml deploy/script/dev/deploy.sh serverHostDeploy:${{ secrets.WEB_SERVER_DEV_WORKDIR }}/
       - name: SSH to server and run deploy.sh script
-        run:  |
-         ssh serverHostDeploy -t << 'EOF'
+        run: |
+          ssh serverHostDeploy -t << 'EOF'
             cd ${{ secrets.WEB_SERVER_DEV_WORKDIR }}
-            sh deploy_dev.sh
-         EOF
+            sh deploy.sh
+          EOF
       - name: Persist version (tag)
         run: |
           TAG="${{ needs.semantic-release.outputs.version }}"

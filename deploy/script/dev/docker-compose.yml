@@ -2,22 +2,22 @@ version: "3.9"
 
 services:
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-thewind121212}/jade-fe:dev
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-thewind121212}/jade-fe:${IMG_TAG}
     container_name: jade-fe-dev
     restart: unless-stopped
     networks:
       app_network:
-        ipv4_address: 116.16.1.200
+        ipv4_address: ${FE_IP}
 
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-thewind121212}/ciri-be:dev
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-thewind121212}/ciri-be:${IMG_TAG}
     container_name: ciri-be-dev
     restart: unless-stopped
     env_file:
       - .env
     networks:
       app_network:
-        ipv4_address: 116.16.1.201
+        ipv4_address: ${BE_IP}
 
 
 networks:
