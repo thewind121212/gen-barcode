@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - release-dev
-  pull_request:
-    branches:
-      - test-ci
 
 jobs:
   lint-commits:
@@ -104,6 +101,7 @@ jobs:
   semantic-release:
     name: Semantic release
     needs: [lint-check-fe, lint-check-be]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.newTag }}
@@ -145,7 +143,7 @@ jobs:
     name: Build and push FE image
     needs: [lint-check-fe, semantic-release]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'push'
     permissions:
       contents: write
       packages: write
@@ -184,7 +182,7 @@ jobs:
     name: Build and push BE image
     needs: lint-check-be
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'push'
     permissions:
       contents: write
       packages: write
@@ -221,7 +219,7 @@ jobs:
     name: Deploy release-dev branch
     runs-on: ubuntu-latest
     needs:  [build-fe-image-push, build-be-image-push, semantic-release]
-    # if: github.ref == 'refs/heads/release-dev'
+    if: github.ref == 'refs/heads/release-dev'
     env:
       SOURCE_PATH: ${{ secrets.WEB_SERVER_DEV_WORKDIR }}
     steps:
@@ -232,7 +230,7 @@ jobs:
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
-          echo "${{ secrets.WEB_SERVER_STG_KEY }}" > ~/.ssh/serverSSH
+          echo "${{ secrets.WEB_SERVER_DEV_KEY }}" > ~/.ssh/serverSSH
           chmod 600 ~/.ssh/serverSSH
           cat >>~/.ssh/config <<END
           Host serverHostDeploy
@@ -242,8 +240,11 @@ jobs:
             StrictHostKeyChecking no
           END
         env:
-          SSH_KEY: ${{ secrets.WEB_SERVER_STG_KEY }}
-          SSH_HOST: ${{ secrets.WEB_SERVER_STG_HOST }}
+          SSH_KEY: ${{ secrets.WEB_SERVER_DEV_KEY }}
+          SSH_HOST: ${{ secrets.WEB_SERVER_DEV_HOST }}
+      - name: Ensure remote workdir exists
+        run: |
+          ssh serverHostDeploy "mkdir -p ${{ secrets.WEB_SERVER_DEV_WORKDIR }}"
       - name: Copy deploy files to server
         run: |
           scp deploy/script/dev/docker-compose.yml deploy/script/dev/deploy.sh serverHostDeploy:${{ secrets.WEB_SERVER_DEV_WORKDIR }}/
