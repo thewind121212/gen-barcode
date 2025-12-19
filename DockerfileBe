@@ -13,10 +13,11 @@ COPY ./be/tsconfig*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Bun is required because backend scripts use bunx during build
+ENV BUN_INSTALL=/usr/local/bun
 RUN apk add --no-cache curl bash && \
   curl -fsSL https://bun.sh/install | bash && \
-  ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
-  ln -s /root/.bun/bin/bun /usr/local/bin/bunx
+  ln -sf /usr/local/bun/bin/bun /usr/local/bin/bun && \
+  ln -sf /usr/local/bun/bin/bunx /usr/local/bin/bunx
 
 # Copy backend source
 COPY ./be .
@@ -44,9 +45,11 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Install Bun (for fast runtime) and PM2 to manage the process
+ENV BUN_INSTALL=/usr/local/bun
 RUN apk add --no-cache curl bash && \
   curl -fsSL https://bun.sh/install | bash && \
-  ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
+  ln -sf /usr/local/bun/bin/bun /usr/local/bin/bun && \
+  ln -sf /usr/local/bun/bin/bunx /usr/local/bin/bunx && \
   npm install -g pm2@5
 
 # Copy built app and runtime dependencies from builder
