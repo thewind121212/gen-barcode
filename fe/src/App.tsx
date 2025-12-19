@@ -29,8 +29,8 @@ const queryClient = new QueryClient({
 SuperTokens.init({
   appInfo: {
     appName: "barcode-generator",
-    apiDomain: process.env.VITE_API_BASE_URL || "http://localhost:9190",
-    websiteDomain: process.env.VITE_BASE_URL || "http://localhost:4140",
+    apiDomain: import.meta.env.VITE_API_BASE_URL || "http://localhost:9190",
+    websiteDomain: import.meta.env.VITE_BASE_URL || "http://localhost:4142",
     apiBasePath: "/auth",
     websiteBasePath: "/auth",
   },
