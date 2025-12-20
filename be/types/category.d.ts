@@ -14,20 +14,16 @@ export interface CreateCategoryResponse {
   categoryId?: string;
 }
 
-export interface GetCategoryByIDResponse {
-  categoryId?: string;
-  name?: string;
-  parentId?: string;
-  description?: string;
-  colorSettings?: string;
-  layer?: string;
-  icon?: string;
-  subCategoriesCount?: number;
-  status?: string;
-  storeId: string;
+export interface UpdateCategoryRequest {
+  categoryId: string;
+  categoryUpdate: CreateCategoryRequest;
 }
 
-export interface CategoryOverview {
+export interface UpdateCategoryResponse {
+  categoryId?: string;
+}
+
+export interface CategoryResponse {
   categoryId?: string;
   name?: string;
   parentId?: string;
@@ -44,7 +40,7 @@ export interface CategoryOverview {
 }
 
 export interface GetCategoryOverviewResponse {
-  categoryOverviews: CategoryOverview[];
+  categoryOverviews: CategoryResponse[];
 }
 
 export interface GetCategoryOverviewRequest {

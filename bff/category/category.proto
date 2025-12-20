@@ -19,24 +19,19 @@ message CreateCategoryRequest {
 
 
 message CreateCategoryResponse {
-    optional string category_id = 1;
+    optional string categoryId = 1;
 }
 
-
-message GetCategoryByIDResponse {
-  optional string categoryId = 1;
-  optional string name = 2;
-  optional string parentId = 3;
-  optional string description = 4;
-  optional string colorSettings = 5;
-  optional string layer = 6;
-  optional string icon = 7;
-  optional int32 subCategoriesCount = 8;
-  optional string status = 9;
-  string storeId = 10;
+message UpdateCategoryRequest {
+  string categoryId = 1;
+  CreateCategoryRequest categoryUpdate = 2;
 }
 
-message CategoryOverview {
+message UpdateCategoryResponse {
+    optional string categoryId = 1;
+}
+
+message CategoryResponse {
   optional string categoryId = 1;
   optional string name = 2;
   optional string parentId = 3;
@@ -50,17 +45,16 @@ message CategoryOverview {
   int32 itemCount = 11;
   int64 totalValue = 13;
   int32 lowStockCount = 14;
-
 }
 
+
 message GetCategoryOverviewResponse {
-  repeated CategoryOverview categoryOverviews = 1;
+  repeated CategoryResponse categoryOverviews = 1;
 }
 
 message GetCategoryOverviewRequest {
   string storeId = 1;
 }
-
 
 message GetCategoryByIdRequest {
    string categoryId = 1;
@@ -81,7 +75,7 @@ service UserService {
       body: "*"
     };
   }
-  rpc GetCategoryById(GetCategoryByIdRequest) returns (GetCategoryByIDResponse) {
+  rpc GetCategoryById(GetCategoryByIdRequest) returns (CategoryResponse) {
     option (google.api.http) = {
       post: "/v1/category/GetCategoryById"
       body: "*"
@@ -89,7 +83,13 @@ service UserService {
   }
   rpc RemoveCategory(RemoveCategoryRequest) returns (RemoveCategoryResponse) {
     option (google.api.http) = {
-      post: "/v1/category/RemoveCategory"
+      delete: "/v1/category/RemoveCategory"
+      body: "*"
+    };
+  }
+  rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse) {
+    option (google.api.http) = {
+      put: "/v1/category/UpdateCategory"
       body: "*"
     };
   }

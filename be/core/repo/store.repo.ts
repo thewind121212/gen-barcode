@@ -11,20 +11,20 @@ export class StoreRepository {
 
   async update(id: string, data: Prisma.StoreUpdateInput) {
     return prisma.store.update({
-      where: { id },
+      where: { id, isDelete: false },
       data,
     });
   }
 
   async delete(id: string) {
     return prisma.store.delete({
-      where: { id },
+      where: { id, isDelete: false },
     });
   }
 
   async findById(id: string) {
     return prisma.store.findUnique({
-      where: { id },
+      where: { id, isDelete: false },
     });
   }
 
@@ -36,7 +36,7 @@ export class StoreRepository {
 
   async findByUserId(userId: string) {
     return prisma.store.findMany({
-      where: { members: { some: { userId } } },
+      where: { members: { some: { userId } }, isDelete: false },
     });
   }
 }

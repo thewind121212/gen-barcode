@@ -22,6 +22,7 @@ model Store {
   id        String        @id @default(uuid())
   name      String
   createdAt DateTime      @default(now())
+  isDelete       Boolean   @default(false)
   
   // Relations
   members   StoreMember[]
@@ -45,6 +46,7 @@ model StoreMember {
 model Storage {
   id       String  @id @default(uuid())
   location String?
+  isDelete       Boolean   @default(false)
   capacity Int?
   
   storeId  String  @unique
@@ -67,6 +69,7 @@ model Category {
   layer          String
   icon           String?
   imageUrl       String?
+  isDelete       Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

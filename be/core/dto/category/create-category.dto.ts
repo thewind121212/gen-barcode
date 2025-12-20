@@ -11,6 +11,7 @@ export const createCategorySchema = z.object({
   layer: z.string().trim().min(1, "layer is required"),
   description: z.string().trim().optional(),
   status: z.enum(["ACTIVE", "INACTIVE", "ARCHIVED"]),
+  icon: z.string().trim().optional(),
 });
 
 // Inferred TypeScript DTO type for codegen / services
