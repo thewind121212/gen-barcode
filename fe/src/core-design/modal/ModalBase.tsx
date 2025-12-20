@@ -25,10 +25,13 @@ type ModalProps = {
   confirmButtonText?: string;
   cancelButtonText?: string;
   isLoading?: boolean;
+  isLoadingComponent?: boolean;
+  loadingComponent?: ReactNode;
   onConfirm?: () => void;
 };
 
 const PREFIX_LAYER = "6";
+
 
 const Modal = ({
   modalId,
@@ -48,6 +51,8 @@ const Modal = ({
   confirmButtonText = 'Confirm',
   cancelButtonText = 'Cancel',
   isLoading = false,
+  isLoadingComponent = false,
+  loadingComponent = null,
   onConfirm = () => { },
 }: ModalProps) => {
 
@@ -119,7 +124,10 @@ const Modal = ({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">{children}</div>
+        <div className="flex-1 overflow-y-auto">
+          {isLoadingComponent && loadingComponent}
+          {!isLoadingComponent && children}
+        </div>
         <div className="px-8 py-6 border-t flex items-center justify-end gap-3 border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
           {
             showCancelButton && !isLoading && (

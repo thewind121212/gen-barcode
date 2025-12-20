@@ -7,6 +7,8 @@ import type {
   GetCategoryByIdResponseServices,
   GetCategoryOverviewResponseServices,
   RemoveCategoryResponseServices,
+  UpdateCategoryRequestBody,
+  UpdateCategoryResponseServices,
 } from "@Ciri/core/api/category/category.routes";
 import type { RequestContext } from "@Ciri/core/middlewares";
 import type { Prisma } from "@Ciri/generated/prisma/client.js";
@@ -71,6 +73,7 @@ export class CategoryService {
         colorSettings: req.colorSettings,
         status: req.status,
         layer: req.layer,
+        icon: req.icon,
         store: { connect: { id: storeId } },
       };
 
@@ -110,6 +113,9 @@ export class CategoryService {
           icon: category.icon ?? undefined,
           subCategoriesCount,
           storeId,
+          itemCount: 0,
+          totalValue: 0,
+          lowStockCount: 0,
         },
         error: null,
       };
@@ -127,12 +133,62 @@ export class CategoryService {
     try {
       const storeId = this.ensureStoreId(ctx);
 
-      const { count } = await this.categoryRepo.deleteMany(req.categoryIds, storeId);
+      const categories = await this.categoryRepo.findByIds(req.categoryIds, storeId);
 
+      const allowDeleteIds = categories.filter(category => (category.parentId === NIL_UUID || !category.parentId) && category.layer === "0").map(category => category.id);
+      if (allowDeleteIds.length !== req.categoryIds.length) {
+        return { resData: null, error: "No categories can be deleted" };
+      }
+      const { count } = await this.categoryRepo.deleteMany(allowDeleteIds, storeId);
       return { resData: { removedCount: count }, error: null };
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Category Remove", LogLevel.ERROR, (error as Error).message);
+      return { resData: null, error: (error as Error).message };
+    }
+  }
+
+  async UpdateCategory(ctx: RequestContext, req: UpdateCategoryRequestBody): Promise<UpdateCategoryResponseServices> {
+    try {
+      const storeId = this.ensureStoreId(ctx);
+      const category = await this.categoryRepo.findById(req.categoryId, storeId);
+      if (!category) {
+        throw new Error("Category not found");
+      }
+
+      const parentId = this.ensureParentId(req.categoryUpdate.parentId as string | undefined);
+
+      if (req.categoryUpdate.layer !== "1" && parentId && req.categoryUpdate?.parentId) {
+        const parent = await this.categoryRepo.findById(req.categoryUpdate.parentId, storeId);
+        if (!parent) {
+          throw new Error("Parent category not found in this store");
+        }
+      }
+
+      const updatePayload: Prisma.CategoryUpdateInput = {
+        name: req.categoryUpdate.name,
+        description: req.categoryUpdate.description,
+        colorSettings: req.categoryUpdate.colorSettings,
+        status: req.categoryUpdate.status,
+        layer: req.categoryUpdate.layer,
+        icon: req.categoryUpdate.icon,
+      };
+
+      if (req.categoryUpdate.parentId !== undefined) {
+        if (parentId) {
+          updatePayload.parent = { connect: { id: req.categoryUpdate.parentId } };
+        }
+        else {
+          updatePayload.parent = { disconnect: true };
+        }
+      }
+
+      const updatedCategory = await this.categoryRepo.findOneAndUpdate(req.categoryId, updatePayload);
+
+      return { resData: { categoryId: updatedCategory.id }, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "Category Update", LogLevel.ERROR, (error as Error).message);
       return { resData: null, error: (error as Error).message };
     }
   }

@@ -1,7 +1,10 @@
+/* eslint-disable react-hooks/static-components */
 import { AlertTriangle, FolderTree } from "lucide-react";
 import type { Category, CategoryStats } from "@Jade/components/category-module/MainCategory";
 import { useNavigate } from "react-router-dom";
 import ActionMenu, { type ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
+import { getLucideIconComponent } from "../../utils/iconHelpers";
+import { useMemo } from "react";
 
 type MainCategoryContentProps = {
   cat: Category;
@@ -19,14 +22,20 @@ export const ListMainCategory = ({
   onMenuToggle,
 }: MainCategoryContentProps) => {
   const navigate = useNavigate();
+  const IconComponent = useMemo(() => getLucideIconComponent(cat.icon), [cat.icon]);
+  const fallbackIcon = <FolderTree size={16} />;
 
   return (
     <div className="flex items-center justify-between w-full"
       onClick={() => navigate(`/categories/${cat.id}`)}>
       <div className="flex items-center gap-4 flex-1">
-        <span
-          className={`w-2 h-10 rounded-full ${cat.color.split(" ")[0]}`}
-        ></span>
+        <div
+          className={`w-8 h-8 rounded-full flex items-center text-white! justify-center ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 ${cat.backgroundColor} ${cat.textColor}`}
+        >
+          {IconComponent
+            ? <IconComponent size={16} />
+            : fallbackIcon}
+        </div>
         <div>
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">
             {cat.name}
@@ -50,18 +59,19 @@ export const ListMainCategory = ({
             <span className="hidden sm:inline">Low Stock</span>
           </div>
         )}
-        <button
+        <div
           className="text-red-400 hover:text-red-600 transition-colors"
         >
           {
             menuActions.length > 0 && (
-              <ActionMenu actions={menuActions} 
-              isOpen={isMenuOpen} 
-              onToggle={() => onMenuToggle(!isMenuOpen)} 
+              <ActionMenu actions={menuActions}
+                isOpen={isMenuOpen}
+                onToggle={() => onMenuToggle(!isMenuOpen)}
+                targetId={cat.id}
               />
             )
           }
-        </button>
+        </div>
       </div>
     </div>
   );

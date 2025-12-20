@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { MoreHorizontal } from 'lucide-react';
+import Spinner from '@Jade/core-design/loader/Spinner';
 
 export type ActionMenuItem = {
   label: string;
-  onClick: () => void;
+  onClick: (id: string) => void;
+  loading?: boolean;
   icon?: LucideIcon;
   danger?: boolean;
 };
@@ -14,9 +16,10 @@ export type ActionMenuProps = {
   onToggle?: () => void;
   callBack?: () => void;
   actions: ActionMenuItem[];
+  targetId: string;
 };
 
-const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, actions }) => {
+const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, actions, targetId }) => {
   const [localOpen, setLocalOpen] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -107,7 +110,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
             key={index}
             onClick={(e) => {
               e.stopPropagation();
-              action.onClick();
+              action.onClick(targetId);
               handleClose();
             }}
             className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors
@@ -116,7 +119,13 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
                 : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-100 dark:hover:bg-gray-800 dark:hover:text-indigo-300'
               }`}
           >
-            {action.icon && <action.icon size={16} />}
+
+            {action.icon && !action.loading && <action.icon size={16} />}
+            {action.loading && (
+              <span className="flex h-4 w-4 items-center justify-center">
+                <Spinner className="h-4 w-4 text-slate-900! dark:text-white!" />
+              </span>
+            )}
             {action.label}
           </button>
         ))}

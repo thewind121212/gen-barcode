@@ -12,11 +12,14 @@ import { Activity, Check, LayoutGrid, Palette, Plus, Upload, type LucideIcon } f
 import { useForm, useWatch } from 'react-hook-form';
 import * as yup from "yup";
 import { useParams } from 'react-router-dom';
-import { useCreateCategory } from '@Jade/services/category/useQuery';
+import { useCreateCategory, useUpdateCategory, useGetCategoryById } from '@Jade/services/category/useQuery';
 import toast from 'react-hot-toast';
-import {useSelector} from 'react-redux'
+import { useSelector } from 'react-redux'
 import { NIL as NIL_UUID } from 'uuid';
 import type { RootState } from '@Jade/store/global.store';
+import type { Mode } from '@Jade/components/category-module/MainCategory';
+import CategorySkeleton from '@Jade/components/category-module/CreateCategoryLoading';
+import type { CreateCategoryRequest } from '@Jade/types/category';
 
 // Lazy import IconPicker
 const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
@@ -43,11 +46,16 @@ const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
 
 type CreateCategoryDialogProps = {
     mainModal: UseModalReturn;
+    refetchCategoryOverview: () => void;
+    mode?: Mode;
+    categoryEditId?: string;
 };
 
-export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialogProps) {
+export default function CreateCategoryDialog({ mainModal, refetchCategoryOverview, mode, categoryEditId }: CreateCategoryDialogProps) {
     const colorModal = useModal(ModalId.COLOR);
     const iconModal = useModal(ModalId.ICON);
+    const storeId = useSelector((state: RootState) => state.app.storeId);
+    const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
     const { id } = useParams();
     const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
@@ -56,21 +64,46 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
             status: 'ACTIVE',
             parentId: NIL_UUID,
             description: '',
-            color: 'indigo-400',
+            color: 'slate-400',
             icon: 'layout-grid',
         },
     });
+
+    const { mutate: getCategoryById, isPending: isLoadingGetCategoryById } = useGetCategoryById({
+        storeId: storeId || '',
+        onSuccess: (data) => {
+            const cat = data?.data;
+            if (!cat) return;
+            setValue('name', cat.name ?? '');
+            setValue('status', (cat.status as CategoryStatus) ?? 'ACTIVE');
+            setValue('parentId', cat.parentId ?? NIL_UUID);
+            setValue('description', cat.description ?? '');
+            setValue('color', cat.colorSettings ?? 'slate-400');
+            setValue('icon', cat.icon ?? 'layout-grid');
+        },
+        onError: (error) => {
+            mainModal.close();
+            toast.error('Failed to get category:' + error?.message);
+        },
+    });
+
+    useEffect(() => {
+        if (categoryEditId && mode === "edit") {
+            getCategoryById({ categoryId: categoryEditId });
+        }
+        // getCategoryById is stable from react-query, safe to depend on
+    }, [categoryEditId, getCategoryById, mainModal.isOpen, mode]);
 
     const status = useWatch({ control, name: 'status' });
     const parentId = useWatch({ control, name: 'parentId' });
     const color = useWatch({ control, name: 'color' });
     const icon = useWatch({ control, name: 'icon' });
-    const storeId = useSelector((state: RootState) => state.app.storeId);
 
     const { mutate: createCategory, isPending: isLoadingCreateCategory } = useCreateCategory({
         storeId: storeId,
         onSuccess: () => {
             toast.success('Category created successfully');
+            refetchCategoryOverview();
             reset();
             mainModal.close();
         },
@@ -79,7 +112,19 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
         },
     });
 
-    const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
+    const { mutate: updateCategory, isPending: isLoadingUpdateCategory } = useUpdateCategory({
+        storeId: storeId,
+        onSuccess: () => {
+            toast.success('Category updated successfully');
+            refetchCategoryOverview();
+            reset();
+            mainModal.close();
+        },
+        onError: (error) => {
+            toast.error('Failed to update category:' + error?.message);
+        },
+    });
+
 
     useEffect(() => {
         let isMounted = true;
@@ -141,7 +186,8 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
             toast.error('Store ID is required');
             return;
         }
-        createCategory({
+
+        const payload: CreateCategoryRequest = {
             name: data.name,
             status: data.status,
             parentId: parentId,
@@ -149,7 +195,16 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
             description: data.description,
             colorSettings: data.color,
             icon: data.icon,
-        });
+        };
+        if (mode === "create") {
+            createCategory(payload);
+        } else if (mode === "edit" && categoryEditId) {
+            updateCategory({
+                categoryId: categoryEditId,
+                categoryUpdate: payload,
+            });
+        }
+
     };
 
     return (
@@ -161,12 +216,15 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                 onClose={mainModal.close}
                 layer={mainModal.layer}
                 maxWidthClass="max-w-2xl"
-                title="Create New Category"
+                title={mode === "create" ? "Create New Category" : "Edit Category"}
                 subtitle="Organize your items with a new classification."
                 blurEffect={true}
                 className={"mb-0"}
                 onConfirm={() => handleSubmit(onSubmit)()}
-                isLoading={isLoadingCreateCategory}
+                confirmButtonText={mode === "create" ? "Create" : "Update"}
+                isLoading={mode === "create" ? isLoadingCreateCategory : isLoadingUpdateCategory}
+                isLoadingComponent={isLoadingGetCategoryById}
+                loadingComponent={<CategorySkeleton />}
             >
                 <div className="relative w-full overflow-hidden transition-all duration-300 z-50 animate-in fade-in zoom-in-95 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 dark:shadow-black/50">
                     <form
@@ -207,22 +265,22 @@ export default function CreateCategoryDialog({ mainModal }: CreateCategoryDialog
                         </div>
 
                         <div className="space-y-6">
-                                <div className="relative flex flex-col transition-all gap-1 space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
-                                    <Select
-                                        name="parentId"
-                                        value={parentId}
-                                        register={register}
-                                        disabled={!id}
-                                        options={[
-                                            { value: '', label: 'No Parent (Root Category)' },
-                                            { value: '1', label: 'Products' },
-                                            { value: '2', label: 'Services' },
-                                            { value: '3', label: 'Digital Assets' },
-                                        ]}
-                                        icon={LayoutGrid}
-                                    />
-                                </div>
+                            <div className="relative flex flex-col transition-all gap-1 space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
+                                <Select
+                                    name="parentId"
+                                    value={parentId}
+                                    register={register}
+                                    disabled={!id}
+                                    options={[
+                                        { value: '', label: 'No Parent (Root Category)' },
+                                        { value: '1', label: 'Products' },
+                                        { value: '2', label: 'Services' },
+                                        { value: '3', label: 'Digital Assets' },
+                                    ]}
+                                    icon={LayoutGrid}
+                                />
+                            </div>
                             <div className="space-y-2 flex flex-col gap-1">
                                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</label>
                                 <textarea

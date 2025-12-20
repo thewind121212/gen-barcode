@@ -2,11 +2,12 @@ import type { z } from "zod";
 
 import express from "express";
 
-import type { CreateCategoryResponse, GetCategoryByIDResponse, GetCategoryOverviewResponse, RemoveCategoryResponse } from "@Ciri/types/category";
+import type { CategoryResponse, CreateCategoryResponse, GetCategoryOverviewResponse, RemoveCategoryResponse, UpdateCategoryResponse } from "@Ciri/types/category";
 
 import { createCategorySchema } from "@Ciri/core/dto/category/create-category.dto";
 import { getCategoryByIdSchema } from "@Ciri/core/dto/category/get-category-by-id.dto";
 import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
+import { updateCategorySchema } from "@Ciri/core/dto/category/update-category.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { CategoryService } from "@Ciri/core/services/category.service";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
@@ -23,12 +24,17 @@ export type CreateCategoryResponseServices = {
 };
 export type GetCategoryByIdRequestBody = z.infer<typeof getCategoryByIdSchema>;
 export type GetCategoryByIdResponseServices = {
-  resData: GetCategoryByIDResponse | null;
+  resData: CategoryResponse | null;
   error: string | null;
 };
 export type RemoveCategoryRequestBody = z.infer<typeof removeCategorySchema>;
 export type RemoveCategoryResponseServices = {
   resData: RemoveCategoryResponse | null;
+  error: string | null;
+};
+export type UpdateCategoryRequestBody = z.infer<typeof updateCategorySchema>;
+export type UpdateCategoryResponseServices = {
+  resData: UpdateCategoryResponse | null;
   error: string | null;
 };
 export type GetCategoryOverviewResponseServices = {
@@ -82,7 +88,7 @@ router.post(
         ErrorResponses.badRequest(res, "No response data");
         return;
       }
-      sendSuccessResponse<GetCategoryByIDResponse>(res, 201, response.resData);
+      sendSuccessResponse<CategoryResponse>(res, 201, response.resData);
     }
     catch (error) {
       UnitLogger(
@@ -118,6 +124,36 @@ router.post(
       UnitLogger(
         LogType.ROUTER,
         "Category RemoveCategory:",
+        LogLevel.ERROR,
+        (error as Error).message,
+      );
+      next(error);
+    }
+  },
+);
+
+router.put(
+  "/UpdateCategory",
+  validateBody<UpdateCategoryRequestBody>(updateCategorySchema),
+  async (req, res, next): Promise<void> => {
+    try {
+      const ctx = getContext(req);
+      const validatedBody = getValidatedBody<UpdateCategoryRequestBody>(req);
+      const response = await categoryService.UpdateCategory(ctx, validatedBody);
+      if (response.error) {
+        ErrorResponses.badRequest(res, response.error);
+        return;
+      }
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<UpdateCategoryResponse>(res, 200, response.resData);
+    }
+    catch (error) {
+      UnitLogger(
+        LogType.ROUTER,
+        "Category UpdateCategory:",
         LogLevel.ERROR,
         (error as Error).message,
       );
