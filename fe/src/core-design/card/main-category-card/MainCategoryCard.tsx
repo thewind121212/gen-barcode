@@ -1,7 +1,11 @@
+/* eslint-disable react-hooks/static-components */
 import { AlertTriangle, FolderTree } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import type { Category, CategoryStats } from "@Jade/components/category-module/MainCategory";
 import { useNavigate } from "react-router-dom";
 import ActionMenu, { type ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
+import { getLucideIconComponent } from "../../utils/iconHelpers";
+import { useMemo } from "react";
 
 type MainCategoryContentProps = {
   cat: Category;
@@ -19,7 +23,8 @@ export const CardMainCategory = ({
   onMenuToggle,
 }: MainCategoryContentProps) => {
   const navigate = useNavigate();
-
+  const IconComponent = useMemo(() => getLucideIconComponent(cat.icon), [cat.icon]);
+  const fallbackIcon = <LucideIcons.LayoutGrid size={16} />;
   const handleNavigate = () => navigate(`/categories/${cat.id}`);
 
   return (
@@ -27,9 +32,13 @@ export const CardMainCategory = ({
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">
           <div
-            className={`w-3 h-3 rounded-full ${cat.color.split(" ")[0]}`}
-          ></div>
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[120px] cursor-default">
+            className={`w-8 h-8 rounded-full flex items-center text-white! justify-center ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 ${cat.backgroundColor} ${cat.textColor}`}
+          >
+            {IconComponent
+              ? <IconComponent size={16} />
+              : fallbackIcon}
+          </div>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[140px] cursor-default">
             {cat.name}
           </h3>
         </div>
@@ -43,6 +52,7 @@ export const CardMainCategory = ({
                 actions={menuActions}
                 isOpen={isMenuOpen}
                 onToggle={() => onMenuToggle(!isMenuOpen)}
+                targetId={cat.id}
               />
             ) 
           }

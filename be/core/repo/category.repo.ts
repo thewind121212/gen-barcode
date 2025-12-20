@@ -9,25 +9,38 @@ export class CategoryRepository {
 
   async findById(id: string, storeId: string) {
     return prisma.category.findFirst({
-      where: { id, storeId },
+      where: { id, storeId, isDelete: false },
+    });
+  }
+
+  async findByIds(ids: string[], storeId: string) {
+    return prisma.category.findMany({
+      where: { id: { in: ids }, storeId, isDelete: false },
+    });
+  }
+
+  async findOneAndUpdate(id: string, data: Prisma.CategoryUpdateInput) {
+    return prisma.category.update({
+      where: { id, isDelete: false },
+      data,
     });
   }
 
   async countChildren(id: string, storeId: string) {
     return prisma.category.count({
-      where: { parentId: id, storeId },
+      where: { parentId: id, storeId, isDelete: false },
     });
   }
 
   async deleteMany(ids: string[], storeId: string) {
     return prisma.category.deleteMany({
-      where: { id: { in: ids }, storeId },
+      where: { id: { in: ids }, storeId, isDelete: false },
     });
   }
 
   async findAllByStore(storeId: string) {
     return prisma.category.findMany({
-      where: { storeId },
+      where: { storeId, isDelete: false },
       include: {
         _count: {
           select: { children: true },

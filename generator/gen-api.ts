@@ -303,8 +303,12 @@ type ApiSuccessResponse<T> = {
     const hookName = `use${method.name}`;
 
     if (method.httpMethod === "get") {
-      output += `export const ${hookName} = (request: ${method.requestType}, storeId?: string, options?: UseQueryOptions<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>) => {
-    return useQuery<ApiSuccessResponse<${method.responseType}>, Error, ${method.requestType}>({
+      output += `export const ${hookName} = (
+  request: ${method.requestType},
+  storeId?: string,
+  options?: Omit<UseQueryOptions<ApiSuccessResponse<${method.responseType}>, Error, ApiSuccessResponse<${method.responseType}>>, "queryKey" | "queryFn">,
+) => {
+    return useQuery<ApiSuccessResponse<${method.responseType}>, Error, ApiSuccessResponse<${method.responseType}>>({
         queryKey: ["${packageName}", "${method.name}", request],
         queryFn: () => ${funcName}(request, storeId) as unknown as ApiSuccessResponse<${method.responseType}>,
         ...options,

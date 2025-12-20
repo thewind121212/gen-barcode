@@ -1,6 +1,6 @@
 //==== This is code generated
 import Session from "supertokens-auth-react/recipe/session";
-import type { CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIDResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, RemoveCategoryRequest, RemoveCategoryResponse } from "@Jade/types/category.d";
+import type { CategoryResponse, CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, RemoveCategoryRequest, RemoveCategoryResponse, UpdateCategoryRequest, UpdateCategoryResponse } from "@Jade/types/category.d";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -44,7 +44,7 @@ export const createCategory = async (request: CreateCategoryRequest, storeId?: s
   return data;
 };
 
-export const getCategoryById = async (request: GetCategoryByIdRequest, storeId?: string): Promise<GetCategoryByIDResponse> => {
+export const getCategoryById = async (request: GetCategoryByIdRequest, storeId?: string): Promise<CategoryResponse> => {
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryById`, {
     method: "POST",
     headers: buildHeaders(storeId),
@@ -66,6 +66,25 @@ export const getCategoryById = async (request: GetCategoryByIdRequest, storeId?:
 export const removeCategory = async (request: RemoveCategoryRequest, storeId?: string): Promise<RemoveCategoryResponse> => {
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/RemoveCategory`, {
     method: "POST",
+    headers: buildHeaders(storeId),
+    credentials: "include",
+    body: JSON.stringify(request),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok && data.success === false) {
+    throw new Error(data.error.message);
+  }
+
+  await Session.doesSessionExist();
+
+  return data;
+};
+
+export const updateCategory = async (request: UpdateCategoryRequest, storeId?: string): Promise<UpdateCategoryResponse> => {
+  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/UpdateCategory`, {
+    method: "PUT",
     headers: buildHeaders(storeId),
     credentials: "include",
     body: JSON.stringify(request),

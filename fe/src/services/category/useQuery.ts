@@ -1,10 +1,11 @@
 // this is code generated usequery for api
 import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIDResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, RemoveCategoryRequest, RemoveCategoryResponse } from "@Jade/types/category.d";
+import type { CategoryResponse, CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, RemoveCategoryRequest, RemoveCategoryResponse, UpdateCategoryRequest, UpdateCategoryResponse } from "@Jade/types/category.d";
 import {
     createCategory,
     getCategoryById,
     removeCategory,
+    updateCategory,
     getCategoryOverview,
 } from "./api";
 
@@ -22,10 +23,10 @@ export const useCreateCategory = ({ storeId, onSuccess, onError }: { storeId?: s
     });
 };
 
-export const useGetCategoryById = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<GetCategoryByIDResponse>) => void, onError?: (error: Error) => void }) => {
-    return useMutation<GetCategoryByIDResponse, Error, GetCategoryByIdRequest>({
+export const useGetCategoryById = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<CategoryResponse>) => void, onError?: (error: Error) => void }) => {
+    return useMutation<CategoryResponse, Error, GetCategoryByIdRequest>({
         mutationFn: (request: GetCategoryByIdRequest) => getCategoryById(request, storeId),
-        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<GetCategoryByIDResponse>),
+        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<CategoryResponse>),
         onError: (error) => onError?.(error),
     });
 };
@@ -38,8 +39,20 @@ export const useRemoveCategory = ({ storeId, onSuccess, onError }: { storeId?: s
     });
 };
 
-export const useGetCategoryOverview = (request: GetCategoryOverviewRequest, storeId?: string, options?: UseQueryOptions<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, GetCategoryOverviewRequest>) => {
-    return useQuery<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, GetCategoryOverviewRequest>({
+export const useUpdateCategory = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<UpdateCategoryResponse>) => void, onError?: (error: Error) => void }) => {
+    return useMutation<UpdateCategoryResponse, Error, UpdateCategoryRequest>({
+        mutationFn: (request: UpdateCategoryRequest) => updateCategory(request, storeId),
+        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<UpdateCategoryResponse>),
+        onError: (error) => onError?.(error),
+    });
+};
+
+export const useGetCategoryOverview = (
+  request: GetCategoryOverviewRequest,
+  storeId?: string,
+  options?: Omit<UseQueryOptions<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, ApiSuccessResponse<GetCategoryOverviewResponse>>, "queryKey" | "queryFn">,
+) => {
+    return useQuery<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, ApiSuccessResponse<GetCategoryOverviewResponse>>({
         queryKey: ["category", "GetCategoryOverview", request],
         queryFn: () => getCategoryOverview(request, storeId) as unknown as ApiSuccessResponse<GetCategoryOverviewResponse>,
         ...options,

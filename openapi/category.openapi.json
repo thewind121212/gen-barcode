@@ -54,7 +54,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetCategoryByIDResponse"
+                  "$ref": "#/components/schemas/CategoryResponse"
                 }
               }
             }
@@ -101,6 +101,45 @@
             }
           }
         }
+      }
+    },
+    "/category/UpdateCategory": {
+      "put": {
+        "operationId": "UpdateCategory",
+        "summary": "UpdateCategory",
+        "tags": [
+          "category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateCategoryResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryUpdate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CreateCategoryRequest"
+            }
+          }
+        ]
       }
     },
     "/category/GetCategoryOverview": {
@@ -178,46 +217,30 @@
           }
         }
       },
-      "GetCategoryByIDResponse": {
+      "UpdateCategoryRequest": {
         "type": "object",
         "properties": {
           "categoryId": {
             "type": "string"
           },
-          "name": {
-            "type": "string"
-          },
-          "parentId": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "colorSettings": {
-            "type": "string"
-          },
-          "layer": {
-            "type": "string"
-          },
-          "icon": {
-            "type": "string"
-          },
-          "subCategoriesCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "status": {
-            "type": "string"
-          },
-          "storeId": {
-            "type": "string"
+          "categoryUpdate": {
+            "$ref": "#/components/schemas/CreateCategoryRequest"
           }
         },
         "required": [
-          "storeId"
+          "categoryId",
+          "categoryUpdate"
         ]
       },
-      "CategoryOverview": {
+      "UpdateCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string"
+          }
+        }
+      },
+      "CategoryResponse": {
         "type": "object",
         "properties": {
           "categoryId": {
@@ -277,7 +300,7 @@
           "categoryOverviews": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CategoryOverview"
+              "$ref": "#/components/schemas/CategoryResponse"
             }
           }
         }

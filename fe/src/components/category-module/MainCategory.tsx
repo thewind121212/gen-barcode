@@ -8,14 +8,22 @@ import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMe
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
+import { useGetCategoryOverview, useRemoveCategory } from "@Jade/services/category/useQuery";
+import { useSelector } from "react-redux";
+import { allColors } from "@Jade/core-design/modal/colorOptions";
+import type { RootState } from "@Jade/store/global.store";
+import type { CategoryResponse } from "@Jade/types/category.d";
+import toast from "react-hot-toast";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 export type Category = {
   id: string;
   name: string;
-  color: string;
+  backgroundColor: string;
+  textColor: string;
   subCategoriesCount: number;
+  icon: string;
 };
 
 export type Item = {
@@ -35,9 +43,6 @@ export type CategoryStats = {
   totalValue: number;
   lowStockCount: number;
 };
-
-const INITIAL_CATEGORIES: Category[] = [
-];
 
 const INITIAL_ITEMS: Item[] = [
   {
@@ -63,24 +68,9 @@ const INITIAL_ITEMS: Item[] = [
 ];
 
 
-const MENU_ACTIONS: ActionMenuItem[] = [
-  {
-    label: "View",
-    onClick: () => { },
-    icon: EyeIcon,
-  },
-  {
-    label: "Edit",
-    onClick: () => { },
-    icon: Edit2Icon,
-  },
-  {
-    label: "Delete",
-    onClick: () => { },
-    icon: Trash2Icon,
-    danger: true,
-  },
-];
+
+export type Mode = "create" | "edit" | null;
+
 
 const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
   const catItems = items.filter((i) => i.category === catId);
@@ -98,13 +88,90 @@ const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
 
 
 const CategoriesView = () => {
-  const [categories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [categories] = useState<Category[]>([]);
   const [items] = useState<Item[]>(INITIAL_ITEMS);
+  const appStoreInfo = useSelector((state: RootState) => state.app)
   const [categoryViewMode, setCategoryViewMode] = useState<"grid" | "list">(
     "grid"
   );
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [editObject, setEditObject] = useState<{ mode: Mode, categoryEditId: string | undefined } | null>(null);
   const mainModal = useModal(ModalId.MAIN);
+  const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverview(
+    { storeId: appStoreInfo?.storeId || "" },
+    appStoreInfo?.storeId,
+    { enabled: Boolean(appStoreInfo?.storeId) },
+  );
+
+
+  const { mutate: removeCategory, isPending: isRemovingCategory } = useRemoveCategory({
+    storeId: appStoreInfo?.storeId,
+    onSuccess: () => {
+      toast.success("Category removed successfully");
+      refetchCategoryOverview();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  type RenderCategory = Category & { stats: CategoryStats };
+
+
+
+  const MENU_ACTIONS: ActionMenuItem[] = [
+    {
+      label: "View",
+      onClick: () => { },
+      icon: EyeIcon,
+    },
+    {
+      label: "Edit",
+      onClick: (id: string) => handleModeDialog("edit", id),
+      icon: Edit2Icon,
+      // loading: isRemovingCategory,
+    },
+    {
+      label: "Delete",
+      onClick: (id: string) => {
+        removeCategory({ categoryIds: [id] });
+      },
+      icon: Trash2Icon,
+      danger: true,
+      loading: isRemovingCategory,
+    },
+  ];
+
+  const categoriesFromApi = (categoryOverview?.data?.categoryOverviews as CategoryResponse[] | undefined) ?? [];
+  const categoriesToRender: RenderCategory[] = categoriesFromApi.length
+    ? categoriesFromApi.map((cat) => ({
+      id: cat.categoryId ?? "",
+      name: cat.name ?? "Unnamed",
+      backgroundColor: allColors.find((color) => color.id === cat.colorSettings)?.bg ?? "bg-indigo-100",
+      textColor: allColors.find((color) => color.id === cat.colorSettings)?.ring ?? "text-indigo-800",
+      icon: cat.icon || "f",
+      subCategoriesCount: cat.subCategoriesCount ?? 0,
+      stats: {
+        itemCount: cat.itemCount ?? 0,
+        totalQty: cat.itemCount ?? 0,
+        totalValue: cat.totalValue ?? 0,
+        lowStockCount: cat.lowStockCount ?? 0,
+      },
+    }))
+    : categories.map((cat) => ({
+      ...cat,
+      stats: getCategoryStats(items, cat.id),
+    }));
+
+  const handleModeDialog = (mode: Mode, categoryEditId?: string) => {
+    if (mode === "edit" && categoryEditId) {
+      setEditObject({ mode, categoryEditId });
+    }
+    else {
+      setEditObject({ mode, categoryEditId: undefined });
+    }
+    mainModal.open();
+  };
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 pt-10">
@@ -148,7 +215,7 @@ const CategoriesView = () => {
         <div className="lg:col-span-1">
           <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 sticky top-4 dark:bg-gray-900 dark:border-gray-800">
             <CommonButton
-              onClick={() => mainModal.open()}
+              onClick={() => handleModeDialog("create")}
               className="w-full h-10 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm dark:hover:bg-indigo-500"
               icon={<Plus size={18} />}
             >
@@ -222,7 +289,7 @@ const CategoriesView = () => {
 
         {/* Category List - Responsive Grid or List */}
         <div className="lg:col-span-2">
-          {categories.length === 0 ? (
+          {categoriesToRender.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 dark:bg-gray-900 dark:border-gray-800">
               <p className="text-gray-500 dark:text-gray-400">
                 No categories yet. Create one to get started!
@@ -236,8 +303,8 @@ const CategoriesView = () => {
                   : "flex flex-col space-y-3"
               }
             >
-              {categories.map((cat) => {
-                const stats = getCategoryStats(items, cat.id);
+              {categoriesToRender.map((cat) => {
+                const stats = cat.stats ?? getCategoryStats(items, cat.id);
                 const isMenuOpen = activeMenuId === cat.id;
 
                 return (
@@ -280,7 +347,10 @@ const CategoriesView = () => {
           )}
         </div>
       </div>
-      <CreateCategoryDialog mainModal={mainModal} />
+      <CreateCategoryDialog mainModal={mainModal}
+        refetchCategoryOverview={refetchCategoryOverview}
+        mode={editObject?.mode}
+        categoryEditId={editObject?.categoryEditId} />
     </div>
   );
 };
