@@ -3,6 +3,7 @@ export type FlatCategory = {
   name: string;
   parentId: string | null;
   colorId: string;
+  layer: string;
 };
 
 export type CategoryNode = FlatCategory & {

@@ -15,11 +15,16 @@ export default function CategoryDetail() {
               Categories
             </Link>
             <span className="mx-2">/</span>
-            <span className="font-semibold text-slate-700 dark:text-slate-200">Detail</span>
+            <span
+              className="font-semibold text-slate-700 dark:text-slate-200 font-mono"
+              title={categoryId || "Unknown"}
+            >
+              {categoryId || "Unknown"}
+            </span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Category Detail</h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Category ID: <span className="font-mono text-xs">{categoryId}</span>
+          <p className="text-gray-500 dark:text-gray-400 text-xs">
+            Name: <span className="font-mono">Ao</span>
           </p>
         </div>
       </div>
