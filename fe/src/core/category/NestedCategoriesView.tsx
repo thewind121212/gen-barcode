@@ -148,11 +148,6 @@ function seedDetailCategories(rootId: string): FlatCategory[] {
 export default function NestedCategoriesView({ rootId, expandAll = false, showHeader = true }: NestedCategoriesViewProps) {
   const [categories, setCategories] = useState<FlatCategory[]>(INITIAL_CATEGORIES);
 
-  const [createTarget, setCreateTarget] = useState<{ parentId: string | null } | null>(null);
-  const mainModal = useModal(ModalId.MAIN);
-
-  // Detail route dummy support:
-  // If rootId isn't present in our dummy list, derive a seeded subtree without mutating state in an effect.
   const derivedCategories = useMemo(() => {
     if (!rootId) return categories;
     if (categories.some((c) => c.id === rootId)) return categories;
@@ -172,11 +167,6 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
     setCategories((prev) => prev.filter((c) => !idsToDelete.includes(c.id)));
   };
 
-  const openCreate = (parentId: string | null) => {
-    setCreateTarget({ parentId });
-    mainModal.open();
-  };
-
   return (
     <div className="space-y-6">
       {showHeader && (
@@ -186,7 +176,7 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
             <p className="text-gray-500">Manage nested categories up to 5+ layers</p>
           </div>
           <button
-            onClick={() => openCreate(null)}
+            onClick={() => {}}
             className="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 font-medium"
             type="button"
           >
@@ -208,7 +198,7 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
                 key={node.id}
                 node={node}
                 level={0}
-                onAddSub={(id) => openCreate(id)}
+                onAddSub={() => {}}
                 onDelete={handleDeleteCategory}
                 defaultOpen={expandAll}
               />
