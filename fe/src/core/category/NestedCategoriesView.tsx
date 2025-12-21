@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { FolderTree, Plus } from "lucide-react";
-import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 import CategoryItem from "@Jade/components/category-module/CategoryItem";
 import { buildCategoryTree, getAllChildIds, type CategoryNode, type FlatCategory } from "@Jade/core/category/categoryTree";
 
