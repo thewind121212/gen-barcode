@@ -1,0 +1,33 @@
+import { useMemo } from "react";
+import { Link, useParams } from "react-router-dom";
+import NestedCategoriesView from "@Jade/core/category/NestedCategoriesView";
+
+export default function CategoryDetail() {
+  const { id } = useParams();
+  const categoryId = useMemo(() => (id ? decodeURIComponent(id) : ""), [id]);
+
+  return (
+    <div className="space-y-6 pt-10">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            <Link className="hover:underline" to="/categories">
+              Categories
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-200">Detail</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Category Detail</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Category ID: <span className="font-mono text-xs">{categoryId}</span>
+          </p>
+        </div>
+      </div>
+
+      {/* For now: show nested view with dummy data. Later: fetch category + subcategories by categoryId */}
+      <NestedCategoriesView rootId={categoryId} expandAll={true} showHeader={false} />
+    </div>
+  );
+}
+
+

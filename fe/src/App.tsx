@@ -5,6 +5,7 @@ import LoadingScreen from "@Jade/components/loading/AppLoader";
 import SplashScreen from "@Jade/components/loading/SplashScreen";
 import { Sidebar } from "@Jade/components/nav-bar/net";
 import CategoryPage from "@Jade/page/Category";
+import CategoryDetailPage from "@Jade/page/CategoryDetail";
 import { store } from '@Jade/store/global.store';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
@@ -104,7 +105,8 @@ function App() {
               <Route path="/" element={<CategoryPage />} />
               <Route path="/barcode-generator" element={<Generator />} />
               <Route path="/categories" element={<CategoryPage />} />
-              <Route path="/categories/:id" element={<CategoryPage />} />
+              {/* this is the page for the category detail */}
+              <Route path="/categories/:id" element={<CategoryDetailPage />} />
               <Route path="/onboarding" element={<OnboardingComponent />} />
               <Route path="/printer" element={<Generator />} />
               <Route path="/settings" element={<Generator />} />
