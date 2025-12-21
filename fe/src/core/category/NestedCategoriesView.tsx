@@ -166,7 +166,6 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
     return rootNode ? [rootNode] : [];
   }, [categoryTree, rootId]);
 
-  const parentName = createTarget?.parentId ? derivedCategories.find((c) => c.id === createTarget.parentId)?.name : undefined;
 
   const handleDeleteCategory = (id: string) => {
     const idsToDelete = getAllChildIds(id, derivedCategories);
@@ -176,19 +175,6 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
   const openCreate = (parentId: string | null) => {
     setCreateTarget({ parentId });
     mainModal.open();
-  };
-
-  const handleCreateLocal = (payload: { name: string; colorId: string; parentId: string | null }) => {
-    const parentLayer = payload.parentId ? derivedCategories.find((c) => c.id === payload.parentId)?.layer : undefined;
-    const nextLayer = parentLayer ? String(Number(parentLayer) + 1) : "1";
-    const category: FlatCategory = {
-      id: `cat_${Date.now()}`,
-      name: payload.name,
-      parentId: payload.parentId,
-      colorId: payload.colorId,
-      layer: nextLayer,
-    };
-    setCategories((prev) => [...prev, category]);
   };
 
   return (
