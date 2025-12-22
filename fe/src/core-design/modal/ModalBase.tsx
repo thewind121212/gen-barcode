@@ -20,6 +20,8 @@ type ModalProps = {
   subtitle?: string;
   blurEffect?: boolean;
   className?: string;
+  hideHeader?: boolean;
+  hideFooter?: boolean;
   showCancelButton?: boolean;
   showConfirmButton?: boolean;
   confirmButtonText?: string;
@@ -27,6 +29,9 @@ type ModalProps = {
   isLoading?: boolean;
   isLoadingComponent?: boolean;
   loadingComponent?: ReactNode;
+  confirmButtonClassName?: string;
+  cancelButtonClassName?: string;
+  footerClassName?: string;
   onConfirm?: () => void;
 };
 
@@ -46,6 +51,8 @@ const Modal = ({
   maxWidthClass = 'max-w-lg',
   className = '',
   blurEffect = true,
+  hideHeader = false,
+  hideFooter = false,
   showCancelButton = true,
   showConfirmButton = true,
   confirmButtonText = 'Confirm',
@@ -54,6 +61,9 @@ const Modal = ({
   isLoadingComponent = false,
   loadingComponent = null,
   onConfirm = () => { },
+  confirmButtonClassName = "",
+  cancelButtonClassName = "",
+  footerClassName = "",
 }: ModalProps) => {
 
   const modalStack = useSelector((state: RootState) => selectModalStack(state));
@@ -108,49 +118,53 @@ const Modal = ({
           dark:bg-slate-900 dark:text-white dark:border-slate-800
         `}
       >
-        <div className="px-8 py-4 border-b flex items-center justify-between border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h2>
-            <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">{subtitle}</p>
+        {!hideHeader && (
+          <div className="px-8 py-4 border-b flex items-center justify-between border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h2>
+              {subtitle ? <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">{subtitle}</p> : null}
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full transition-colors hover:bg-gray-200 text-slate-500 dark:text-slate-400 dark:hover:bg-slate-800"
+              type="button"
+            >
+              {xIcon && (
+                <X size={20} />
+              )}
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full transition-colors hover:bg-gray-200 text-slate-500 dark:text-slate-400 dark:hover:bg-slate-800"
-            type="button"
-          >
-            {xIcon && (
-              <X size={20} />
-            )}
-          </button>
-        </div>
+        )}
 
         <div className="flex-1 overflow-y-auto">
           {isLoadingComponent && loadingComponent}
           {!isLoadingComponent && children}
         </div>
-        <div className="px-8 py-6 border-t flex items-center justify-end gap-3 border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50">
-          {
-            showCancelButton && !isLoading && (
-              <button
-                onClick={onClose}
-                disabled={isLoading}
-                className="px-5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-500 hover:text-slate-800 hover:bg-gray-200 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800">
-                {cancelButtonText || 'Cancel'}
-              </button>
-            )
-          }
-          {
-            showConfirmButton && (
-              <button onClick={onConfirm}
-                disabled={isLoading}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
-                {isLoading ? <Spinner /> : (
-                  confirmButtonText
-                )}
-              </button>
-            )
-          }
-        </div>
+        {!hideFooter && (
+          <div className={`px-8 py-6 border-t flex items-center justify-end gap-3 border-gray-100 bg-gray-50/50 dark:border-slate-800 dark:bg-slate-900/50 ${footerClassName}`}>
+            {
+              showCancelButton && !isLoading && (
+                <button
+                  onClick={onClose}
+                  disabled={isLoading}
+                  className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-500 hover:text-slate-800 hover:bg-gray-200 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 ${cancelButtonClassName}`}>
+                  {cancelButtonText || 'Cancel'}
+                </button>
+              )
+            }
+            {
+              showConfirmButton && (
+                <button onClick={onConfirm}
+                  disabled={isLoading}
+                  className={`px-6 py-2.5 h-[40px] rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all ${confirmButtonClassName}`}>
+                  {isLoading ? <Spinner /> : (
+                    confirmButtonText
+                  )}
+                </button>
+              )
+            }
+          </div>
+        )}
       </div>
 
       <style>{`

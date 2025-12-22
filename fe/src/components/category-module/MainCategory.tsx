@@ -3,7 +3,6 @@ import {
   ListMainCategory,
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
 import { Edit2Icon, EyeIcon, Info, LayoutGrid, List, Plus, Trash2Icon } from "lucide-react";
-import { useState } from "react";
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
@@ -14,6 +13,9 @@ import { allColors } from "@Jade/core-design/modal/colorOptions";
 import type { RootState } from "@Jade/store/global.store";
 import type { CategoryResponse } from "@Jade/types/category.d";
 import toast from "react-hot-toast";
+import { useCategoryModuleStore } from "./store";
+import { INITIAL_LAYER } from "@Jade/config";
+import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
@@ -88,21 +90,24 @@ const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
 
 
 const CategoriesView = () => {
-  const [categories] = useState<Category[]>([]);
-  const [items] = useState<Item[]>(INITIAL_ITEMS);
+  const categories: Category[] = [];
+  const items: Item[] = INITIAL_ITEMS;
   const appStoreInfo = useSelector((state: RootState) => state.app)
-  const [categoryViewMode, setCategoryViewMode] = useState<"grid" | "list">(
-    "grid"
-  );
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [editObject, setEditObject] = useState<{ mode: Mode, categoryEditId: string | undefined } | null>(null);
-  const mainModal = useModal(ModalId.MAIN);
+
+  const categoryViewMode = useCategoryModuleStore((s) => s.categories.mainCategoryViewMode);
+  const activeMenuId = useCategoryModuleStore((s) => s.categories.activeMenuId);
+  const setCategoryViewMode = useCategoryModuleStore((s) => s.setMainCategoryViewMode);
+  const setActiveMenuId = useCategoryModuleStore((s) => s.setActiveMenuId);
+  const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
+  const setCategoryToDelete = useCategoryModuleStore((s) => s.setCategoryToDelete);
+  const categoryToDelete = useCategoryModuleStore((s) => s.categories.categoryToDelete);
+  const mainModal = useModal(ModalId.MAIN_CATEGORY);
+  const confirmModal = useModal(ModalId.CONFIRM);
   const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverview(
     { storeId: appStoreInfo?.storeId || "" },
     appStoreInfo?.storeId,
     { enabled: Boolean(appStoreInfo?.storeId) },
   );
-
 
   const { mutate: removeCategory, isPending: isRemovingCategory } = useRemoveCategory({
     storeId: appStoreInfo?.storeId,
@@ -134,7 +139,8 @@ const CategoriesView = () => {
     {
       label: "Delete",
       onClick: (id: string) => {
-        removeCategory({ categoryIds: [id] });
+        setCategoryToDelete(id);
+        confirmModal.open();
       },
       icon: Trash2Icon,
       danger: true,
@@ -164,12 +170,15 @@ const CategoriesView = () => {
     }));
 
   const handleModeDialog = (mode: Mode, categoryEditId?: string) => {
-    if (mode === "edit" && categoryEditId) {
-      setEditObject({ mode, categoryEditId });
-    }
-    else {
-      setEditObject({ mode, categoryEditId: undefined });
-    }
+    if (mode !== "create" && mode !== "edit") return;
+
+    setCreateCategoryModalData({
+      mode,
+      categoryEditId: mode === "edit" ? (categoryEditId ?? null) : null,
+      categoryCreateParentId: null,
+      categoryCreateLayer: INITIAL_LAYER,
+      categoryCreateName: null,
+    });
     mainModal.open();
   };
 
@@ -347,10 +356,28 @@ const CategoriesView = () => {
           )}
         </div>
       </div>
-      <CreateCategoryDialog mainModal={mainModal}
-        refetchCategoryOverview={refetchCategoryOverview}
-        mode={editObject?.mode}
-        categoryEditId={editObject?.categoryEditId} />
+      <CreateCategoryDialog
+        mainModal={mainModal}
+        onCategoryCreatedCallback={refetchCategoryOverview}
+      />
+      <ConfirmModal
+        modal={confirmModal}
+        title="Delete category?"
+        subtitle="This action cannot be undone."
+        isLoading={false}
+        cancelButtonText="Cancel"
+        confirmButtonText="Delete"
+        onClose={() => setCategoryToDelete(null)}
+        onConfirm={() => {
+          if (!categoryToDelete)
+            return;
+          removeCategory({ categoryIds: [categoryToDelete] });
+          confirmModal.close();
+          setCategoryToDelete(null);
+        }}
+      >
+        Are you sure you want to delete this category?
+      </ConfirmModal>
     </div>
   );
 };

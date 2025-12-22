@@ -24,10 +24,14 @@ export const ListMainCategory = ({
   const navigate = useNavigate();
   const IconComponent = useMemo(() => getLucideIconComponent(cat.icon), [cat.icon]);
   const fallbackIcon = <FolderTree size={16} />;
-
+  const handleNavigate = () => navigate(`/categories/${cat.id}` , {
+    state: {
+      categoryName: cat.name,
+    },
+  });
   return (
     <div className="flex items-center justify-between w-full"
-      onClick={() => navigate(`/categories/${cat.id}`)}>
+      onClick={handleNavigate}>
       <div className="flex items-center gap-4 flex-1">
         <div
           className={`w-8 h-8 rounded-full flex items-center text-white! justify-center ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 ${cat.backgroundColor} ${cat.textColor}`}

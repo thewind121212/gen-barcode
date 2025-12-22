@@ -1,10 +1,9 @@
-import { lazy, useEffect, useState } from 'react';
+import { lazy, useEffect, useMemo, useState } from 'react';
 import InputCommon from '@Jade/core-design/input/CommonInput';
 import Select from '@Jade/core-design/input/Select';
 import ColorPicker from '@Jade/core-design/modal/ColorPicker';
 import { allColors, quickColors } from '@Jade/core-design/modal/colorOptions';
 import type { IconName } from '@Jade/core-design/modal/IconPicker';
-import Modal from '@Jade/core-design/modal/ModalBase';
 import { ModalId, useModal, type UseModalReturn } from '@Jade/core-design/modal/useModal';
 import { yupResolver } from "@hookform/resolvers/yup";
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
@@ -17,11 +16,12 @@ import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux'
 import { NIL as NIL_UUID } from 'uuid';
 import type { RootState } from '@Jade/store/global.store';
-import type { Mode } from '@Jade/components/category-module/MainCategory';
 import CategorySkeleton from '@Jade/components/category-module/CreateCategoryLoading';
 import type { CreateCategoryRequest } from '@Jade/types/category';
+import { useCategoryModuleStore } from './store';
 
-// Lazy import IconPicker
+
+const Modal = lazy(() => import('@Jade/core-design/modal/ModalBase'));
 const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
 
 type CategoryStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
@@ -46,17 +46,23 @@ const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
 
 type CreateCategoryDialogProps = {
     mainModal: UseModalReturn;
-    refetchCategoryOverview: () => void;
-    mode?: Mode;
-    categoryEditId?: string;
+    onCategoryCreatedCallback: () => void;
 };
 
-export default function CreateCategoryDialog({ mainModal, refetchCategoryOverview, mode, categoryEditId }: CreateCategoryDialogProps) {
+export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallback }: CreateCategoryDialogProps) {
     const colorModal = useModal(ModalId.COLOR);
     const iconModal = useModal(ModalId.ICON);
     const storeId = useSelector((state: RootState) => state.app.storeId);
     const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
-    const { id } = useParams();
+    const { rootCategoryId } = useParams();
+    const createCategoryModalData = useCategoryModuleStore((s) => s.categories.createCategoryModalData);
+    const resetCreateCategoryModalData = useCategoryModuleStore((s) => s.resetCreateCategoryModalData);
+    const mode = createCategoryModalData.mode;
+    const categoryEditId = createCategoryModalData.categoryEditId;
+    const categoryCreateParentId = createCategoryModalData.categoryCreateParentId;
+    const categoryCreateLayer = createCategoryModalData.categoryCreateLayer;
+    const categoryCreateName = createCategoryModalData.categoryCreateName;
+
     const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
         defaultValues: {
@@ -82,17 +88,28 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
             setValue('icon', cat.icon ?? 'layout-grid');
         },
         onError: (error) => {
+            reset();
+            resetCreateCategoryModalData();
             mainModal.close();
             toast.error('Failed to get category:' + error?.message);
         },
     });
 
     useEffect(() => {
+        if (!mainModal.isOpen) return;
         if (categoryEditId && mode === "edit") {
             getCategoryById({ categoryId: categoryEditId });
         }
         // getCategoryById is stable from react-query, safe to depend on
     }, [categoryEditId, getCategoryById, mainModal.isOpen, mode]);
+
+    useEffect(() => {
+        if (!mainModal.isOpen) return;
+        if (mode !== "create") return;
+        if (categoryCreateParentId) {
+            setValue('parentId', categoryCreateParentId, { shouldValidate: true });
+        }
+    }, [categoryCreateName, categoryCreateParentId, mainModal.isOpen, mode, setValue]);
 
     const status = useWatch({ control, name: 'status' });
     const parentId = useWatch({ control, name: 'parentId' });
@@ -103,12 +120,13 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
         storeId: storeId,
         onSuccess: () => {
             toast.success('Category created successfully');
-            refetchCategoryOverview();
+            onCategoryCreatedCallback();
             reset();
+            resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
-            toast.error('Failed to create category:' + error?.message);
+            toast.error(error?.message || 'Failed to create category');
         },
     });
 
@@ -116,12 +134,13 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
         storeId: storeId,
         onSuccess: () => {
             toast.success('Category updated successfully');
-            refetchCategoryOverview();
+            onCategoryCreatedCallback();
             reset();
+            resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
-            toast.error('Failed to update category:' + error?.message);
+            toast.error(error?.message || 'Failed to update category');
         },
     });
 
@@ -157,25 +176,26 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
     };
 
 
-    const isSelectedColorExistsInQuickColors = quickColors.some(c => c.id === color);
-    const quickColorsList = () => {
-        if (!isSelectedColorExistsInQuickColors) {
-            const quickColorsClone = [...quickColors];
-            const appendColor = allColors.find(c => c.id === color);
-            if (appendColor) {
-                quickColorsClone.push(appendColor);
-            }
-            return quickColorsClone;
-        }
-        return quickColors;
-    }
+    const quickColorsList = useMemo(() => {
+        const isSelectedColorExistsInQuickColors = quickColors.some(c => c.id === color);
+        if (isSelectedColorExistsInQuickColors) return quickColors;
+
+        const appendColor = allColors.find(c => c.id === color);
+        if (!appendColor) return quickColors;
+
+        return [...quickColors, appendColor];
+    }, [color]);
 
 
     const onSubmit = (data: CategoryFormValues) => {
-        const layerRequest = id ? undefined : "0"
+        const layerRequest = categoryCreateLayer ? categoryCreateLayer : "0"
         // if parentId is provided, then layer must be get from be first and recheck at be 
-        if (id && !layerRequest) {
+        if (rootCategoryId && !layerRequest) {
             toast.error('Layer is required');
+            return;
+        }
+        if (rootCategoryId && data.parentId === NIL_UUID) {
+            toast.error('Parent ID is required');
             return;
         }
         if (layerRequest === undefined) {
@@ -186,11 +206,13 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
             toast.error('Store ID is required');
             return;
         }
+        const resolvedParentId =
+            mode === "create" && categoryCreateParentId ? categoryCreateParentId : data.parentId;
 
         const payload: CreateCategoryRequest = {
             name: data.name,
             status: data.status,
-            parentId: parentId,
+            parentId: resolvedParentId,
             layer: layerRequest,
             description: data.description,
             colorSettings: data.color,
@@ -207,13 +229,31 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
 
     };
 
+    const buildParentCategoryOptions = useMemo(() => {
+        const options: { value: string; label: string }[] = [{
+            value: NIL_UUID,
+            label: 'No Parent (Root Category)',
+        }];
+        if (categoryCreateParentId && categoryCreateParentId !== NIL_UUID) {
+            options.push({
+                value: categoryCreateParentId,
+                label: categoryCreateName?.trim()?.length ? categoryCreateName : categoryCreateParentId,
+            });
+        }
+        return options;
+    }, [categoryCreateName, categoryCreateParentId]);
+
     return (
         <>
             <Modal
                 modalId={mainModal.modalId}
                 isOpen={mainModal.isOpen}
                 isClosing={mainModal.isClosing}
-                onClose={mainModal.close}
+                onClose={() => {
+                    reset();
+                    resetCreateCategoryModalData();
+                    mainModal.close();
+                }}
                 layer={mainModal.layer}
                 maxWidthClass="max-w-2xl"
                 title={mode === "create" ? "Create New Category" : "Edit Category"}
@@ -234,7 +274,7 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2 flex flex-col gap-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category Name</label>
                                 <InputCommon
                                     type="text"
                                     name="name"
@@ -271,12 +311,9 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
                                     name="parentId"
                                     value={parentId}
                                     register={register}
-                                    disabled={!id}
+                                    disabled={true}
                                     options={[
-                                        { value: '', label: 'No Parent (Root Category)' },
-                                        { value: '1', label: 'Products' },
-                                        { value: '2', label: 'Services' },
-                                        { value: '3', label: 'Digital Assets' },
+                                        ...buildParentCategoryOptions,
                                     ]}
                                     icon={LayoutGrid}
                                 />
@@ -300,7 +337,7 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
                                 </label>
                                 <div className="flex items-center gap-3">
                                     <div className="flex gap-2 duration-200 transition-all">
-                                        {quickColorsList().map((c) => (
+                                        {quickColorsList.map((c) => (
                                             <button
                                                 key={c.id}
                                                 type="button"

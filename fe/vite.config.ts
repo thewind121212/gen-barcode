@@ -4,7 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  // In some sandboxed environments `.env.local` may be unreadable (ignored file),
+  // so we fall back to process.env to keep builds working.
+  let env: Record<string, string> = {}
+  try {
+    env = loadEnv(mode, process.cwd(), '')
+  } catch {
+    env = process.env as unknown as Record<string, string>
+  }
   return {
     // Base path for assets: prefer VITE_BASE_URL, then VITE_WEBSITE_BASE_URL, fallback '/'
     base: env.VITE_BASE_URL || '/',

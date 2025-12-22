@@ -6,7 +6,7 @@ import Session from "supertokens-node/recipe/session";
 
 import type ErrorResponse from "@Ciri/core/interfaces/error-response";
 
-import { guardStoreid } from "@Ciri/config";
+import { GUARD_STOREID } from "@Ciri/config";
 import { getPrisma } from "@Ciri/core/prisma";
 import { ErrorResponses } from "@Ciri/core/utils/error-response";
 
@@ -39,7 +39,7 @@ function extractStoreId(req: Request): string | undefined {
 
 export function guardHaveStoreId(route: string): boolean {
   const topic = route.split("/")[1];
-  if (guardStoreid.includes(topic)) {
+  if (GUARD_STOREID.includes(topic)) {
     return true;
   }
   return false;

@@ -5,6 +5,7 @@ import LoadingScreen from "@Jade/components/loading/AppLoader";
 import SplashScreen from "@Jade/components/loading/SplashScreen";
 import { Sidebar } from "@Jade/components/nav-bar/net";
 import CategoryPage from "@Jade/page/Category";
+import CategoryDetailPage from "@Jade/page/CategoryDetail";
 import { store } from '@Jade/store/global.store';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
@@ -65,9 +66,9 @@ function ProtectedLayout() {
             setActiveTab={() => { }}
             onSignOut={() => { }}
           />}
-          <div className={`flex justify-center items-start bg-gray-50 dark:bg-gray-950 h-screen ${isOnboarding ? 'ml-0' : 'ml-20'}`}
+          <div className={`flex justify-center items-start bg-gray-50 min-h-screen dark:bg-gray-950 ${isOnboarding ? 'ml-0' : 'ml-20'}`}
           >
-            <div className="w-full h-full max-w-7xl p-4 md:p-10 lg:p-15 py-0!">
+            <div className="w-full h-auto max-w-7xl p-4 md:p-10 lg:p-15 py-0! pb-5!">
               <Outlet />
             </div>
           </div>
@@ -104,7 +105,8 @@ function App() {
               <Route path="/" element={<CategoryPage />} />
               <Route path="/barcode-generator" element={<Generator />} />
               <Route path="/categories" element={<CategoryPage />} />
-              <Route path="/categories/:id" element={<CategoryPage />} />
+              {/* this is the page for the category detail */}
+              <Route path="/categories/:rootCategoryId" element={<CategoryDetailPage />} />
               <Route path="/onboarding" element={<OnboardingComponent />} />
               <Route path="/printer" element={<Generator />} />
               <Route path="/settings" element={<Generator />} />

@@ -152,6 +152,27 @@ const buildHeaders = (storeId?: string) => ({
   ...(storeId ? { "x-store-id": storeId } : {}),
 });
 
+const buildQueryString = (request: Record<string, unknown>) => {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(request)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item === undefined || item === null) {
+          continue;
+        }
+        params.append(key, String(item));
+      }
+      continue;
+    }
+    params.set(key, String(value));
+  }
+  const qs = params.toString();
+  return qs ? \`?\${qs}\` : "";
+};
+
 `;
 
   if (apiVersionConfig) {
@@ -205,13 +226,14 @@ const API_VERSION_PREFIX = API_VERSION_PATHS[API_VERSION];
     const funcName = toCamelCase(method.name);
 
     if (method.httpMethod === "get") {
-      const urlTemplate = apiVersionConfig
-        ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}?\${params}\``
-        : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}?\${params}\``;
-
       output += `export const ${funcName} = async (request: ${method.requestType}, storeId?: string): Promise<${method.responseType}> => {
-  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
-  const response = await fetch(${urlTemplate}, {
+  const baseUrl = ${
+        apiVersionConfig
+          ? `\`\${API_BASE_URL}/\${API_VERSION_PREFIX}/${packageName}/${method.httpPath}\``
+          : `\`\${API_BASE_URL}/${packageName}/${method.httpPath}\``
+      };
+  const url = \`\${baseUrl}\${buildQueryString(request as unknown as Record<string, unknown>)}\`;
+  const response = await fetch(url, {
     method: "GET",
     headers: buildHeaders(storeId),
     credentials: "include",
@@ -339,6 +361,7 @@ const generateBackendRoutes = (methods: RpcMethod[], packageName: string): strin
   const serviceFileName = `${packageName}.service`;
 
   const hasBodyMethods = methods.some((m) => m.httpMethod !== "get");
+  const hasQueryMethods = methods.some((m) => m.httpMethod === "get");
 
   // Collect all response types (GET handlers don't need request types here)
   const responseTypes = methods.map((m) => m.responseType);
@@ -346,7 +369,7 @@ const generateBackendRoutes = (methods: RpcMethod[], packageName: string): strin
 
   let output = "";
 
-  if (hasBodyMethods) {
+  if (hasBodyMethods || hasQueryMethods) {
     output += `import type { z } from "zod";
 
 import express from "express";
@@ -360,10 +383,8 @@ import type { ${typeImports.join(", ")} } from "@Ciri/types/${packageName}";
 `;
   }
 
-  // Import each schema from its own DTO file (non-GET only)
-  methods
-    .filter((method) => method.httpMethod !== "get")
-    .forEach((method) => {
+  // Import each schema from its own DTO file
+  methods.forEach((method) => {
       const schemaName = `${toCamelCase(method.name)}Schema`;
       const dtoImportPath = `@Ciri/core/dto/${packageName}/${toKebabCase(method.name)}.dto`;
       output += `
@@ -375,7 +396,14 @@ import { ${schemaName} } from "${dtoImportPath}";
 import { ${serviceName} } from "@Ciri/core/services/${serviceFileName}";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
-import { getValidatedBody, validateBody } from "@Ciri/core/utils/validation";
+import { ${
+    [
+      hasBodyMethods ? "getValidatedBody, validateBody" : null,
+      hasQueryMethods ? "getValidatedQuery, validateQuery" : null,
+    ]
+      .filter(Boolean)
+      .join(", ")
+  } } from "@Ciri/core/utils/validation";
 
 const router = express.Router();
 const ${toCamelCase(serviceName)} = new ${serviceName}();
@@ -387,7 +415,11 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
     let responseServicesName = `${toCamelCase(method.name)}ResponseServices`;
     responseServicesName = responseServicesName.charAt(0).toUpperCase() + responseServicesName.slice(1);
 
-    if (method.httpMethod !== "get") {
+    if (method.httpMethod === "get") {
+      const schemaName = `${toCamelCase(method.name)}Schema`;
+      const typeName = `${method.name}RequestQuery`;
+      output += `export type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
+    } else {
       const schemaName = `${toCamelCase(method.name)}Schema`;
       const typeName = `${method.name}RequestBody`;
       output += `export type ${typeName} = z.infer<typeof ${schemaName}>;\n`;
@@ -406,12 +438,16 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
     const serviceMethod = method.name;
 
     if (method.httpMethod === "get") {
+      const schemaName = `${toCamelCase(method.name)}Schema`;
+      const typeName = `${method.name}RequestQuery`;
       output += `router.get(
   "/${method.httpPath}",
+  validateQuery<${typeName}>(${schemaName}),
   async (req, res, next): Promise<void> => {
     try {
       const ctx = getContext(req);
-      const response = await ${toCamelCase(serviceName)}.${serviceMethod}(ctx);
+      const validatedQuery = getValidatedQuery<${typeName}>(req);
+      const response = await (${toCamelCase(serviceName)} as unknown as any).${serviceMethod}(ctx, validatedQuery);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;
@@ -535,11 +571,8 @@ export const GenerateApi = (
 
   // Generate one DTO file per RPC method.
   // If a DTO file already exists for a method, we DO NOT overwrite it.
-  // If the method is a get method, we DO NOT generate a DTO file.
+  // For GET methods, the schema is used to validate `req.query`.
   methods.forEach((method) => {
-    if (method.httpMethod === "get") {
-      return;
-    }
     const schemaName = `${toCamelCase(method.name)}Schema`;
     const dtoName = `${method.name}Dto`;
     const dtoFileName = `${toKebabCase(method.name)}.dto.ts`;
@@ -547,7 +580,7 @@ export const GenerateApi = (
 
     const dtoContent = `import { z } from "zod/v4";
 
-// Schema used to validate the ${toCamelCase(method.name)} request body
+// Schema used to validate the ${toCamelCase(method.name)} request ${method.httpMethod === "get" ? "query" : "body"}
 export const ${schemaName} = z.object({
   // TODO: Add validation rules
 });

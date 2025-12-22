@@ -56,6 +56,11 @@ message GetCategoryOverviewRequest {
   string storeId = 1;
 }
 
+message GetCategoryOverviewWithDepthRequest {
+  string storeId = 1;
+  int32 depth = 2;
+}
+
 message GetCategoryByIdRequest {
    string categoryId = 1;
 }
@@ -66,6 +71,14 @@ message RemoveCategoryRequest {
 
 message RemoveCategoryResponse {
   int32 removedCount = 1;
+}
+
+message GetCategoryTreeRequest {
+  string categoryId = 1;
+}
+
+message GetCategoryTreeResponse {
+  repeated CategoryResponse categoryTree = 1;
 }
 
 service UserService {
@@ -96,6 +109,18 @@ service UserService {
   rpc GetCategoryOverview(GetCategoryOverviewRequest) returns (GetCategoryOverviewResponse) {
     option (google.api.http) = {
       get: "/v1/category/GetCategoryOverview"
+      body: "*"
+    };
+  }
+  rpc GetCategoryOverviewWithDepth(GetCategoryOverviewWithDepthRequest) returns (GetCategoryOverviewResponse) {
+    option (google.api.http) = {
+      post: "/v1/category/GetCategoryOverviewWithDepth"
+      body: "*"
+    };
+  }
+  rpc GetCategoryTree(GetCategoryTreeRequest) returns (GetCategoryTreeResponse) {
+    option (google.api.http) = {
+      get: "/v1/category/GetCategoryTree"
       body: "*"
     };
   }
