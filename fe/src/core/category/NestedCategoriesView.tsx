@@ -206,7 +206,7 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+          <div className="sticky top-4 bg-indigo-50 p-6 rounded-xl border border-indigo-100">
             <h3 className="font-semibold text-indigo-900 mb-2 flex items-center gap-2">
               <FolderTree size={20} />
               Structure Tips
