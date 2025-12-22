@@ -17,9 +17,9 @@ import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux'
 import { NIL as NIL_UUID } from 'uuid';
 import type { RootState } from '@Jade/store/global.store';
-import type { Mode } from '@Jade/components/category-module/MainCategory';
 import CategorySkeleton from '@Jade/components/category-module/CreateCategoryLoading';
 import type { CreateCategoryRequest } from '@Jade/types/category';
+import { useCategoryModuleStore } from './categoryModule.store';
 
 // Lazy import IconPicker
 const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
@@ -47,16 +47,19 @@ const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
 type CreateCategoryDialogProps = {
     mainModal: UseModalReturn;
     refetchCategoryOverview: () => void;
-    mode?: Mode;
-    categoryEditId?: string;
 };
 
-export default function CreateCategoryDialog({ mainModal, refetchCategoryOverview, mode, categoryEditId }: CreateCategoryDialogProps) {
+export default function CreateCategoryDialog({ mainModal, refetchCategoryOverview }: CreateCategoryDialogProps) {
     const colorModal = useModal(ModalId.COLOR);
     const iconModal = useModal(ModalId.ICON);
     const storeId = useSelector((state: RootState) => state.app.storeId);
     const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
     const { id } = useParams();
+    const createCategoryModalData = useCategoryModuleStore((s) => s.categories.createCategoryModalData);
+    const resetCreateCategoryModalData = useCategoryModuleStore((s) => s.resetCreateCategoryModalData);
+    const mode = createCategoryModalData.mode;
+    const categoryEditId = createCategoryModalData.categoryEditId;
+
     const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
         defaultValues: {
@@ -82,12 +85,15 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
             setValue('icon', cat.icon ?? 'layout-grid');
         },
         onError: (error) => {
+            reset();
+            resetCreateCategoryModalData();
             mainModal.close();
             toast.error('Failed to get category:' + error?.message);
         },
     });
 
     useEffect(() => {
+        if (!mainModal.isOpen) return;
         if (categoryEditId && mode === "edit") {
             getCategoryById({ categoryId: categoryEditId });
         }
@@ -105,6 +111,7 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
             toast.success('Category created successfully');
             refetchCategoryOverview();
             reset();
+            resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
@@ -118,6 +125,7 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
             toast.success('Category updated successfully');
             refetchCategoryOverview();
             reset();
+            resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
@@ -213,7 +221,11 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
                 modalId={mainModal.modalId}
                 isOpen={mainModal.isOpen}
                 isClosing={mainModal.isClosing}
-                onClose={mainModal.close}
+                onClose={() => {
+                    reset();
+                    resetCreateCategoryModalData();
+                    mainModal.close();
+                }}
                 layer={mainModal.layer}
                 maxWidthClass="max-w-2xl"
                 title={mode === "create" ? "Create New Category" : "Edit Category"}

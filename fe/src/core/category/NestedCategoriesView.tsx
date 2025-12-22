@@ -3,6 +3,8 @@ import { FolderTree, Plus } from "lucide-react";
 import CategoryItem from "@Jade/components/category-module/CategoryItem";
 import { buildCategoryTree, getAllChildIds, type CategoryNode, type FlatCategory } from "@Jade/core/category/categoryTree";
 
+const DEFAULT_EXPAND_ALL = false;
+
 // Dummy data: realistic Vietnamese retail/business category tree (multi-level)
 const INITIAL_CATEGORIES: FlatCategory[] = [
   // Tạp hoá / FMCG
@@ -44,11 +46,7 @@ const INITIAL_CATEGORIES: FlatCategory[] = [
 ];
 
 type NestedCategoriesViewProps = {
-  /** If provided, render only this category as the root (with all its descendants). */
   rootId?: string;
-  /** Expand all nodes by default (dropdown all). */
-  expandAll?: boolean;
-  /** Show/hide the header (useful when embedding inside CategoryDetail page). */
   showHeader?: boolean;
 };
 
@@ -144,8 +142,9 @@ function seedDetailCategories(rootId: string): FlatCategory[] {
   ];
 }
 
-export default function NestedCategoriesView({ rootId, expandAll = false, showHeader = true }: NestedCategoriesViewProps) {
+export default function NestedCategoriesView({ rootId, showHeader = true }: NestedCategoriesViewProps) {
   const [categories, setCategories] = useState<FlatCategory[]>(INITIAL_CATEGORIES);
+  const [expandedAll, setExpandedAll] = useState<boolean>(DEFAULT_EXPAND_ALL);
 
   const derivedCategories = useMemo(() => {
     if (!rootId) return categories;
@@ -199,7 +198,8 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
                 level={0}
                 onAddSub={() => {}}
                 onDelete={handleDeleteCategory}
-                defaultOpen={expandAll}
+                defaultOpen={expandedAll}
+                onExpandToggle={() => setExpandedAll((prev) => !prev)}
               />
             ))
           )}

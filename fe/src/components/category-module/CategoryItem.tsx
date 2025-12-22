@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ChevronRight, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Plus, Trash2 } from "lucide-react";
 import { allColors } from "@Jade/core-design/modal/colorOptions";
 import type { CategoryNode } from "@Jade/core/category/categoryTree";
 
@@ -9,12 +9,9 @@ export type CategoryItemProps = {
   onAddSub: (id: string) => void;
   onDelete: (id: string) => void;
   defaultOpen?: boolean;
-  /**
-   * Optional controlled open state (useful for orchestrated collapse/expand from parent).
-   * When provided, this component will not use its internal open state.
-   */
   controlledOpen?: boolean;
   onToggleOpen?: (nextOpen: boolean) => void;
+  onExpandToggle?: () => void;
 };
 
 export default function CategoryItem({
@@ -25,6 +22,7 @@ export default function CategoryItem({
   defaultOpen = false,
   controlledOpen,
   onToggleOpen,
+  onExpandToggle,
 }: CategoryItemProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [layer2OpenMap, setLayer2OpenMap] = useState<Record<string, boolean>>({});
@@ -35,6 +33,18 @@ export default function CategoryItem({
 
   // Root is always expanded (its direct children visible).
   const effectiveOpen = isRootLayer ? true : (isControlled ? Boolean(controlledOpen) : isOpen);
+
+  // When the parent flips `defaultOpen` (expand/collapse all), make sure every nested item follows.
+  useEffect(() => {
+    if (isRootLayer) {
+      // Reset any per-child overrides so defaultOpen drives layer-2 open state.
+      setLayer2OpenMap({});
+      return;
+    }
+    if (isControlled) return;
+    setIsOpen(defaultOpen);
+  }, [defaultOpen, isControlled, isRootLayer]);
+
   const toggleSelf = () => {
     if (isRootLayer) {
       // Collapse all layer-2 dropdowns (keep layer-2 rows visible, just close their children)
@@ -90,6 +100,20 @@ export default function CategoryItem({
         </div>
 
         <div className="flex items-center gap-2">
+          {isRootLayer && hasChildren && onExpandToggle && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onExpandToggle();
+              }}
+              className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+              title={defaultOpen ? "Collapse all" : "Expand all"}
+              aria-label={defaultOpen ? "Collapse all categories" : "Expand all categories"}
+              type="button"
+            >
+              {defaultOpen ? <ChevronsDownUp size={16} /> : <ChevronsUpDown size={16} />}
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();

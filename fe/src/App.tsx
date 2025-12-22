@@ -66,7 +66,7 @@ function ProtectedLayout() {
             setActiveTab={() => { }}
             onSignOut={() => { }}
           />}
-          <div className={`flex justify-center items-start bg-gray-50 dark:bg-gray-950 ${isOnboarding ? 'ml-0' : 'ml-20'}`}
+          <div className={`flex justify-center items-start bg-gray-50 min-h-screen dark:bg-gray-950 ${isOnboarding ? 'ml-0' : 'ml-20'}`}
           >
             <div className="w-full h-auto max-w-7xl p-4 md:p-10 lg:p-15 py-0!">
               <Outlet />

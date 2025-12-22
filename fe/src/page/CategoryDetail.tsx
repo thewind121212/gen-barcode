@@ -29,8 +29,7 @@ export default function CategoryDetail() {
         </div>
       </div>
 
-      {/* For now: show nested view with dummy data. Later: fetch category + subcategories by categoryId */}
-      <NestedCategoriesView rootId={categoryId} expandAll={true} showHeader={false} />
+      <NestedCategoriesView rootId={categoryId} showHeader={false} />
     </div>
   );
 }

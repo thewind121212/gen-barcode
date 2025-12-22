@@ -3,7 +3,6 @@ import {
   ListMainCategory,
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
 import { Edit2Icon, EyeIcon, Info, LayoutGrid, List, Plus, Trash2Icon } from "lucide-react";
-import { useState } from "react";
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
@@ -14,6 +13,7 @@ import { allColors } from "@Jade/core-design/modal/colorOptions";
 import type { RootState } from "@Jade/store/global.store";
 import type { CategoryResponse } from "@Jade/types/category.d";
 import toast from "react-hot-toast";
+import { useCategoryModuleStore } from "./categoryModule.store";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
@@ -88,14 +88,16 @@ const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
 
 
 const CategoriesView = () => {
-  const [categories] = useState<Category[]>([]);
-  const [items] = useState<Item[]>(INITIAL_ITEMS);
+  const categories: Category[] = [];
+  const items: Item[] = INITIAL_ITEMS;
   const appStoreInfo = useSelector((state: RootState) => state.app)
-  const [categoryViewMode, setCategoryViewMode] = useState<"grid" | "list">(
-    "grid"
-  );
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [editObject, setEditObject] = useState<{ mode: Mode, categoryEditId: string | undefined } | null>(null);
+
+  const categoryViewMode = useCategoryModuleStore((s) => s.categories.mainCategoryViewMode);
+  const activeMenuId = useCategoryModuleStore((s) => s.categories.activeMenuId);
+  const setCategoryViewMode = useCategoryModuleStore((s) => s.setMainCategoryViewMode);
+  const setActiveMenuId = useCategoryModuleStore((s) => s.setActiveMenuId);
+  const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
+
   const mainModal = useModal(ModalId.MAIN);
   const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverview(
     { storeId: appStoreInfo?.storeId || "" },
@@ -164,12 +166,13 @@ const CategoriesView = () => {
     }));
 
   const handleModeDialog = (mode: Mode, categoryEditId?: string) => {
-    if (mode === "edit" && categoryEditId) {
-      setEditObject({ mode, categoryEditId });
-    }
-    else {
-      setEditObject({ mode, categoryEditId: undefined });
-    }
+    if (mode !== "create" && mode !== "edit") return;
+
+    setCreateCategoryModalData({
+      mode,
+      categoryEditId: mode === "edit" ? (categoryEditId ?? null) : null,
+      categoryCreateParentId: null,
+    });
     mainModal.open();
   };
 
@@ -347,10 +350,10 @@ const CategoriesView = () => {
           )}
         </div>
       </div>
-      <CreateCategoryDialog mainModal={mainModal}
+      <CreateCategoryDialog
+        mainModal={mainModal}
         refetchCategoryOverview={refetchCategoryOverview}
-        mode={editObject?.mode}
-        categoryEditId={editObject?.categoryEditId} />
+      />
     </div>
   );
 };
