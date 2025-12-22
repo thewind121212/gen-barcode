@@ -14,6 +14,8 @@ import type { RootState } from "@Jade/store/global.store";
 import type { CategoryResponse } from "@Jade/types/category.d";
 import toast from "react-hot-toast";
 import { useCategoryModuleStore } from "./store";
+import { INITIAL_LAYER } from "@Jade/config";
+import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
@@ -97,8 +99,10 @@ const CategoriesView = () => {
   const setCategoryViewMode = useCategoryModuleStore((s) => s.setMainCategoryViewMode);
   const setActiveMenuId = useCategoryModuleStore((s) => s.setActiveMenuId);
   const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
-
-  const mainModal = useModal(ModalId.MAIN);
+  const setCategoryToDelete = useCategoryModuleStore((s) => s.setCategoryToDelete);
+  const categoryToDelete = useCategoryModuleStore((s) => s.categories.categoryToDelete);
+  const mainModal = useModal(ModalId.MAIN_CATEGORY);
+  const confirmModal = useModal(ModalId.CONFIRM);
   const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverview(
     { storeId: appStoreInfo?.storeId || "" },
     appStoreInfo?.storeId,
@@ -135,7 +139,8 @@ const CategoriesView = () => {
     {
       label: "Delete",
       onClick: (id: string) => {
-        removeCategory({ categoryIds: [id] });
+        setCategoryToDelete(id);
+        confirmModal.open();
       },
       icon: Trash2Icon,
       danger: true,
@@ -171,7 +176,7 @@ const CategoriesView = () => {
       mode,
       categoryEditId: mode === "edit" ? (categoryEditId ?? null) : null,
       categoryCreateParentId: null,
-      categoryCreateLayer: "0",
+      categoryCreateLayer: INITIAL_LAYER,
       categoryCreateName: null,
     });
     mainModal.open();
@@ -355,6 +360,24 @@ const CategoriesView = () => {
         mainModal={mainModal}
         onCategoryCreatedCallback={refetchCategoryOverview}
       />
+      <ConfirmModal
+        modal={confirmModal}
+        title="Delete category?"
+        subtitle="This action cannot be undone."
+        isLoading={false}
+        cancelButtonText="Cancel"
+        confirmButtonText="Delete"
+        onClose={() => setCategoryToDelete(null)}
+        onConfirm={() => {
+          if (!categoryToDelete)
+            return;
+          removeCategory({ categoryIds: [categoryToDelete] });
+          confirmModal.close();
+          setCategoryToDelete(null);
+        }}
+      >
+        Are you sure you want to delete this category?
+      </ConfirmModal>
     </div>
   );
 };

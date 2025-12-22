@@ -69,11 +69,15 @@ export const useGetCategoryOverviewWithDepth = ({ storeId, onSuccess, onError }:
     });
 };
 
-export const useGetCategoryTree = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<GetCategoryTreeResponse>) => void, onError?: (error: Error) => void }) => {
-    return useMutation<GetCategoryTreeResponse, Error, GetCategoryTreeRequest>({
-        mutationFn: (request: GetCategoryTreeRequest) => getCategoryTree(request, storeId),
-        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<GetCategoryTreeResponse>),
-        onError: (error) => onError?.(error),
+export const useGetCategoryTree = (
+  request: GetCategoryTreeRequest,
+  storeId?: string,
+  options?: Omit<UseQueryOptions<ApiSuccessResponse<GetCategoryTreeResponse>, Error, ApiSuccessResponse<GetCategoryTreeResponse>>, "queryKey" | "queryFn">,
+) => {
+    return useQuery<ApiSuccessResponse<GetCategoryTreeResponse>, Error, ApiSuccessResponse<GetCategoryTreeResponse>>({
+        queryKey: ["category", "GetCategoryTree", request],
+        queryFn: () => getCategoryTree(request, storeId) as unknown as ApiSuccessResponse<GetCategoryTreeResponse>,
+        ...options,
     });
 };
 

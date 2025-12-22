@@ -8,13 +8,14 @@ import type {
   GetCategoryOverviewResponseServices,
   GetCategoryOverviewWithDepthRequestBody,
   GetCategoryOverviewWithDepthResponseServices,
-  GetCategoryTreeRequestBody,
+  GetCategoryTreeRequestQuery,
   GetCategoryTreeResponseServices,
   RemoveCategoryResponseServices,
   UpdateCategoryRequestBody,
   UpdateCategoryResponseServices,
 } from "@Ciri/core/api/category/category.routes";
 import type { RequestContext } from "@Ciri/core/middlewares";
+import { INITIAL_LAYER, MAX_LAYER } from "@Ciri/config";
 import type { Prisma } from "@Ciri/generated/prisma/client.js";
 import type {
   RemoveCategoryRequest,
@@ -75,16 +76,31 @@ export class CategoryService {
       const storeId = this.ensureStoreId(ctx);
       const parentId = this.ensureParentId(req.parentId);
 
+      if (Number.isNaN(Number(req.layer))) {
+        throw new Error("Layer must be a number");
+      }
+
+      if (req.layer && Number(req.layer) > MAX_LAYER) {
+        throw new Error(`max layer is ${MAX_LAYER}`);
+      }
+
       if (!userId) {
         throw new Error("User ID is required");
       }
 
-      if (req.layer !== "1" && req?.parentId === NIL_UUID) {
+      if (req.layer !== INITIAL_LAYER && req?.parentId === NIL_UUID) {
         throw new Error("Parent ID is required");
       }
+      // Trust the layer from the query 
+       let layer = Number(req.layer)
 
-      if (req.layer !== "1" && parentId && req?.parentId) {
+
+      if (parentId && req?.parentId && parentId !== NIL_UUID) {
         const parent = await this.categoryRepo.findById(req.parentId, storeId);
+        layer = Number(parent?.layer) + 1
+        if (layer > MAX_LAYER) {
+          throw new Error(`max layer is ${MAX_LAYER}`);
+        }
         if (!parent) {
           throw new Error("Parent category not found in this store");
         }
@@ -95,7 +111,7 @@ export class CategoryService {
         description: req.description,
         colorSettings: req.colorSettings,
         status: req.status,
-        layer: req.layer,
+        layer: layer.toString(),
         icon: req.icon,
         store: { connect: { id: storeId } },
       };
@@ -158,7 +174,7 @@ export class CategoryService {
 
       const categories = await this.categoryRepo.findByIds(req.categoryIds, storeId);
 
-      const allowDeleteIds = categories.filter(category => (category.parentId === NIL_UUID || !category.parentId) && category.layer === "0").map(category => category.id);
+      const allowDeleteIds = categories.filter(category => (category.parentId === NIL_UUID || !category.parentId) && category.layer === INITIAL_LAYER.toString()).map(category => category.id);
       if (allowDeleteIds.length !== req.categoryIds.length) {
         return { resData: null, error: "No categories can be deleted" };
       }
@@ -293,7 +309,7 @@ export class CategoryService {
 
   async GetCategoryTree(
     ctx: RequestContext,
-    req: GetCategoryTreeRequestBody,
+    req: GetCategoryTreeRequestQuery,
   ): Promise<GetCategoryTreeResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);

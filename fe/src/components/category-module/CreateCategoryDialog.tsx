@@ -4,7 +4,6 @@ import Select from '@Jade/core-design/input/Select';
 import ColorPicker from '@Jade/core-design/modal/ColorPicker';
 import { allColors, quickColors } from '@Jade/core-design/modal/colorOptions';
 import type { IconName } from '@Jade/core-design/modal/IconPicker';
-import Modal from '@Jade/core-design/modal/ModalBase';
 import { ModalId, useModal, type UseModalReturn } from '@Jade/core-design/modal/useModal';
 import { yupResolver } from "@hookform/resolvers/yup";
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
@@ -21,6 +20,8 @@ import CategorySkeleton from '@Jade/components/category-module/CreateCategoryLoa
 import type { CreateCategoryRequest } from '@Jade/types/category';
 import { useCategoryModuleStore } from './store';
 
+
+const Modal = lazy(() => import('@Jade/core-design/modal/ModalBase'));
 const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
 
 type CategoryStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
@@ -183,7 +184,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
         if (!appendColor) return quickColors;
 
         return [...quickColors, appendColor];
-    }, [color, quickColors]);
+    }, [color]);
 
 
     const onSubmit = (data: CategoryFormValues) => {

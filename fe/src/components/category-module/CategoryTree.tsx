@@ -1,4 +1,4 @@
-import { lazy, useEffect, useMemo, useState } from "react";
+import { lazy, useEffect, useMemo, useRef, useState } from "react";
 import { FolderTree, Plus } from "lucide-react";
 import { NIL as NIL_UUID } from "uuid";
 import CategoryItem from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
@@ -11,6 +11,8 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@Jade/store/global.store";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import type { CategoryResponse } from "@Jade/types/category.d";
+import { MAX_LAYER } from "@Jade/config";
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 const DEFAULT_EXPAND_ALL = false;
@@ -153,28 +155,55 @@ function seedDetailCategories(rootId: string): FlatCategory[] {
 }
 
 export default function NestedCategoriesView({ rootId, showHeader = true }: NestedCategoriesViewProps) {
-  const categories = INITIAL_CATEGORIES;
   const [expandedAll, setExpandedAll] = useState<boolean>(DEFAULT_EXPAND_ALL);
   const mainModal = useModal(ModalId.CREATE_CATEGORY_FROM_TREE);
   const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
   const storeInfo = useSelector((state: RootState) => state.app);
   const { rootCategoryId } = useParams();
+  const lastCategoryTreeErrorRef = useRef<string | null>(null);
 
-  const { mutate: getCategoryTree, isPending: isLoadingGetCategoryTree } = useGetCategoryTree({
-    storeId: storeInfo?.storeId,
-    onSuccess: (data) => {
-      console.log(data);
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const categoryTreeRequest = useMemo(() => ({
+    categoryId: rootCategoryId ?? "",
+  }), [rootCategoryId]);
+
+  const {
+    data: getCategoryTree,
+    error: getCategoryTreeError,
+    refetch: refetchGetCategoryTree,
+  } = useGetCategoryTree(
+    categoryTreeRequest,
+    storeInfo?.storeId ?? "",
+    { enabled: Boolean(rootCategoryId && storeInfo?.storeId) },
+  );
+
+  const apiCategories = useMemo<FlatCategory[] | null>(() => {
+    const tree: CategoryResponse[] = getCategoryTree?.data?.categoryTree ?? [];
+    const mapped: FlatCategory[] = tree
+      .filter((c) => Boolean(c.categoryId))
+      .map((c) => ({
+        id: c.categoryId ?? "",
+        name: c.name ?? "Unnamed",
+        parentId: c.parentId && c.parentId !== NIL_UUID ? c.parentId : null,
+        colorId: c.colorSettings ?? "slate-400",
+        layer: c.layer ?? "1",
+      }));
+    return mapped.length ? mapped : null;
+  }, [getCategoryTree]);
+
+  const categories = apiCategories ?? INITIAL_CATEGORIES;
 
   useEffect(() => {
-    if (!storeInfo?.storeId || isLoadingGetCategoryTree) return
-    if (!rootCategoryId) return
-    getCategoryTree({ categoryId: rootCategoryId });
-  }, [storeInfo?.storeId, getCategoryTree]);
+    if (!getCategoryTreeError) {
+      lastCategoryTreeErrorRef.current = null;
+      return;
+    }
+    const message = getCategoryTreeError.message;
+    if (lastCategoryTreeErrorRef.current === message) {
+      return;
+    }
+    lastCategoryTreeErrorRef.current = message;
+    toast.error(message, { id: "get-category-tree-error" });
+  }, [getCategoryTreeError]);
 
   const derivedCategories = useMemo(() => {
     if (!rootId) return categories;
@@ -200,11 +229,17 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
       toast.error("Parent ID is required");
       return
     }
+    // The add layer create so we need to add plus one to current layer to next layer
+    const layer = Number(payload.categoryCreateLayer) + 1
+    if (layer > MAX_LAYER) {
+      toast.error(`max layer is ${MAX_LAYER}`);
+      return
+    }
     setCreateCategoryModalData({
       mode: payload.mode,
       categoryEditId: payload.mode === "edit" ? (payload.categoryEditId ?? null) : null,
       categoryCreateParentId: payload.categoryCreateParentId,
-      categoryCreateLayer: payload.categoryCreateLayer,
+      categoryCreateLayer: layer.toString(),
       categoryCreateName: payload.categoryCreateName,
     });
     mainModal.open();
@@ -265,7 +300,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
         </div>
         <CreateCategoryDialog
           mainModal={mainModal}
-          onCategoryCreatedCallback={() => { }}
+          onCategoryCreatedCallback={refetchGetCategoryTree}
         />
       </div>
     </div>

@@ -9,6 +9,27 @@ const buildHeaders = (storeId?: string) => ({
   ...(storeId ? { "x-store-id": storeId } : {}),
 });
 
+const buildQueryString = (request: Record<string, unknown>) => {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(request)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item === undefined || item === null) {
+          continue;
+        }
+        params.append(key, String(item));
+      }
+      continue;
+    }
+    params.set(key, String(value));
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+};
+
 
 export enum ApiVersion {
   API_VERSION_UNSPECIFIED = 0,
@@ -102,8 +123,9 @@ export const updateCategory = async (request: UpdateCategoryRequest, storeId?: s
 };
 
 export const getCategoryOverview = async (request: GetCategoryOverviewRequest, storeId?: string): Promise<GetCategoryOverviewResponse> => {
-  const params = new URLSearchParams(request as unknown as Record<string, string>).toString();
-  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryOverview?${params}`, {
+  const baseUrl = `${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryOverview`;
+  const url = `${baseUrl}${buildQueryString(request as unknown as Record<string, unknown>)}`;
+  const response = await fetch(url, {
     method: "GET",
     headers: buildHeaders(storeId),
     credentials: "include",
@@ -140,11 +162,12 @@ export const getCategoryOverviewWithDepth = async (request: GetCategoryOverviewW
 };
 
 export const getCategoryTree = async (request: GetCategoryTreeRequest, storeId?: string): Promise<GetCategoryTreeResponse> => {
-  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryTree`, {
-    method: "POST",
+  const baseUrl = `${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryTree`;
+  const url = `${baseUrl}${buildQueryString(request as unknown as Record<string, unknown>)}`;
+  const response = await fetch(url, {
+    method: "GET",
     headers: buildHeaders(storeId),
     credentials: "include",
-    body: JSON.stringify(request),
   });
 
   const data = await response.json();

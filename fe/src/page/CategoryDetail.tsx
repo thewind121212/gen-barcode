@@ -1,10 +1,11 @@
 import NestedCategoriesView from "@Jade/components/category-module/CategoryTree";
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 
 export default function CategoryDetail() {
   const { rootCategoryId } = useParams();
   const categoryId = useMemo(() => (rootCategoryId ? decodeURIComponent(rootCategoryId) : ""), [rootCategoryId]);
+  const location = useLocation()
 
   return (
     <div className="space-y-6 pt-10">
@@ -17,9 +18,9 @@ export default function CategoryDetail() {
             <span className="mx-2">/</span>
             <span
               className="font-semibold text-slate-700 dark:text-slate-200 font-mono"
-              title={categoryId || "Unknown"}
+              title={location.state?.categoryName || "Unknown"}
             >
-              {categoryId || "Unknown"}
+              {location.state?.categoryName || "Unknown"}
             </span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Category Detail</h1>
