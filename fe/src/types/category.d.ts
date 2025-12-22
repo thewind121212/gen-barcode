@@ -63,4 +63,12 @@ export interface RemoveCategoryRequest {
 export interface RemoveCategoryResponse {
   removedCount: number;
 }
+
+export interface GetCategoryTreeRequest {
+  categoryId: string;
+}
+
+export interface GetCategoryTreeResponse {
+  categoryTree: CategoryResponse[];
+}
 //==================================================

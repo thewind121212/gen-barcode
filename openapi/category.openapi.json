@@ -203,6 +203,37 @@
           }
         }
       }
+    },
+    "/category/GetCategoryTree": {
+      "post": {
+        "operationId": "GetCategoryTree",
+        "summary": "GetCategoryTree",
+        "tags": [
+          "category"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetCategoryTreeResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetCategoryTreeRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -396,6 +427,28 @@
         "required": [
           "removedCount"
         ]
+      },
+      "GetCategoryTreeRequest": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "categoryId"
+        ]
+      },
+      "GetCategoryTreeResponse": {
+        "type": "object",
+        "properties": {
+          "categoryTree": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryResponse"
+            }
+          }
+        }
       }
     }
   }

@@ -1,6 +1,6 @@
 //==== This is code generated
 import Session from "supertokens-auth-react/recipe/session";
-import type { CategoryResponse, CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, GetCategoryOverviewWithDepthRequest, RemoveCategoryRequest, RemoveCategoryResponse, UpdateCategoryRequest, UpdateCategoryResponse } from "@Jade/types/category.d";
+import type { CategoryResponse, CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, GetCategoryOverviewWithDepthRequest, GetCategoryTreeRequest, GetCategoryTreeResponse, RemoveCategoryRequest, RemoveCategoryResponse, UpdateCategoryRequest, UpdateCategoryResponse } from "@Jade/types/category.d";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -122,6 +122,25 @@ export const getCategoryOverview = async (request: GetCategoryOverviewRequest, s
 
 export const getCategoryOverviewWithDepth = async (request: GetCategoryOverviewWithDepthRequest, storeId?: string): Promise<GetCategoryOverviewResponse> => {
   const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryOverviewWithDepth`, {
+    method: "POST",
+    headers: buildHeaders(storeId),
+    credentials: "include",
+    body: JSON.stringify(request),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok && data.success === false) {
+    throw new Error(data.error.message);
+  }
+
+  await Session.doesSessionExist();
+
+  return data;
+};
+
+export const getCategoryTree = async (request: GetCategoryTreeRequest, storeId?: string): Promise<GetCategoryTreeResponse> => {
+  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryTree`, {
     method: "POST",
     headers: buildHeaders(storeId),
     credentials: "include",

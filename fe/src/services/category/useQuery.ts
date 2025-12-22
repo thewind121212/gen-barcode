@@ -1,6 +1,6 @@
 // this is code generated usequery for api
 import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { CategoryResponse, CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, GetCategoryOverviewWithDepthRequest, RemoveCategoryRequest, RemoveCategoryResponse, UpdateCategoryRequest, UpdateCategoryResponse } from "@Jade/types/category.d";
+import type { CategoryResponse, CreateCategoryRequest, CreateCategoryResponse, GetCategoryByIdRequest, GetCategoryOverviewRequest, GetCategoryOverviewResponse, GetCategoryOverviewWithDepthRequest, GetCategoryTreeRequest, GetCategoryTreeResponse, RemoveCategoryRequest, RemoveCategoryResponse, UpdateCategoryRequest, UpdateCategoryResponse } from "@Jade/types/category.d";
 import {
     createCategory,
     getCategoryById,
@@ -8,6 +8,7 @@ import {
     updateCategory,
     getCategoryOverview,
     getCategoryOverviewWithDepth,
+    getCategoryTree,
 } from "./api";
 
 type ApiSuccessResponse<T> = {
@@ -64,6 +65,14 @@ export const useGetCategoryOverviewWithDepth = ({ storeId, onSuccess, onError }:
     return useMutation<GetCategoryOverviewResponse, Error, GetCategoryOverviewWithDepthRequest>({
         mutationFn: (request: GetCategoryOverviewWithDepthRequest) => getCategoryOverviewWithDepth(request, storeId),
         onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<GetCategoryOverviewResponse>),
+        onError: (error) => onError?.(error),
+    });
+};
+
+export const useGetCategoryTree = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<GetCategoryTreeResponse>) => void, onError?: (error: Error) => void }) => {
+    return useMutation<GetCategoryTreeResponse, Error, GetCategoryTreeRequest>({
+        mutationFn: (request: GetCategoryTreeRequest) => getCategoryTree(request, storeId),
+        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<GetCategoryTreeResponse>),
         onError: (error) => onError?.(error),
     });
 };
