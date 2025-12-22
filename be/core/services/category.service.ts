@@ -15,12 +15,12 @@ import type {
   UpdateCategoryResponseServices,
 } from "@Ciri/core/api/category/category.routes";
 import type { RequestContext } from "@Ciri/core/middlewares";
-import { INITIAL_LAYER, MAX_LAYER } from "@Ciri/config";
 import type { Prisma } from "@Ciri/generated/prisma/client.js";
 import type {
   RemoveCategoryRequest,
 } from "@Ciri/types/category";
 
+import { INITIAL_LAYER, MAX_LAYER } from "@Ciri/config";
 import { CategoryRepository } from "@Ciri/core/repo/category.repo";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
 
@@ -77,7 +77,7 @@ export class CategoryService {
       const parentId = this.ensureParentId(req.parentId);
 
       if (Number.isNaN(Number(req.layer))) {
-        throw new Error("Layer must be a number");
+        throw new TypeError("Layer must be a number");
       }
 
       if (req.layer && Number(req.layer) > MAX_LAYER) {
@@ -91,13 +91,12 @@ export class CategoryService {
       if (req.layer !== INITIAL_LAYER && req?.parentId === NIL_UUID) {
         throw new Error("Parent ID is required");
       }
-      // Trust the layer from the query 
-       let layer = Number(req.layer)
-
+      // Trust the layer from the query
+      let layer = Number(req.layer);
 
       if (parentId && req?.parentId && parentId !== NIL_UUID) {
         const parent = await this.categoryRepo.findById(req.parentId, storeId);
-        layer = Number(parent?.layer) + 1
+        layer = Number(parent?.layer) + 1;
         if (layer > MAX_LAYER) {
           throw new Error(`max layer is ${MAX_LAYER}`);
         }

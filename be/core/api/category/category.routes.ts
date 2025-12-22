@@ -5,62 +5,56 @@ import express from "express";
 import type { CategoryResponse, CreateCategoryResponse, GetCategoryOverviewResponse, GetCategoryTreeResponse, RemoveCategoryResponse, UpdateCategoryResponse } from "@Ciri/types/category";
 
 import { createCategorySchema } from "@Ciri/core/dto/category/create-category.dto";
-
 import { getCategoryByIdSchema } from "@Ciri/core/dto/category/get-category-by-id.dto";
-
-import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
-
-import { updateCategorySchema } from "@Ciri/core/dto/category/update-category.dto";
-
-import { getCategoryOverviewSchema } from "@Ciri/core/dto/category/get-category-overview.dto";
-
 import { getCategoryOverviewWithDepthSchema } from "@Ciri/core/dto/category/get-category-overview-with-depth.dto";
-
+import { getCategoryOverviewSchema } from "@Ciri/core/dto/category/get-category-overview.dto";
 import { getCategoryTreeSchema } from "@Ciri/core/dto/category/get-category-tree.dto";
+import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
+import { updateCategorySchema } from "@Ciri/core/dto/category/update-category.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { CategoryService } from "@Ciri/core/services/category.service";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
-import { getValidatedBody, validateBody, getValidatedQuery, validateQuery } from "@Ciri/core/utils/validation";
+import { getValidatedBody, getValidatedQuery, validateBody, validateQuery } from "@Ciri/core/utils/validation";
 
 const router = express.Router();
 const categoryService = new CategoryService();
 
 export type CreateCategoryRequestBody = z.infer<typeof createCategorySchema>;
 export type CreateCategoryResponseServices = {
-      resData: CreateCategoryResponse | null;
-      error: string | null;
-    };
+  resData: CreateCategoryResponse | null;
+  error: string | null;
+};
 export type GetCategoryByIdRequestBody = z.infer<typeof getCategoryByIdSchema>;
 export type GetCategoryByIdResponseServices = {
-      resData: CategoryResponse | null;
-      error: string | null;
-    };
+  resData: CategoryResponse | null;
+  error: string | null;
+};
 export type RemoveCategoryRequestBody = z.infer<typeof removeCategorySchema>;
 export type RemoveCategoryResponseServices = {
-      resData: RemoveCategoryResponse | null;
-      error: string | null;
-    };
+  resData: RemoveCategoryResponse | null;
+  error: string | null;
+};
 export type UpdateCategoryRequestBody = z.infer<typeof updateCategorySchema>;
 export type UpdateCategoryResponseServices = {
-      resData: UpdateCategoryResponse | null;
-      error: string | null;
-    };
+  resData: UpdateCategoryResponse | null;
+  error: string | null;
+};
 export type GetCategoryOverviewRequestQuery = z.infer<typeof getCategoryOverviewSchema>;
 export type GetCategoryOverviewResponseServices = {
-      resData: GetCategoryOverviewResponse | null;
-      error: string | null;
-    };
+  resData: GetCategoryOverviewResponse | null;
+  error: string | null;
+};
 export type GetCategoryOverviewWithDepthRequestBody = z.infer<typeof getCategoryOverviewWithDepthSchema>;
 export type GetCategoryOverviewWithDepthResponseServices = {
-      resData: GetCategoryOverviewResponse | null;
-      error: string | null;
-    };
+  resData: GetCategoryOverviewResponse | null;
+  error: string | null;
+};
 export type GetCategoryTreeRequestQuery = z.infer<typeof getCategoryTreeSchema>;
 export type GetCategoryTreeResponseServices = {
-      resData: GetCategoryTreeResponse | null;
-      error: string | null;
-    };
+  resData: GetCategoryTreeResponse | null;
+  error: string | null;
+};
 
 router.post(
   "/CreateCategory",
