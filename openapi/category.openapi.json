@@ -205,7 +205,7 @@
       }
     },
     "/category/GetCategoryTree": {
-      "post": {
+      "get": {
         "operationId": "GetCategoryTree",
         "summary": "GetCategoryTree",
         "tags": [
@@ -223,16 +223,16 @@
             }
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCategoryTreeRequest"
-              }
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        }
+        ]
       }
     }
   },

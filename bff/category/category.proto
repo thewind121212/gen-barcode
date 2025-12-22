@@ -120,7 +120,7 @@ service UserService {
   }
   rpc GetCategoryTree(GetCategoryTreeRequest) returns (GetCategoryTreeResponse) {
     option (google.api.http) = {
-      post: "/v1/category/GetCategoryTree"
+      get: "/v1/category/GetCategoryTree"
       body: "*"
     };
   }

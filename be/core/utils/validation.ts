@@ -34,3 +34,25 @@ export function validateBody<T>(schema: ZodType<T>) {
 export function getValidatedBody<T>(req: Request): T {
   return (req as RequestWithValidatedBody<T>).validatedBody;
 }
+
+type RequestWithValidatedQuery<T> = {
+  validatedQuery: T;
+} & Request;
+
+export function validateQuery<T>(schema: ZodType<T>) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.query);
+
+    if (!result.success) {
+      const firstIssue = result.error.issues[0];
+      return ErrorResponses.badRequest(res, firstIssue?.message ?? "Invalid query parameters");
+    }
+
+    (req as RequestWithValidatedQuery<T>).validatedQuery = result.data;
+    next();
+  };
+}
+
+export function getValidatedQuery<T>(req: Request): T {
+  return (req as RequestWithValidatedQuery<T>).validatedQuery;
+}

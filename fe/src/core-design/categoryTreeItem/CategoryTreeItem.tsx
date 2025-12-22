@@ -58,7 +58,7 @@ export default function CategoryItem({
         const next: Record<string, boolean> = { ...prev };
         node.children.forEach((child) => {
           next[child.id] = false;
-        });
+        }); 
         return next;
       });
       return;
@@ -123,7 +123,7 @@ export default function CategoryItem({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onAddSub({ mode: "create", categoryCreateParentId: node.id, categoryCreateLayer: node.layer });
+              onAddSub({ mode: "create", categoryCreateParentId: node.id, categoryCreateLayer: node.layer, categoryCreateName: node.name });
             }}
             className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors text-xs flex items-center gap-1"
             title="Add Subcategory"

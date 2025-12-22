@@ -25,7 +25,11 @@ export const CardMainCategory = ({
   const navigate = useNavigate();
   const IconComponent = useMemo(() => getLucideIconComponent(cat.icon), [cat.icon]);
   const fallbackIcon = <LucideIcons.LayoutGrid size={16} />;
-  const handleNavigate = () => navigate(`/categories/${cat.id}`);
+  const handleNavigate = () => navigate(`/categories/${cat.id}` , {
+    state: {
+      categoryName: cat.name,
+    },
+  });
 
   return (
     <div onClick={handleNavigate} role="button" tabIndex={0}>
@@ -80,7 +84,6 @@ export const CardMainCategory = ({
           className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-50 px-2 py-1 rounded cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
-            console.log("Subcategories clicked");
           }}
         >
           <FolderTree size={12} />
@@ -92,7 +95,6 @@ export const CardMainCategory = ({
             className="flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              console.log("Low stock clicked");
             }}
           >
             <AlertTriangle size={12} />
