@@ -51,6 +51,19 @@ export default function CategoryItem({
     setIsOpen(defaultOpen);
   }, [defaultOpen, isControlled]);
 
+  useLayoutEffect(() => {
+    if (!isRootLayer) return;
+    if (!hasChildren) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLayer2OpenMap(() => {
+      const next: Record<string, boolean> = {};
+      node.children.forEach((child) => {
+        next[child.id] = defaultOpen;
+      });
+      return next;
+    });
+  }, [defaultOpen, hasChildren, isRootLayer, node.children]);
+
 
   const toggleSelf = () => {
     if (isRootLayer) {
