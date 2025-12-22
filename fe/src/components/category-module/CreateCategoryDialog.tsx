@@ -1,4 +1,4 @@
-import { lazy, useEffect, useState } from 'react';
+import { lazy, useEffect, useMemo, useState } from 'react';
 import InputCommon from '@Jade/core-design/input/CommonInput';
 import Select from '@Jade/core-design/input/Select';
 import ColorPicker from '@Jade/core-design/modal/ColorPicker';
@@ -60,13 +60,14 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
     const categoryEditId = createCategoryModalData.categoryEditId;
     const categoryCreateParentId = createCategoryModalData.categoryCreateParentId;
     const categoryCreateLayer = createCategoryModalData.categoryCreateLayer;
+    const categoryCreateName = createCategoryModalData.categoryCreateName;
 
     const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
         defaultValues: {
             name: '',
             status: 'ACTIVE',
-            parentId: categoryCreateParentId ? categoryCreateParentId : NIL_UUID,
+            parentId: NIL_UUID,
             description: '',
             color: 'slate-400',
             icon: 'layout-grid',
@@ -100,6 +101,14 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
         }
         // getCategoryById is stable from react-query, safe to depend on
     }, [categoryEditId, getCategoryById, mainModal.isOpen, mode]);
+
+    useEffect(() => {
+        if (!mainModal.isOpen) return;
+        if (mode !== "create") return;
+        if (categoryCreateParentId) {
+            setValue('parentId', categoryCreateParentId, { shouldValidate: true });
+        }
+    }, [categoryCreateName, categoryCreateParentId, mainModal.isOpen, mode, setValue]);
 
     const status = useWatch({ control, name: 'status' });
     const parentId = useWatch({ control, name: 'parentId' });
@@ -166,18 +175,15 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
     };
 
 
-    const isSelectedColorExistsInQuickColors = quickColors.some(c => c.id === color);
-    const quickColorsList = () => {
-        if (!isSelectedColorExistsInQuickColors) {
-            const quickColorsClone = [...quickColors];
-            const appendColor = allColors.find(c => c.id === color);
-            if (appendColor) {
-                quickColorsClone.push(appendColor);
-            }
-            return quickColorsClone;
-        }
-        return quickColors;
-    }
+    const quickColorsList = useMemo(() => {
+        const isSelectedColorExistsInQuickColors = quickColors.some(c => c.id === color);
+        if (isSelectedColorExistsInQuickColors) return quickColors;
+
+        const appendColor = allColors.find(c => c.id === color);
+        if (!appendColor) return quickColors;
+
+        return [...quickColors, appendColor];
+    }, [color, quickColors]);
 
 
     const onSubmit = (data: CategoryFormValues) => {
@@ -199,11 +205,13 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
             toast.error('Store ID is required');
             return;
         }
+        const resolvedParentId =
+            mode === "create" && categoryCreateParentId ? categoryCreateParentId : data.parentId;
 
         const payload: CreateCategoryRequest = {
             name: data.name,
             status: data.status,
-            parentId: parentId,
+            parentId: resolvedParentId,
             layer: layerRequest,
             description: data.description,
             colorSettings: data.color,
@@ -219,6 +227,20 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
         }
 
     };
+
+    const buildParentCategoryOptions = useMemo(() => {
+        const options: { value: string; label: string }[] = [{
+            value: NIL_UUID,
+            label: 'No Parent (Root Category)',
+        }];
+        if (categoryCreateParentId && categoryCreateParentId !== NIL_UUID) {
+            options.push({
+                value: categoryCreateParentId,
+                label: categoryCreateName?.trim()?.length ? categoryCreateName : categoryCreateParentId,
+            });
+        }
+        return options;
+    }, [categoryCreateName, categoryCreateParentId]);
 
     return (
         <>
@@ -251,7 +273,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2 flex flex-col gap-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category Name</label>
                                 <InputCommon
                                     type="text"
                                     name="name"
@@ -290,10 +312,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                                     register={register}
                                     disabled={true}
                                     options={[
-                                        { value: '', label: 'No Parent (Root Category)' },
-                                        { value: '1', label: 'Products' },
-                                        { value: '2', label: 'Services' },
-                                        { value: '3', label: 'Digital Assets' },
+                                        ...buildParentCategoryOptions,
                                     ]}
                                     icon={LayoutGrid}
                                 />
@@ -317,7 +336,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                                 </label>
                                 <div className="flex items-center gap-3">
                                     <div className="flex gap-2 duration-200 transition-all">
-                                        {quickColorsList().map((c) => (
+                                        {quickColorsList.map((c) => (
                                             <button
                                                 key={c.id}
                                                 type="button"

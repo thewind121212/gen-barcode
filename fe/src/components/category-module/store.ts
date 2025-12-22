@@ -5,6 +5,7 @@ export type CreateCategoryModalData = {
     categoryEditId: string | null;
     categoryCreateParentId: string | null;
     categoryCreateLayer: string | null;
+    categoryCreateName: string | null;
 };
 
 const initialCreateCategoryModalData: CreateCategoryModalData = {
@@ -12,6 +13,7 @@ const initialCreateCategoryModalData: CreateCategoryModalData = {
   categoryEditId: null,
   categoryCreateParentId: null,
   categoryCreateLayer: null,
+  categoryCreateName: null,
 };
 
 export interface CategoryModuleStore {

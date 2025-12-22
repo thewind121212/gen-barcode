@@ -172,6 +172,7 @@ const CategoriesView = () => {
       categoryEditId: mode === "edit" ? (categoryEditId ?? null) : null,
       categoryCreateParentId: null,
       categoryCreateLayer: "0",
+      categoryCreateName: null,
     });
     mainModal.open();
   };

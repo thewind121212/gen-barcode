@@ -5,6 +5,7 @@ export interface HandleSubCategory {
     categoryEditId?: string;
     categoryCreateParentId: string;
     categoryCreateLayer: string;
+    categoryCreateName: string;
 }
 
 

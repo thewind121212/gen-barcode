@@ -1,10 +1,10 @@
+import NestedCategoriesView from "@Jade/components/category-module/CategoryTree";
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import NestedCategoriesView from "@Jade/components/category-module/CategoryTree";
 
 export default function CategoryDetail() {
-  const { id } = useParams();
-  const categoryId = useMemo(() => (id ? decodeURIComponent(id) : ""), [id]);
+  const { rootCategoryId } = useParams();
+  const categoryId = useMemo(() => (rootCategoryId ? decodeURIComponent(rootCategoryId) : ""), [rootCategoryId]);
 
   return (
     <div className="space-y-6 pt-10">

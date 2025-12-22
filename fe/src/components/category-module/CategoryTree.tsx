@@ -1,10 +1,16 @@
-import { lazy, useMemo, useState } from "react";
+import { lazy, useEffect, useMemo, useState } from "react";
 import { FolderTree, Plus } from "lucide-react";
+import { NIL as NIL_UUID } from "uuid";
 import CategoryItem from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
 import { type CategoryNode, type FlatCategory } from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
 import { buildCategoryTree, type HandleSubCategory } from "@Jade/components/category-module/utils";
 import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 import { useCategoryModuleStore } from "@Jade/components/category-module/store";
+import { useGetCategoryTree } from "@Jade/services/category/useQuery";
+import { useSelector } from "react-redux";
+import type { RootState } from "@Jade/store/global.store";
+import toast from "react-hot-toast";
+import { useParams } from "react-router-dom";
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 const DEFAULT_EXPAND_ALL = false;
@@ -151,7 +157,24 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
   const [expandedAll, setExpandedAll] = useState<boolean>(DEFAULT_EXPAND_ALL);
   const mainModal = useModal(ModalId.CREATE_CATEGORY_FROM_TREE);
   const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
+  const storeInfo = useSelector((state: RootState) => state.app);
+  const { rootCategoryId } = useParams();
 
+  const { mutate: getCategoryTree, isPending: isLoadingGetCategoryTree } = useGetCategoryTree({
+    storeId: storeInfo?.storeId,
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  useEffect(() => {
+    if (!storeInfo?.storeId || isLoadingGetCategoryTree) return
+    if (!rootCategoryId) return
+    getCategoryTree({ categoryId: rootCategoryId });
+  }, [storeInfo?.storeId, getCategoryTree]);
 
   const derivedCategories = useMemo(() => {
     if (!rootId) return categories;
@@ -168,13 +191,21 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
 
 
   const handleCreateCategoryDialog = (payload: HandleSubCategory) => {
-    if (Number(payload.categoryCreateLayer) > 4) return;
-    if (payload.mode !== "create" && payload.mode !== "edit") return;
+    if (Number(payload.categoryCreateLayer) > 5) return;
+    if (payload.mode !== "create" && payload.mode !== "edit") {
+      toast.error("Invalid mode");
+      return
+    }
+    if (payload.categoryCreateParentId === null || payload.categoryCreateParentId === NIL_UUID) {
+      toast.error("Parent ID is required");
+      return
+    }
     setCreateCategoryModalData({
       mode: payload.mode,
       categoryEditId: payload.mode === "edit" ? (payload.categoryEditId ?? null) : null,
-      categoryCreateParentId: null,
+      categoryCreateParentId: payload.categoryCreateParentId,
       categoryCreateLayer: payload.categoryCreateLayer,
+      categoryCreateName: payload.categoryCreateName,
     });
     mainModal.open();
   };
@@ -209,7 +240,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
               <CategoryItem
                 key={node.id}
                 node={node}
-                onAddSub={(payload : HandleSubCategory) => handleCreateCategoryDialog(payload)}
+                onAddSub={(payload: HandleSubCategory) => handleCreateCategoryDialog(payload)}
                 onDelete={() => { }}
                 level={0}
                 defaultOpen={expandedAll}
