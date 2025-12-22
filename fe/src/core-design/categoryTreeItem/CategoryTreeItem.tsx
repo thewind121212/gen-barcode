@@ -46,13 +46,11 @@ export default function CategoryItem({
   const effectiveOpen = isRootLayer ? true : (isControlled ? Boolean(controlledOpen) : isOpen);
 
   useLayoutEffect(() => {
-    if (isRootLayer) {
-      setLayer2OpenMap({});
-      return;
-    }
     if (isControlled) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOpen(defaultOpen);
-  }, [defaultOpen, isControlled, isRootLayer]);
+  }, [defaultOpen, isControlled]);
+
 
   const toggleSelf = () => {
     if (isRootLayer) {

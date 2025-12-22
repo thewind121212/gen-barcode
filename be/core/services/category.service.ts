@@ -69,8 +69,6 @@ export class CategoryService {
     return parentId;
   }
 
-  
-
   async CreateCategory(ctx: RequestContext, req: CreateCategoryRequestBody): Promise<CreateCategoryResponseServices> {
     try {
       const { userId } = ctx;
@@ -279,7 +277,7 @@ export class CategoryService {
           subCategoriesCount: category._count?.children ?? 0,
           status: category.status,
           storeId,
-          //This will be done later by repo item and stock
+          // This will be done later by repo item and stock
           itemCount: 0,
           totalValue: 0,
           lowStockCount: 0,
@@ -329,7 +327,8 @@ export class CategoryService {
           continue;
         }
         const existing = childrenByParentId.get(parentId);
-        if (existing) existing.push(c);
+        if (existing)
+          existing.push(c);
         else childrenByParentId.set(parentId, [c]);
       }
 
@@ -340,12 +339,15 @@ export class CategoryService {
 
       while (queue.length > 0) {
         const id = queue.shift();
-        if (!id) break;
-        if (visited.has(id)) continue;
+        if (!id)
+          break;
+        if (visited.has(id))
+          continue;
         visited.add(id);
 
         const category = idToCategory.get(id);
-        if (!category) continue;
+        if (!category)
+          continue;
 
         const layerNum = Number.parseInt(category.layer, 10);
         if (Number.isNaN(layerNum) || layerNum < 1 || layerNum > 5) {
@@ -373,7 +375,7 @@ export class CategoryService {
         subCategoriesCount: category._count?.children ?? 0,
         status: category.status,
         storeId,
-        //This will be done later by repo item and stock
+        // This will be done later by repo item and stock
         itemCount: 0,
         totalValue: 0,
         lowStockCount: 0,
