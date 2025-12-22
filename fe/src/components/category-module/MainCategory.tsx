@@ -13,7 +13,7 @@ import { allColors } from "@Jade/core-design/modal/colorOptions";
 import type { RootState } from "@Jade/store/global.store";
 import type { CategoryResponse } from "@Jade/types/category.d";
 import toast from "react-hot-toast";
-import { useCategoryModuleStore } from "./categoryModule.store";
+import { useCategoryModuleStore } from "./store";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
@@ -105,7 +105,6 @@ const CategoriesView = () => {
     { enabled: Boolean(appStoreInfo?.storeId) },
   );
 
-
   const { mutate: removeCategory, isPending: isRemovingCategory } = useRemoveCategory({
     storeId: appStoreInfo?.storeId,
     onSuccess: () => {
@@ -172,6 +171,7 @@ const CategoriesView = () => {
       mode,
       categoryEditId: mode === "edit" ? (categoryEditId ?? null) : null,
       categoryCreateParentId: null,
+      categoryCreateLayer: "0",
     });
     mainModal.open();
   };
@@ -352,7 +352,7 @@ const CategoriesView = () => {
       </div>
       <CreateCategoryDialog
         mainModal={mainModal}
-        refetchCategoryOverview={refetchCategoryOverview}
+        onCategoryCreatedCallback={refetchCategoryOverview}
       />
     </div>
   );

@@ -143,7 +143,7 @@ const Modal = ({
             showConfirmButton && (
               <button onClick={onConfirm}
                 disabled={isLoading}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
+                className="px-6 py-2.5 h-[40px] rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
                 {isLoading ? <Spinner /> : (
                   confirmButtonText
                 )}

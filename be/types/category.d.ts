@@ -47,6 +47,11 @@ export interface GetCategoryOverviewRequest {
   storeId: string;
 }
 
+export interface GetCategoryOverviewWithDepthRequest {
+  storeId: string;
+  depth: number;
+}
+
 export interface GetCategoryByIdRequest {
   categoryId: string;
 }

@@ -5,9 +5,14 @@ import express from "express";
 import type { CategoryResponse, CreateCategoryResponse, GetCategoryOverviewResponse, RemoveCategoryResponse, UpdateCategoryResponse } from "@Ciri/types/category";
 
 import { createCategorySchema } from "@Ciri/core/dto/category/create-category.dto";
+
 import { getCategoryByIdSchema } from "@Ciri/core/dto/category/get-category-by-id.dto";
+
 import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
+
 import { updateCategorySchema } from "@Ciri/core/dto/category/update-category.dto";
+
+import { getCategoryOverviewWithDepthSchema } from "@Ciri/core/dto/category/get-category-overview-with-depth.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { CategoryService } from "@Ciri/core/services/category.service";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
@@ -19,28 +24,33 @@ const categoryService = new CategoryService();
 
 export type CreateCategoryRequestBody = z.infer<typeof createCategorySchema>;
 export type CreateCategoryResponseServices = {
-  resData: CreateCategoryResponse | null;
-  error: string | null;
-};
+      resData: CreateCategoryResponse | null;
+      error: string | null;
+    };
 export type GetCategoryByIdRequestBody = z.infer<typeof getCategoryByIdSchema>;
 export type GetCategoryByIdResponseServices = {
-  resData: CategoryResponse | null;
-  error: string | null;
-};
+      resData: CategoryResponse | null;
+      error: string | null;
+    };
 export type RemoveCategoryRequestBody = z.infer<typeof removeCategorySchema>;
 export type RemoveCategoryResponseServices = {
-  resData: RemoveCategoryResponse | null;
-  error: string | null;
-};
+      resData: RemoveCategoryResponse | null;
+      error: string | null;
+    };
 export type UpdateCategoryRequestBody = z.infer<typeof updateCategorySchema>;
 export type UpdateCategoryResponseServices = {
-  resData: UpdateCategoryResponse | null;
-  error: string | null;
-};
+      resData: UpdateCategoryResponse | null;
+      error: string | null;
+    };
 export type GetCategoryOverviewResponseServices = {
-  resData: GetCategoryOverviewResponse | null;
-  error: string | null;
-};
+      resData: GetCategoryOverviewResponse | null;
+      error: string | null;
+    };
+export type GetCategoryOverviewWithDepthRequestBody = z.infer<typeof getCategoryOverviewWithDepthSchema>;
+export type GetCategoryOverviewWithDepthResponseServices = {
+      resData: GetCategoryOverviewResponse | null;
+      error: string | null;
+    };
 
 router.post(
   "/CreateCategory",
@@ -182,6 +192,36 @@ router.get(
       UnitLogger(
         LogType.ROUTER,
         "Category GetCategoryOverview:",
+        LogLevel.ERROR,
+        (error as Error).message,
+      );
+      next(error);
+    }
+  },
+);
+
+router.post(
+  "/GetCategoryOverviewWithDepth",
+  validateBody<GetCategoryOverviewWithDepthRequestBody>(getCategoryOverviewWithDepthSchema),
+  async (req, res, next): Promise<void> => {
+    try {
+      const ctx = getContext(req);
+      const validatedBody = getValidatedBody<GetCategoryOverviewWithDepthRequestBody>(req);
+      const response = await categoryService.GetCategoryOverviewWithDepth(ctx, validatedBody);
+      if (response.error) {
+        ErrorResponses.badRequest(res, response.error);
+        return;
+      }
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<GetCategoryOverviewResponse>(res, 201, response.resData);
+    }
+    catch (error) {
+      UnitLogger(
+        LogType.ROUTER,
+        "Category GetCategoryOverviewWithDepth:",
         LogLevel.ERROR,
         (error as Error).message,
       );

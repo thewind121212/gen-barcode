@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import NestedCategoriesView from "@Jade/core/category/NestedCategoriesView";
+import NestedCategoriesView from "@Jade/components/category-module/CategoryTree";
 
 export default function CategoryDetail() {
   const { id } = useParams();

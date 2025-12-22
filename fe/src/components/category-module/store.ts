@@ -4,12 +4,14 @@ export type CreateCategoryModalData = {
   mode: "create" | "edit";
     categoryEditId: string | null;
     categoryCreateParentId: string | null;
+    categoryCreateLayer: string | null;
 };
 
 const initialCreateCategoryModalData: CreateCategoryModalData = {
   mode: "create",
   categoryEditId: null,
   categoryCreateParentId: null,
+  categoryCreateLayer: null,
 };
 
 export interface CategoryModuleStore {

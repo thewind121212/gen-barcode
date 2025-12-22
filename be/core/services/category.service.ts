@@ -6,6 +6,8 @@ import type {
   GetCategoryByIdRequestBody,
   GetCategoryByIdResponseServices,
   GetCategoryOverviewResponseServices,
+  GetCategoryOverviewWithDepthRequestBody,
+  GetCategoryOverviewWithDepthResponseServices,
   RemoveCategoryResponseServices,
   UpdateCategoryRequestBody,
   UpdateCategoryResponseServices,
@@ -24,6 +26,21 @@ export class CategoryService {
 
   constructor() {
     this.categoryRepo = new CategoryRepository();
+  }
+
+  private normalizeDepth(depth: number | undefined): number {
+    const d = Math.floor(depth ?? 5);
+    if (Number.isNaN(d) || d < 1) {
+      return 1;
+    }
+    if (d > 5) {
+      return 5;
+    }
+    return d;
+  }
+
+  private isRootParentId(parentId: string | null | undefined): boolean {
+    return !parentId || parentId === NIL_UUID;
   }
 
   private ensureStoreId(ctx: RequestContext): string {
@@ -50,6 +67,8 @@ export class CategoryService {
     return parentId;
   }
 
+  
+
   async CreateCategory(ctx: RequestContext, req: CreateCategoryRequestBody): Promise<CreateCategoryResponseServices> {
     try {
       const { userId } = ctx;
@@ -58,6 +77,10 @@ export class CategoryService {
 
       if (!userId) {
         throw new Error("User ID is required");
+      }
+
+      if (req.layer !== "1" && req?.parentId === NIL_UUID) {
+        throw new Error("Parent ID is required");
       }
 
       if (req.layer !== "1" && parentId && req?.parentId) {
@@ -221,6 +244,49 @@ export class CategoryService {
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Category GetOverview", LogLevel.ERROR, (error as Error).message);
+      return { resData: null, error: (error as Error).message };
+    }
+  }
+
+  async GetCategoryOverviewWithDepth(
+    ctx: RequestContext,
+    req: GetCategoryOverviewWithDepthRequestBody,
+  ): Promise<GetCategoryOverviewWithDepthResponseServices> {
+    try {
+      const storeId = this.ensureStoreId(ctx);
+      const depth = this.normalizeDepth(req.depth);
+
+      const categories = await this.categoryRepo.findAllByStore(storeId);
+
+      const categoryOverviews = categories
+        .filter((category) => {
+          const layerNum = Number.parseInt(category.layer, 10);
+          if (Number.isNaN(layerNum)) {
+            return false;
+          }
+          return layerNum >= 1 && layerNum <= depth;
+        })
+        .map(category => ({
+          categoryId: category.id,
+          name: category.name,
+          parentId: this.isRootParentId(category.parentId) ? undefined : category.parentId ?? undefined,
+          description: category.description ?? undefined,
+          colorSettings: category.colorSettings ?? undefined,
+          layer: category.layer,
+          icon: category.icon ?? undefined,
+          subCategoriesCount: category._count?.children ?? 0,
+          status: category.status,
+          storeId,
+          //This will be done later by repo item and stock
+          itemCount: 0,
+          totalValue: 0,
+          lowStockCount: 0,
+        }));
+
+      return { resData: { categoryOverviews }, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "Category GetOverviewWithDepth", LogLevel.ERROR, (error as Error).message);
       return { resData: null, error: (error as Error).message };
     }
   }

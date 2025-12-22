@@ -19,9 +19,8 @@ import { NIL as NIL_UUID } from 'uuid';
 import type { RootState } from '@Jade/store/global.store';
 import CategorySkeleton from '@Jade/components/category-module/CreateCategoryLoading';
 import type { CreateCategoryRequest } from '@Jade/types/category';
-import { useCategoryModuleStore } from './categoryModule.store';
+import { useCategoryModuleStore } from './store';
 
-// Lazy import IconPicker
 const IconPickerContent = lazy(() => import('@Jade/core-design/modal/IconPicker'));
 
 type CategoryStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
@@ -46,26 +45,28 @@ const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
 
 type CreateCategoryDialogProps = {
     mainModal: UseModalReturn;
-    refetchCategoryOverview: () => void;
+    onCategoryCreatedCallback: () => void;
 };
 
-export default function CreateCategoryDialog({ mainModal, refetchCategoryOverview }: CreateCategoryDialogProps) {
+export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallback }: CreateCategoryDialogProps) {
     const colorModal = useModal(ModalId.COLOR);
     const iconModal = useModal(ModalId.ICON);
     const storeId = useSelector((state: RootState) => state.app.storeId);
     const [SelectedIcon, setSelectedIcon] = useState<LucideIcon>(() => LayoutGrid);
-    const { id } = useParams();
+    const { rootCategoryId } = useParams();
     const createCategoryModalData = useCategoryModuleStore((s) => s.categories.createCategoryModalData);
     const resetCreateCategoryModalData = useCategoryModuleStore((s) => s.resetCreateCategoryModalData);
     const mode = createCategoryModalData.mode;
     const categoryEditId = createCategoryModalData.categoryEditId;
+    const categoryCreateParentId = createCategoryModalData.categoryCreateParentId;
+    const categoryCreateLayer = createCategoryModalData.categoryCreateLayer;
 
     const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
         defaultValues: {
             name: '',
             status: 'ACTIVE',
-            parentId: NIL_UUID,
+            parentId: categoryCreateParentId ? categoryCreateParentId : NIL_UUID,
             description: '',
             color: 'slate-400',
             icon: 'layout-grid',
@@ -109,13 +110,13 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
         storeId: storeId,
         onSuccess: () => {
             toast.success('Category created successfully');
-            refetchCategoryOverview();
+            onCategoryCreatedCallback();
             reset();
             resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
-            toast.error('Failed to create category:' + error?.message);
+            toast.error(error?.message || 'Failed to create category');
         },
     });
 
@@ -123,13 +124,13 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
         storeId: storeId,
         onSuccess: () => {
             toast.success('Category updated successfully');
-            refetchCategoryOverview();
+            onCategoryCreatedCallback();
             reset();
             resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
-            toast.error('Failed to update category:' + error?.message);
+            toast.error(error?.message || 'Failed to update category');
         },
     });
 
@@ -180,10 +181,14 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
 
 
     const onSubmit = (data: CategoryFormValues) => {
-        const layerRequest = id ? undefined : "0"
+        const layerRequest = categoryCreateLayer ? categoryCreateLayer : "0"
         // if parentId is provided, then layer must be get from be first and recheck at be 
-        if (id && !layerRequest) {
+        if (rootCategoryId && !layerRequest) {
             toast.error('Layer is required');
+            return;
+        }
+        if (rootCategoryId && data.parentId === NIL_UUID) {
+            toast.error('Parent ID is required');
             return;
         }
         if (layerRequest === undefined) {
@@ -283,7 +288,7 @@ export default function CreateCategoryDialog({ mainModal, refetchCategoryOvervie
                                     name="parentId"
                                     value={parentId}
                                     register={register}
-                                    disabled={!id}
+                                    disabled={true}
                                     options={[
                                         { value: '', label: 'No Parent (Root Category)' },
                                         { value: '1', label: 'Products' },
