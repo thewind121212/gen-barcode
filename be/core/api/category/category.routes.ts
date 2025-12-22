@@ -2,10 +2,12 @@ import type { z } from "zod";
 
 import express from "express";
 
-import type { CategoryResponse, CreateCategoryResponse, GetCategoryOverviewResponse, RemoveCategoryResponse, UpdateCategoryResponse } from "@Ciri/types/category";
+import type { CategoryResponse, CreateCategoryResponse, GetCategoryOverviewResponse, GetCategoryTreeResponse, RemoveCategoryResponse, UpdateCategoryResponse } from "@Ciri/types/category";
 
 import { createCategorySchema } from "@Ciri/core/dto/category/create-category.dto";
 import { getCategoryByIdSchema } from "@Ciri/core/dto/category/get-category-by-id.dto";
+import { getCategoryOverviewWithDepthSchema } from "@Ciri/core/dto/category/get-category-overview-with-depth.dto";
+import { getCategoryTreeSchema } from "@Ciri/core/dto/category/get-category-tree.dto";
 import { removeCategorySchema } from "@Ciri/core/dto/category/remove-category.dto";
 import { updateCategorySchema } from "@Ciri/core/dto/category/update-category.dto";
 import { getContext } from "@Ciri/core/middlewares";
@@ -39,6 +41,16 @@ export type UpdateCategoryResponseServices = {
 };
 export type GetCategoryOverviewResponseServices = {
   resData: GetCategoryOverviewResponse | null;
+  error: string | null;
+};
+export type GetCategoryOverviewWithDepthRequestBody = z.infer<typeof getCategoryOverviewWithDepthSchema>;
+export type GetCategoryOverviewWithDepthResponseServices = {
+  resData: GetCategoryOverviewResponse | null;
+  error: string | null;
+};
+export type GetCategoryTreeRequestBody = z.infer<typeof getCategoryTreeSchema>;
+export type GetCategoryTreeResponseServices = {
+  resData: GetCategoryTreeResponse | null;
   error: string | null;
 };
 
@@ -182,6 +194,66 @@ router.get(
       UnitLogger(
         LogType.ROUTER,
         "Category GetCategoryOverview:",
+        LogLevel.ERROR,
+        (error as Error).message,
+      );
+      next(error);
+    }
+  },
+);
+
+router.post(
+  "/GetCategoryOverviewWithDepth",
+  validateBody<GetCategoryOverviewWithDepthRequestBody>(getCategoryOverviewWithDepthSchema),
+  async (req, res, next): Promise<void> => {
+    try {
+      const ctx = getContext(req);
+      const validatedBody = getValidatedBody<GetCategoryOverviewWithDepthRequestBody>(req);
+      const response = await categoryService.GetCategoryOverviewWithDepth(ctx, validatedBody);
+      if (response.error) {
+        ErrorResponses.badRequest(res, response.error);
+        return;
+      }
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<GetCategoryOverviewResponse>(res, 201, response.resData);
+    }
+    catch (error) {
+      UnitLogger(
+        LogType.ROUTER,
+        "Category GetCategoryOverviewWithDepth:",
+        LogLevel.ERROR,
+        (error as Error).message,
+      );
+      next(error);
+    }
+  },
+);
+
+router.post(
+  "/GetCategoryTree",
+  validateBody<GetCategoryTreeRequestBody>(getCategoryTreeSchema),
+  async (req, res, next): Promise<void> => {
+    try {
+      const ctx = getContext(req);
+      const validatedBody = getValidatedBody<GetCategoryTreeRequestBody>(req);
+      const response = await categoryService.GetCategoryTree(ctx, validatedBody);
+      if (response.error) {
+        ErrorResponses.badRequest(res, response.error);
+        return;
+      }
+      if (!response.resData) {
+        ErrorResponses.badRequest(res, "No response data");
+        return;
+      }
+      sendSuccessResponse<GetCategoryTreeResponse>(res, 201, response.resData);
+    }
+    catch (error) {
+      UnitLogger(
+        LogType.ROUTER,
+        "Category GetCategoryTree:",
         LogLevel.ERROR,
         (error as Error).message,
       );

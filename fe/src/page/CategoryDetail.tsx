@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import NestedCategoriesView from "@Jade/core/category/NestedCategoriesView";
+import NestedCategoriesView from "@Jade/components/category-module/CategoryTree";
 
 export default function CategoryDetail() {
   const { id } = useParams();
@@ -29,8 +29,7 @@ export default function CategoryDetail() {
         </div>
       </div>
 
-      {/* For now: show nested view with dummy data. Later: fetch category + subcategories by categoryId */}
-      <NestedCategoriesView rootId={categoryId} expandAll={true} showHeader={false} />
+      <NestedCategoriesView rootId={categoryId} showHeader={false} />
     </div>
   );
 }

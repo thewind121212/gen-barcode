@@ -1,7 +1,13 @@
-import { useMemo, useState } from "react";
+import { lazy, useMemo, useState } from "react";
 import { FolderTree, Plus } from "lucide-react";
-import CategoryItem from "@Jade/components/category-module/CategoryItem";
-import { buildCategoryTree, getAllChildIds, type CategoryNode, type FlatCategory } from "@Jade/core/category/categoryTree";
+import CategoryItem from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
+import { type CategoryNode, type FlatCategory } from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
+import { buildCategoryTree, type HandleSubCategory } from "@Jade/components/category-module/utils";
+import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
+import { useCategoryModuleStore } from "@Jade/components/category-module/store";
+const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
+
+const DEFAULT_EXPAND_ALL = false;
 
 // Dummy data: realistic Vietnamese retail/business category tree (multi-level)
 const INITIAL_CATEGORIES: FlatCategory[] = [
@@ -44,11 +50,7 @@ const INITIAL_CATEGORIES: FlatCategory[] = [
 ];
 
 type NestedCategoriesViewProps = {
-  /** If provided, render only this category as the root (with all its descendants). */
   rootId?: string;
-  /** Expand all nodes by default (dropdown all). */
-  expandAll?: boolean;
-  /** Show/hide the header (useful when embedding inside CategoryDetail page). */
   showHeader?: boolean;
 };
 
@@ -144,8 +146,12 @@ function seedDetailCategories(rootId: string): FlatCategory[] {
   ];
 }
 
-export default function NestedCategoriesView({ rootId, expandAll = false, showHeader = true }: NestedCategoriesViewProps) {
-  const [categories, setCategories] = useState<FlatCategory[]>(INITIAL_CATEGORIES);
+export default function NestedCategoriesView({ rootId, showHeader = true }: NestedCategoriesViewProps) {
+  const categories = INITIAL_CATEGORIES;
+  const [expandedAll, setExpandedAll] = useState<boolean>(DEFAULT_EXPAND_ALL);
+  const mainModal = useModal(ModalId.CREATE_CATEGORY_FROM_TREE);
+  const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
+
 
   const derivedCategories = useMemo(() => {
     if (!rootId) return categories;
@@ -161,9 +167,16 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
   }, [categoryTree, rootId]);
 
 
-  const handleDeleteCategory = (id: string) => {
-    const idsToDelete = getAllChildIds(id, derivedCategories);
-    setCategories((prev) => prev.filter((c) => !idsToDelete.includes(c.id)));
+  const handleCreateCategoryDialog = (payload: HandleSubCategory) => {
+    if (Number(payload.categoryCreateLayer) > 4) return;
+    if (payload.mode !== "create" && payload.mode !== "edit") return;
+    setCreateCategoryModalData({
+      mode: payload.mode,
+      categoryEditId: payload.mode === "edit" ? (payload.categoryEditId ?? null) : null,
+      categoryCreateParentId: null,
+      categoryCreateLayer: payload.categoryCreateLayer,
+    });
+    mainModal.open();
   };
 
   return (
@@ -175,7 +188,7 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
             <p className="text-gray-500">Manage nested categories up to 5+ layers</p>
           </div>
           <button
-            onClick={() => {}}
+            onClick={() => { }}
             className="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 font-medium"
             type="button"
           >
@@ -196,17 +209,17 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
               <CategoryItem
                 key={node.id}
                 node={node}
+                onAddSub={(payload : HandleSubCategory) => handleCreateCategoryDialog(payload)}
+                onDelete={() => { }}
                 level={0}
-                onAddSub={() => {}}
-                onDelete={handleDeleteCategory}
-                defaultOpen={expandAll}
+                defaultOpen={expandedAll}
+                onExpandToggle={() => setExpandedAll((prev) => !prev)}
               />
             ))
           )}
         </div>
-
         <div className="lg:col-span-1">
-          <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+          <div className="sticky top-4 bg-indigo-50 p-6 rounded-xl border border-indigo-100">
             <h3 className="font-semibold text-indigo-900 mb-2 flex items-center gap-2">
               <FolderTree size={20} />
               Structure Tips
@@ -219,6 +232,10 @@ export default function NestedCategoriesView({ rootId, expandAll = false, showHe
             </ul>
           </div>
         </div>
+        <CreateCategoryDialog
+          mainModal={mainModal}
+          onCategoryCreatedCallback={() => { }}
+        />
       </div>
     </div>
   );

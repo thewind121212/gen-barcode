@@ -6,6 +6,10 @@ import type {
   GetCategoryByIdRequestBody,
   GetCategoryByIdResponseServices,
   GetCategoryOverviewResponseServices,
+  GetCategoryOverviewWithDepthRequestBody,
+  GetCategoryOverviewWithDepthResponseServices,
+  GetCategoryTreeRequestBody,
+  GetCategoryTreeResponseServices,
   RemoveCategoryResponseServices,
   UpdateCategoryRequestBody,
   UpdateCategoryResponseServices,
@@ -24,6 +28,21 @@ export class CategoryService {
 
   constructor() {
     this.categoryRepo = new CategoryRepository();
+  }
+
+  private normalizeDepth(depth: number | undefined): number {
+    const d = Math.floor(depth ?? 5);
+    if (Number.isNaN(d) || d < 1) {
+      return 1;
+    }
+    if (d > 5) {
+      return 5;
+    }
+    return d;
+  }
+
+  private isRootParentId(parentId: string | null | undefined): boolean {
+    return !parentId || parentId === NIL_UUID;
   }
 
   private ensureStoreId(ctx: RequestContext): string {
@@ -58,6 +77,10 @@ export class CategoryService {
 
       if (!userId) {
         throw new Error("User ID is required");
+      }
+
+      if (req.layer !== "1" && req?.parentId === NIL_UUID) {
+        throw new Error("Parent ID is required");
       }
 
       if (req.layer !== "1" && parentId && req?.parentId) {
@@ -221,6 +244,147 @@ export class CategoryService {
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Category GetOverview", LogLevel.ERROR, (error as Error).message);
+      return { resData: null, error: (error as Error).message };
+    }
+  }
+
+  async GetCategoryOverviewWithDepth(
+    ctx: RequestContext,
+    req: GetCategoryOverviewWithDepthRequestBody,
+  ): Promise<GetCategoryOverviewWithDepthResponseServices> {
+    try {
+      const storeId = this.ensureStoreId(ctx);
+      const depth = this.normalizeDepth(req.depth);
+
+      const categories = await this.categoryRepo.findAllByStore(storeId);
+
+      const categoryOverviews = categories
+        .filter((category) => {
+          const layerNum = Number.parseInt(category.layer, 10);
+          if (Number.isNaN(layerNum)) {
+            return false;
+          }
+          return layerNum >= 1 && layerNum <= depth;
+        })
+        .map(category => ({
+          categoryId: category.id,
+          name: category.name,
+          parentId: this.isRootParentId(category.parentId) ? undefined : category.parentId ?? undefined,
+          description: category.description ?? undefined,
+          colorSettings: category.colorSettings ?? undefined,
+          layer: category.layer,
+          icon: category.icon ?? undefined,
+          subCategoriesCount: category._count?.children ?? 0,
+          status: category.status,
+          storeId,
+          // This will be done later by repo item and stock
+          itemCount: 0,
+          totalValue: 0,
+          lowStockCount: 0,
+        }));
+
+      return { resData: { categoryOverviews }, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "Category GetOverviewWithDepth", LogLevel.ERROR, (error as Error).message);
+      return { resData: null, error: (error as Error).message };
+    }
+  }
+
+  async GetCategoryTree(
+    ctx: RequestContext,
+    req: GetCategoryTreeRequestBody,
+  ): Promise<GetCategoryTreeResponseServices> {
+    try {
+      const storeId = this.ensureStoreId(ctx);
+      const rootCategoryId = req.categoryId;
+
+      // Single optimized query: fetch all categories for the store once.
+      const categories = await this.categoryRepo.findAllByStore(storeId);
+
+      const idToCategory = new Map(categories.map(c => [c.id, c]));
+      const isRoot = (c: (typeof categories)[number]) => c.layer === "1" && this.isRootParentId(c.parentId);
+
+      let rootIds: string[] = [];
+      if (rootCategoryId === NIL_UUID) {
+        rootIds = categories.filter(isRoot).map(c => c.id);
+      }
+      else {
+        const root = idToCategory.get(rootCategoryId);
+        if (!root) {
+          throw new Error("Root category not found");
+        }
+        if (!isRoot(root)) {
+          throw new Error("Category is not a root category (layer must be 1)");
+        }
+        rootIds = [root.id];
+      }
+
+      const childrenByParentId = new Map<string, Array<(typeof categories)[number]>>();
+      for (const c of categories) {
+        const parentId = this.isRootParentId(c.parentId) ? null : c.parentId;
+        if (!parentId) {
+          continue;
+        }
+        const existing = childrenByParentId.get(parentId);
+        if (existing)
+          existing.push(c);
+        else childrenByParentId.set(parentId, [c]);
+      }
+
+      // BFS from root(s) to produce a stable, hierarchical-ish ordering.
+      const visited = new Set<string>();
+      const queue: string[] = [...rootIds];
+      const result: Array<(typeof categories)[number]> = [];
+
+      while (queue.length > 0) {
+        const id = queue.shift();
+        if (!id)
+          break;
+        if (visited.has(id))
+          continue;
+        visited.add(id);
+
+        const category = idToCategory.get(id);
+        if (!category)
+          continue;
+
+        const layerNum = Number.parseInt(category.layer, 10);
+        if (Number.isNaN(layerNum) || layerNum < 1 || layerNum > 5) {
+          continue;
+        }
+
+        result.push(category);
+
+        const children = childrenByParentId.get(category.id);
+        if (children && children.length > 0) {
+          for (const child of children) {
+            queue.push(child.id);
+          }
+        }
+      }
+
+      const categoryTree = result.map(category => ({
+        categoryId: category.id,
+        name: category.name,
+        parentId: this.isRootParentId(category.parentId) ? undefined : category.parentId ?? undefined,
+        description: category.description ?? undefined,
+        colorSettings: category.colorSettings ?? undefined,
+        layer: category.layer,
+        icon: category.icon ?? undefined,
+        subCategoriesCount: category._count?.children ?? 0,
+        status: category.status,
+        storeId,
+        // This will be done later by repo item and stock
+        itemCount: 0,
+        totalValue: 0,
+        lowStockCount: 0,
+      }));
+
+      return { resData: { categoryTree }, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "Category GetTree", LogLevel.ERROR, (error as Error).message);
       return { resData: null, error: (error as Error).message };
     }
   }
