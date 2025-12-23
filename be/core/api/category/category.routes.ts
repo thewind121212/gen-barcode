@@ -45,7 +45,7 @@ export type GetCategoryOverviewResponseServices = {
   resData: GetCategoryOverviewResponse | null;
   error: string | null;
 };
-export type GetCategoryOverviewWithDepthRequestBody = z.infer<typeof getCategoryOverviewWithDepthSchema>;
+export type GetCategoryOverviewWithDepthRequestQuery = z.infer<typeof getCategoryOverviewWithDepthSchema>;
 export type GetCategoryOverviewWithDepthResponseServices = {
   resData: GetCategoryOverviewResponse | null;
   error: string | null;
@@ -183,7 +183,7 @@ router.get(
     try {
       const ctx = getContext(req);
       const validatedQuery = getValidatedQuery<GetCategoryOverviewRequestQuery>(req);
-      const response = await (categoryService as unknown as any).GetCategoryOverview(ctx, validatedQuery);
+      const response = await categoryService.GetCategoryOverview(ctx, validatedQuery);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;
@@ -206,14 +206,14 @@ router.get(
   },
 );
 
-router.post(
+router.get(
   "/GetCategoryOverviewWithDepth",
-  validateBody<GetCategoryOverviewWithDepthRequestBody>(getCategoryOverviewWithDepthSchema),
+  validateQuery<GetCategoryOverviewWithDepthRequestQuery>(getCategoryOverviewWithDepthSchema),
   async (req, res, next): Promise<void> => {
     try {
       const ctx = getContext(req);
-      const validatedBody = getValidatedBody<GetCategoryOverviewWithDepthRequestBody>(req);
-      const response = await categoryService.GetCategoryOverviewWithDepth(ctx, validatedBody);
+      const validatedQuery = getValidatedQuery<GetCategoryOverviewWithDepthRequestQuery>(req);
+      const response = await categoryService.GetCategoryOverviewWithDepth(ctx, validatedQuery);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;
@@ -222,7 +222,7 @@ router.post(
         ErrorResponses.badRequest(res, "No response data");
         return;
       }
-      sendSuccessResponse<GetCategoryOverviewResponse>(res, 201, response.resData);
+      sendSuccessResponse<GetCategoryOverviewResponse>(res, 200, response.resData);
     }
     catch (error) {
       UnitLogger(
@@ -243,7 +243,7 @@ router.get(
     try {
       const ctx = getContext(req);
       const validatedQuery = getValidatedQuery<GetCategoryTreeRequestQuery>(req);
-      const response = await (categoryService as unknown as any).GetCategoryTree(ctx, validatedQuery);
+      const response = await categoryService.GetCategoryTree(ctx, validatedQuery);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;

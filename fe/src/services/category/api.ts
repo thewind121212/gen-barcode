@@ -143,11 +143,12 @@ export const getCategoryOverview = async (request: GetCategoryOverviewRequest, s
 };
 
 export const getCategoryOverviewWithDepth = async (request: GetCategoryOverviewWithDepthRequest, storeId?: string): Promise<GetCategoryOverviewResponse> => {
-  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryOverviewWithDepth`, {
-    method: "POST",
+  const baseUrl = `${API_BASE_URL}/${API_VERSION_PREFIX}/category/GetCategoryOverviewWithDepth`;
+  const url = `${baseUrl}${buildQueryString(request as unknown as Record<string, unknown>)}`;
+  const response = await fetch(url, {
+    method: "GET",
     headers: buildHeaders(storeId),
     credentials: "include",
-    body: JSON.stringify(request),
   });
 
   const data = await response.json();

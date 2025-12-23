@@ -1,15 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
+import type { ParsedQs } from "qs";
 import type { ZodType } from "zod/v4";
 
 import { ErrorResponses } from "@Ciri/core/utils/error-response";
-
-/**
- * Validate `req.body` against a Zod schema.
- *
- * - Fails fast with HTTP 400 on validation error
- * - Attaches the parsed value to `req.validatedBody`
- * - Does NOT call `next` if validation fails
- */
 
 type RequestWithValidatedBody<T> = {
   validatedBody: T;
@@ -39,9 +32,33 @@ type RequestWithValidatedQuery<T> = {
   validatedQuery: T;
 } & Request;
 
+function normalizeQueryValues(query: ParsedQs): ParsedQs {
+  const normalize = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+      return value.map(normalize);
+    }
+    if (value && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(([key, val]) => [key, normalize(val)]),
+      );
+    }
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed !== "" && !Number.isNaN(Number(trimmed))) {
+        return Number(trimmed);
+      }
+      return value;
+    }
+    return value;
+  };
+
+  return normalize(query) as ParsedQs;
+}
+
 export function validateQuery<T>(schema: ZodType<T>) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req.query);
+    const normalizedQuery = normalizeQueryValues(req.query);
+    const result = schema.safeParse(normalizedQuery);
 
     if (!result.success) {
       const firstIssue = result.error.issues[0];

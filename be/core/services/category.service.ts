@@ -5,8 +5,9 @@ import type {
   CreateCategoryResponseServices,
   GetCategoryByIdRequestBody,
   GetCategoryByIdResponseServices,
+  GetCategoryOverviewRequestQuery,
   GetCategoryOverviewResponseServices,
-  GetCategoryOverviewWithDepthRequestBody,
+  GetCategoryOverviewWithDepthRequestQuery,
   GetCategoryOverviewWithDepthResponseServices,
   GetCategoryTreeRequestQuery,
   GetCategoryTreeResponseServices,
@@ -181,13 +182,13 @@ export class CategoryService {
       const storeId = this.ensureStoreId(ctx);
 
       const categories = await this.categoryRepo.findByIds(req.categoryIds, storeId);
-
-      const allowDeleteIds = categories.filter(category => (category.parentId === NIL_UUID || !category.parentId) && category.layer === INITIAL_LAYER.toString()).map(category => category.id);
-      if (allowDeleteIds.length !== req.categoryIds.length) {
-        return { resData: null, error: "No categories can be deleted" };
+      if (!categories || categories.length === 0) {
+        return { resData: null, error: "Category not found" };
       }
-      const { count } = await this.categoryRepo.deleteMany(allowDeleteIds, storeId);
-      return { resData: { removedCount: count }, error: null };
+      const allowDeleteIds = categories.map(category => category.id);
+      // Todo if item of store is link to category we must unlink it some item have category some is orphan
+      const removedCount = await this.categoryRepo.softDeleteMany(allowDeleteIds, storeId);
+      return { resData: { removedCount }, error: null };
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Category Remove", LogLevel.ERROR, (error as Error).message);
@@ -242,6 +243,7 @@ export class CategoryService {
 
   async GetCategoryOverview(
     ctx: RequestContext,
+    _req: GetCategoryOverviewRequestQuery,
   ): Promise<GetCategoryOverviewResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);
@@ -274,7 +276,7 @@ export class CategoryService {
 
   async GetCategoryOverviewWithDepth(
     ctx: RequestContext,
-    req: GetCategoryOverviewWithDepthRequestBody,
+    req: GetCategoryOverviewWithDepthRequestQuery,
   ): Promise<GetCategoryOverviewWithDepthResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);

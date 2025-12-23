@@ -1,6 +1,7 @@
-import type { Category, Prisma } from "@Ciri/generated/prisma/client";
+import type { Category } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
+import { Prisma } from "@Ciri/generated/prisma/client";
 
 export class CategoryRepository {
   async create(data: Prisma.CategoryCreateInput) {
@@ -24,6 +25,33 @@ export class CategoryRepository {
       where: { id, isDelete: false },
       data,
     });
+  }
+
+  async softDelete(id: string, storeId: string) {
+    return this.softDeleteMany([id], storeId);
+  }
+
+  async softDeleteMany(ids: string[], storeId: string) {
+    if (ids.length === 0)
+      return 0;
+    return prisma.$executeRaw`
+      WITH RECURSIVE subtree AS (
+        SELECT id
+        FROM "Category"
+        WHERE id IN (${Prisma.join(ids)})
+          AND "storeId" = ${storeId}
+          AND "isDelete" = false
+        UNION ALL
+        SELECT c.id
+        FROM "Category" c
+        JOIN subtree s ON c."parentId" = s.id
+        WHERE c."storeId" = ${storeId}
+          AND c."isDelete" = false
+      )
+      UPDATE "Category"
+      SET "isDelete" = true
+      WHERE id IN (SELECT id FROM subtree);
+    `;
   }
 
   async countChildren(id: string, storeId: string) {
@@ -92,7 +120,7 @@ export class CategoryRepository {
     // Convert bigint count to number for downstream usage.
     return rows.map(r => ({
       ...r,
-      descendantsCount: Number(r.descendantsCount ?? 0n),
+      descendantsCount: Number(r.descendantsCount ?? 0),
     }));
   }
 }
