@@ -1,6 +1,5 @@
 import ThemeToggle from "@Jade/theme/ThemeToggle";
 import {
-    BarChart3,
     ChevronLeft,
     ChevronRight,
     Home,
@@ -89,8 +88,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Logo Area */}
             <div className="h-20 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 duration-300">
                 <div className="flex items-center gap-3 cursor-pointer overflow-hidden">
-                    <div className="bg-linear-to-br from-blue-600 to-indigo-600 p-2 rounded-xl text-white dark:shadow-none shrink-0">
-                        <BarChart3 className="w-6 h-6" />
+                    <div className="rounded-xl text-white shrink-0 shadow-2xl shadow-blue-500/30 transform transition-transform duration-300">
+                        <img src="/logo.webp" alt="Simple Store" className="w-11 h-11" />
                     </div>
                     {(isExpanded) && (
                         <div className="flex flex-col whitespace-nowrap">
