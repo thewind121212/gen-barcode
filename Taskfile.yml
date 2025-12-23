@@ -26,6 +26,12 @@ tasks:
     cmds:
       - npm run dev:be
   
+  fullstack:
+    desc: Start fullstack development server
+    cmds:
+      - task: fe
+      - task: be
+  
   lint:
     desc: Lint the code
     cmds:
@@ -40,7 +46,7 @@ tasks:
     desc: Push Prisma schema to database
     cmds:
       - cd be && npx prisma db push
-
+  
   docker-restart:
     desc: Restart Docker containers
     cmds:

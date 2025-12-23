@@ -204,7 +204,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
   );
 
 
-  const { mutate: removeCategory, isPending: isRemovingCategory } = useRemoveCategory({
+  const { mutate: removeCategory } = useRemoveCategory({
     storeId: storeInfo?.storeId,
     onSuccess: () => {
       toast.success("Category removed successfully");
