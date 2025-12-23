@@ -2,8 +2,9 @@ import { useCategoryModuleStore } from "@Jade/components/category-module/store";
 import { buildCategoryTree, type HandleSubCategory } from "@Jade/components/category-module/utils";
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import CategoryItem, { type CategoryNode, type FlatCategory } from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
+import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
 import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
-import { useGetCategoryTree } from "@Jade/services/category/useQuery";
+import { useGetCategoryTree, useRemoveCategory } from "@Jade/services/category/useQuery";
 import type { RootState } from "@Jade/store/global.store";
 import type { CategoryResponse } from "@Jade/types/category.d";
 import { Edit2Icon, FolderTree, Plus, Trash2Icon } from "lucide-react";
@@ -157,13 +158,17 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
   const [expandedAll, setExpandedAll] = useState<boolean>(DEFAULT_EXPAND_ALL);
   const [autoOpenPathIds, setAutoOpenPathIds] = useState<string[]>([]);
   const mainModal = useModal(ModalId.CREATE_CATEGORY_FROM_TREE);
+  const confirmModal = useModal(ModalId.CONFIRM);
   const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
   const activeMenuId = useCategoryModuleStore((s) => s.categories.activeMenuId);
   const setActiveMenuId = useCategoryModuleStore((s) => s.setActiveMenuId);
   const storeInfo = useSelector((state: RootState) => state.app);
   const { rootCategoryId } = useParams();
   const lastCategoryTreeErrorRef = useRef<string | null>(null);
+  const setCategoryToDelete = useCategoryModuleStore((s) => s.setCategoryToDelete);
+  const categoryToDelete = useCategoryModuleStore((s) => s.categories.categoryToDelete);
   const prevCategoryIdsRef = useRef<Set<string>>(new Set());
+
 
   const MENU_ACTIONS: ActionMenuItem[] = [
     {
@@ -173,7 +178,10 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
     },
     {
       label: "Delete",
-      onClick: () => { },
+      onClick: (id: string) => {
+        setCategoryToDelete(id);
+        confirmModal.open();
+      },
       icon: Trash2Icon,
       danger: true,
     },
@@ -194,6 +202,18 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
     storeInfo?.storeId ?? "",
     { enabled: Boolean(rootCategoryId && storeInfo?.storeId) },
   );
+
+
+  const { mutate: removeCategory } = useRemoveCategory({
+    storeId: storeInfo?.storeId,
+    onSuccess: () => {
+      toast.success("Category removed successfully");
+      refetchGetCategoryTree();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
 
   const apiCategories = useMemo<FlatCategory[] | null>(() => {
     const tree: CategoryResponse[] = getCategoryTree?.data?.categoryTree ?? [];
@@ -234,7 +254,6 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
   useEffect(() => {
     const ids = derivedCategories.map((c) => c.id);
 
-    // Reset detection when switching root context.
     if (prevCategoryIdsRef.current.size === 0) {
       prevCategoryIdsRef.current = new Set(ids);
       return;
@@ -268,7 +287,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
 
 
   const handleCreateCategoryDialog = (payload: HandleSubCategory) => {
-    if (payload.mode !== "CREATE" && payload.mode !== "EDIT"  && payload.mode !== "CREATE_NEST") {
+    if (payload.mode !== "CREATE" && payload.mode !== "EDIT" && payload.mode !== "CREATE_NEST") {
       toast.error("Invalid mode");
       return
     }
@@ -350,9 +369,26 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
           mainModal={mainModal}
           onCategoryCreatedCallback={refetchGetCategoryTree}
         />
+        <ConfirmModal
+          modal={confirmModal}
+          title="Delete category?"
+          subtitle="This action cannot be undone."
+          isLoading={false}
+          cancelButtonText="Cancel"
+          confirmButtonText="Delete"
+          onClose={() => setCategoryToDelete(null)}
+          onConfirm={() => {
+            if (!categoryToDelete)
+              return;
+            removeCategory({ categoryIds: [categoryToDelete] });
+            confirmModal.close();
+            setCategoryToDelete(null);
+          }}
+        >
+          Are you sure you want to delete this category?
+        </ConfirmModal>
       </div>
     </div>
   );
 }
-
 

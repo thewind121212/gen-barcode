@@ -26,10 +26,26 @@ tasks:
     cmds:
       - npm run dev:be
   
+  fullstack:
+    desc: Start fullstack development server
+    cmds:
+      - task: fe
+      - task: be
+  
   lint:
     desc: Lint the code
     cmds:
       - npm run lint:all
+  
+  prisma-generate:
+    desc: Generate Prisma client
+    cmds:
+      - cd be && npx prisma generate
+  
+  prisma-push:
+    desc: Push Prisma schema to database
+    cmds:
+      - cd be && npx prisma db push
   
   docker-restart:
     desc: Restart Docker containers
