@@ -22,7 +22,7 @@ model Store {
   id        String        @id @default(uuid())
   name      String
   createdAt DateTime      @default(now())
-  updatedAt      DateTime  @updatedAt
+  updatedAt      DateTime  @default(now())
   isDelete       Boolean   @default(false)
   
   // Relationsk
@@ -38,7 +38,7 @@ model StoreMember {
   role      StoreRole // Enum: OWNER or STAFF
   joinedAt  DateTime  @default(now())
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime  @default(now())
 
   store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -52,7 +52,7 @@ model Storage {
   isDelete       Boolean   @default(false)
   capacity Int?
   createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  updatedAt      DateTime  @default(now())
   
   storeId  String  @unique
   store    Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -76,7 +76,7 @@ model Category {
   imageUrl       String?
   isDelete       Boolean   @default(false)
   createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  updatedAt      DateTime  @default(now())
 
   // Relations
   storeId        String
