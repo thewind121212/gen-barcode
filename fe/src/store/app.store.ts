@@ -13,6 +13,7 @@ export interface AppState {
     storeName?: string
     userInfo?: UserInfo
     isAppInitialized: boolean
+    isReloadingApp: boolean
     isDark: boolean
 }
 
@@ -22,6 +23,7 @@ const initialState: AppState = {
     userInfo: undefined,
     storeName: undefined,
     isAppInitialized: false,
+    isReloadingApp: false,
     isDark: false,
 }
 
@@ -47,11 +49,18 @@ export const appSlice = createSlice({
         },
         toggleTheme: (state) => {
             state.isDark = !state.isDark
+        },
+        setIsReloadingApp: (state, action: PayloadAction<boolean>) => {
+            state.isReloadingApp = action.payload
+        },
+        reloadApp: (state) => {
+            state.isAppInitialized = false;
+            state.isReloadingApp = true;
         }
     },
 })
 
-export const { setUserId, setUserInfo, setStoreInfo, setIsAppInitialized, toggleTheme } = appSlice.actions
+export const { setUserId, setUserInfo, setStoreInfo, setIsAppInitialized, toggleTheme, reloadApp, setIsReloadingApp } = appSlice.actions
 
 
 export default appSlice.reducer

@@ -314,6 +314,9 @@
           "parentId": {
             "type": "string"
           },
+          "parentName": {
+            "type": "string"
+          },
           "description": {
             "type": "string"
           },

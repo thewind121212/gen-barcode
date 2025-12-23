@@ -22,9 +22,10 @@ model Store {
   id        String        @id @default(uuid())
   name      String
   createdAt DateTime      @default(now())
+  updatedAt      DateTime  @updatedAt
   isDelete       Boolean   @default(false)
   
-  // Relations
+  // Relationsk
   members   StoreMember[]
   storage   Storage?
   categories Category[]
@@ -36,6 +37,8 @@ model StoreMember {
   userId    String    // ID from external Auth service
   role      StoreRole // Enum: OWNER or STAFF
   joinedAt  DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -48,6 +51,8 @@ model Storage {
   location String?
   isDelete       Boolean   @default(false)
   capacity Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   
   storeId  String  @unique
   store    Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)

@@ -132,24 +132,33 @@ export class CategoryService {
   async GetCategoryById(ctx: RequestContext, req: GetCategoryByIdRequestBody): Promise<GetCategoryByIdResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);
+      let parentName = "";
 
       const category = await this.categoryRepo.findById(req.categoryId, storeId);
       if (!category) {
         throw new Error("Category not found");
       }
+      if (category.parentId && category.parentId !== NIL_UUID) {
+        const parent = await this.categoryRepo.findById(category.parentId, storeId);
+        if (!parent) {
+          throw new Error("Parent category not found please edit now");
+        }
+        parentName = parent?.name ?? "";
+      }
 
-      const subCategoriesCount = await this.categoryRepo.countChildren(category.id, storeId);
+      const countDescendants = await this.categoryRepo.countDescendants(category.id, storeId);
 
       return {
         resData: {
           categoryId: category.id,
           name: category.name,
           parentId: category.parentId ?? NIL_UUID,
+          parentName,
           description: category.description ?? undefined,
           colorSettings: category.colorSettings ?? undefined,
           layer: category.layer,
           icon: category.icon ?? undefined,
-          subCategoriesCount,
+          subCategoriesCount: countDescendants,
           storeId,
           itemCount: 0,
           totalValue: 0,
@@ -246,7 +255,7 @@ export class CategoryService {
         colorSettings: category.colorSettings ?? undefined,
         layer: category.layer,
         icon: category.icon ?? undefined,
-        subCategoriesCount: category._count?.children ?? 0,
+        subCategoriesCount: category.descendantsCount ?? 0,
         status: category.status,
         storeId,
         // Item stats are not yet tracked; default to zero.
@@ -289,7 +298,7 @@ export class CategoryService {
           colorSettings: category.colorSettings ?? undefined,
           layer: category.layer,
           icon: category.icon ?? undefined,
-          subCategoriesCount: category._count?.children ?? 0,
+          subCategoriesCount: category.descendantsCount ?? 0,
           status: category.status,
           storeId,
           // This will be done later by repo item and stock
@@ -387,7 +396,7 @@ export class CategoryService {
         colorSettings: category.colorSettings ?? undefined,
         layer: category.layer,
         icon: category.icon ?? undefined,
-        subCategoriesCount: category._count?.children ?? 0,
+        subCategoriesCount: category.descendantsCount ?? 0,
         status: category.status,
         storeId,
         // This will be done later by repo item and stock

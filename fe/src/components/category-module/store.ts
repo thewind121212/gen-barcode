@@ -1,19 +1,15 @@
 import { create } from "zustand";
 
 export type CreateCategoryModalData = {
-  mode: "create" | "edit";
+  mode: "CREATE" | "EDIT" | "CREATE_NEST";
   categoryEditId: string | null;
   categoryCreateParentId: string | null;
-  categoryCreateLayer: string | null;
-  categoryCreateName: string | null;
 };
 
 const initialCreateCategoryModalData: CreateCategoryModalData = {
-  mode: "create",
+  mode: "CREATE",
   categoryEditId: null,
   categoryCreateParentId: null,
-  categoryCreateLayer: null,
-  categoryCreateName: null,
 };
 
 export interface CategoryModuleStore {
