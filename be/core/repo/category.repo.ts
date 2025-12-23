@@ -1,6 +1,7 @@
-import { Prisma, type Category } from "@Ciri/generated/prisma/client";
+import type { Category } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
+import { Prisma } from "@Ciri/generated/prisma/client";
 
 export class CategoryRepository {
   async create(data: Prisma.CategoryCreateInput) {
@@ -31,7 +32,8 @@ export class CategoryRepository {
   }
 
   async softDeleteMany(ids: string[], storeId: string) {
-    if (ids.length === 0) return 0;
+    if (ids.length === 0)
+      return 0;
     return prisma.$executeRaw`
       WITH RECURSIVE subtree AS (
         SELECT id

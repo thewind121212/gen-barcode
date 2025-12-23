@@ -186,7 +186,7 @@ export class CategoryService {
         return { resData: null, error: "Category not found" };
       }
       const allowDeleteIds = categories.map(category => category.id);
-      //Todo if item of store is link to category we must unlink it some item have category some is orphan
+      // Todo if item of store is link to category we must unlink it some item have category some is orphan
       const removedCount = await this.categoryRepo.softDeleteMany(allowDeleteIds, storeId);
       return { resData: { removedCount }, error: null };
     }

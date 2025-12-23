@@ -108,7 +108,8 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
     return mapped.length ? mapped : null;
   }, [getCategoryTree]);
 
-  const categories = apiCategories ?? [];
+  const categories = useMemo(() => apiCategories ?? [], [apiCategories]);
+
 
   useEffect(() => {
     if (!getCategoryTreeError) {
