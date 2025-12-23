@@ -61,11 +61,15 @@ export const useGetCategoryOverview = (
     });
 };
 
-export const useGetCategoryOverviewWithDepth = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<GetCategoryOverviewResponse>) => void, onError?: (error: Error) => void }) => {
-    return useMutation<GetCategoryOverviewResponse, Error, GetCategoryOverviewWithDepthRequest>({
-        mutationFn: (request: GetCategoryOverviewWithDepthRequest) => getCategoryOverviewWithDepth(request, storeId),
-        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<GetCategoryOverviewResponse>),
-        onError: (error) => onError?.(error),
+export const useGetCategoryOverviewWithDepth = (
+  request: GetCategoryOverviewWithDepthRequest,
+  storeId?: string,
+  options?: Omit<UseQueryOptions<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, ApiSuccessResponse<GetCategoryOverviewResponse>>, "queryKey" | "queryFn">,
+) => {
+    return useQuery<ApiSuccessResponse<GetCategoryOverviewResponse>, Error, ApiSuccessResponse<GetCategoryOverviewResponse>>({
+        queryKey: ["category", "GetCategoryOverviewWithDepth", request],
+        queryFn: () => getCategoryOverviewWithDepth(request, storeId) as unknown as ApiSuccessResponse<GetCategoryOverviewResponse>,
+        ...options,
     });
 };
 

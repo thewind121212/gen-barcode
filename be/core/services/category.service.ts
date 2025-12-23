@@ -5,8 +5,9 @@ import type {
   CreateCategoryResponseServices,
   GetCategoryByIdRequestBody,
   GetCategoryByIdResponseServices,
+  GetCategoryOverviewRequestQuery,
   GetCategoryOverviewResponseServices,
-  GetCategoryOverviewWithDepthRequestBody,
+  GetCategoryOverviewWithDepthRequestQuery,
   GetCategoryOverviewWithDepthResponseServices,
   GetCategoryTreeRequestQuery,
   GetCategoryTreeResponseServices,
@@ -242,6 +243,7 @@ export class CategoryService {
 
   async GetCategoryOverview(
     ctx: RequestContext,
+    _req: GetCategoryOverviewRequestQuery,
   ): Promise<GetCategoryOverviewResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);
@@ -274,7 +276,7 @@ export class CategoryService {
 
   async GetCategoryOverviewWithDepth(
     ctx: RequestContext,
-    req: GetCategoryOverviewWithDepthRequestBody,
+    req: GetCategoryOverviewWithDepthRequestQuery,
   ): Promise<GetCategoryOverviewWithDepthResponseServices> {
     try {
       const storeId = this.ensureStoreId(ctx);
