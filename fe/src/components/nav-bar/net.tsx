@@ -1,6 +1,5 @@
 import ThemeToggle from "@Jade/theme/ThemeToggle";
 import {
-    BarChart3,
     ChevronLeft,
     ChevronRight,
     Home,
