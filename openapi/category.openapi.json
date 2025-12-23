@@ -174,7 +174,7 @@
       }
     },
     "/category/GetCategoryOverviewWithDepth": {
-      "post": {
+      "get": {
         "operationId": "GetCategoryOverviewWithDepth",
         "summary": "GetCategoryOverviewWithDepth",
         "tags": [
@@ -192,16 +192,25 @@
             }
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCategoryOverviewWithDepthRequest"
-              }
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
-        }
+        ]
       }
     },
     "/category/GetCategoryTree": {

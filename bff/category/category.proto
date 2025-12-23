@@ -115,7 +115,7 @@ service UserService {
   }
   rpc GetCategoryOverviewWithDepth(GetCategoryOverviewWithDepthRequest) returns (GetCategoryOverviewResponse) {
     option (google.api.http) = {
-      post: "/v1/category/GetCategoryOverviewWithDepth"
+      get: "/v1/category/GetCategoryOverviewWithDepth"
       body: "*"
     };
   }

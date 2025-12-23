@@ -447,7 +447,7 @@ const ${toCamelCase(serviceName)} = new ${serviceName}();
     try {
       const ctx = getContext(req);
       const validatedQuery = getValidatedQuery<${typeName}>(req);
-      const response = await (${toCamelCase(serviceName)} as unknown as any).${serviceMethod}(ctx, validatedQuery);
+      const response = await ${toCamelCase(serviceName)}.${serviceMethod}(ctx, validatedQuery);
       if (response.error) {
         ErrorResponses.badRequest(res, response.error);
         return;

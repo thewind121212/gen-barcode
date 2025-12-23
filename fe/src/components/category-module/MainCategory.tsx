@@ -7,7 +7,7 @@ import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMe
 import { CardMainCategory } from "@Jade/core-design/card/main-category-card/MainCategoryCard";
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
-import { useGetCategoryOverview, useRemoveCategory } from "@Jade/services/category/useQuery";
+import { useGetCategoryOverviewWithDepth, useRemoveCategory } from "@Jade/services/category/useQuery";
 import { useSelector } from "react-redux";
 import { allColors } from "@Jade/core-design/modal/colorOptions";
 import type { RootState } from "@Jade/store/global.store";
@@ -102,8 +102,8 @@ const CategoriesView = () => {
   const categoryToDelete = useCategoryModuleStore((s) => s.categories.categoryToDelete);
   const mainModal = useModal(ModalId.MAIN_CATEGORY);
   const confirmModal = useModal(ModalId.CONFIRM);
-  const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverview(
-    { storeId: appStoreInfo?.storeId || "" },
+  const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverviewWithDepth(
+    { storeId: appStoreInfo?.storeId || "", depth: 1 },
     appStoreInfo?.storeId,
     { enabled: Boolean(appStoreInfo?.storeId) },
   );
