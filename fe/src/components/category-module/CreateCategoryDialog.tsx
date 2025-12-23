@@ -1,23 +1,24 @@
-import { lazy, useEffect, useMemo, useState } from 'react';
+import CategorySkeleton from '@Jade/components/category-module/CreateCategoryLoading';
+import { INITIAL_LAYER } from '@Jade/config';
 import InputCommon from '@Jade/core-design/input/CommonInput';
 import Select from '@Jade/core-design/input/Select';
 import ColorPicker from '@Jade/core-design/modal/ColorPicker';
-import { allColors, quickColors } from '@Jade/core-design/modal/colorOptions';
 import type { IconName } from '@Jade/core-design/modal/IconPicker';
+import { allColors, quickColors } from '@Jade/core-design/modal/colorOptions';
 import { ModalId, useModal, type UseModalReturn } from '@Jade/core-design/modal/useModal';
-import { yupResolver } from "@hookform/resolvers/yup";
-import dynamicIconImports from 'lucide-react/dynamicIconImports';
-import { Activity, Check, LayoutGrid, Palette, Plus, Upload, type LucideIcon } from 'lucide-react';
-import { useForm, useWatch } from 'react-hook-form';
-import * as yup from "yup";
-import { useParams } from 'react-router-dom';
-import { useCreateCategory, useUpdateCategory, useGetCategoryById } from '@Jade/services/category/useQuery';
-import toast from 'react-hot-toast';
-import { useSelector } from 'react-redux'
-import { NIL as NIL_UUID } from 'uuid';
+import { useCreateCategory, useGetCategoryById, useUpdateCategory } from '@Jade/services/category/useQuery';
 import type { RootState } from '@Jade/store/global.store';
-import CategorySkeleton from '@Jade/components/category-module/CreateCategoryLoading';
 import type { CreateCategoryRequest } from '@Jade/types/category';
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Activity, Check, LayoutGrid, Palette, Plus, Upload, type LucideIcon } from 'lucide-react';
+import dynamicIconImports from 'lucide-react/dynamicIconImports';
+import { lazy, useEffect, useMemo, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { NIL as NIL_UUID } from 'uuid';
+import * as yup from "yup";
 import { useCategoryModuleStore } from './store';
 
 
@@ -188,7 +189,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
 
     const onSubmit = (data: CategoryFormValues) => {
-        const layerRequest = categoryCreateLayer ? categoryCreateLayer : "0"
+        const layerRequest = categoryCreateLayer ? categoryCreateLayer : INITIAL_LAYER;
         // if parentId is provided, then layer must be get from be first and recheck at be 
         if (rootCategoryId && !layerRequest) {
             toast.error('Layer is required');

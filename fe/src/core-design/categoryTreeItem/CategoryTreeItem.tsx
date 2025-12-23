@@ -94,7 +94,7 @@ export default function CategoryItem({
   return (
     <div className="select-none">
       <div
-        className={`flex items-center justify-between p-3 mb-2 rounded-lg border border-gray-100 bg-white hover:border-indigo-200 transition-all ${level > 0 ? "ml-6" : ""
+        className={`flex items-center justify-between p-3 mb-2 rounded-lg border border-gray-100 bg-white hover:border-indigo-200 transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-indigo-900/60 ${level > 0 ? "ml-6" : ""
           }`}
       >
         <div
@@ -107,7 +107,7 @@ export default function CategoryItem({
           {!isRootLayer && hasChildren ? (
             <ChevronRight
               size={16}
-              className={`text-gray-400 transition-transform duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-transform motion-reduce:transition-none ${effectiveOpen ? "rotate-90" : "rotate-0"}`}
+              className={`text-gray-400 dark:text-gray-500 transition-transform duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-transform motion-reduce:transition-none ${effectiveOpen ? "rotate-90" : "rotate-0"}`}
             />
           ) : (
             <div className="w-4" />
@@ -115,7 +115,7 @@ export default function CategoryItem({
 
           <span className={`px-2 py-0.5 rounded text-xs font-semibold ${badgeClass}`}>{node.layer}</span>
 
-          <span className="font-medium text-gray-900">{node.name}</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{node.name}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function CategoryItem({
                 e.stopPropagation();
                 onExpandToggle();
               }}
-              className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+              className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors dark:text-gray-500 dark:hover:text-indigo-200 dark:hover:bg-indigo-900/30"
               title={defaultOpen ? "Collapse all" : "Expand all"}
               aria-label={defaultOpen ? "Collapse all categories" : "Expand all categories"}
               type="button"
@@ -138,7 +138,7 @@ export default function CategoryItem({
               e.stopPropagation();
               onAddSub({ mode: "create", categoryCreateParentId: node.id, categoryCreateLayer: node.layer, categoryCreateName: node.name });
             }}
-            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors text-xs flex items-center gap-1"
+            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors text-xs flex items-center gap-1 dark:text-gray-500 dark:hover:text-indigo-200 dark:hover:bg-indigo-900/30"
             title="Add Subcategory"
             type="button"
           >
@@ -150,7 +150,7 @@ export default function CategoryItem({
               e.stopPropagation();
               onDelete(node.id);
             }}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors dark:text-gray-500 dark:hover:text-red-300 dark:hover:bg-red-900/20"
             title="Delete Category"
             type="button"
           >
@@ -162,7 +162,7 @@ export default function CategoryItem({
       {hasChildren && (
         <div
           id={childrenId}
-          className={`ml-5 pl-2 border-l-2 border-gray-100 grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-[grid-template-rows] motion-reduce:transition-none ${effectiveOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          className={`ml-5 pl-2 border-l-2 border-gray-200 dark:border-gray-800 grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-[grid-template-rows] motion-reduce:transition-none ${effectiveOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
             }`}
         >
           <div className="overflow-hidden">

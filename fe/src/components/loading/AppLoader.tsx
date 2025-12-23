@@ -1,5 +1,5 @@
 import { useGetUserInfo } from '@Jade/services/store/useQuery';
-import { setIsAppInitialized, setStoreInfo, setUserId, setUserInfo } from '@Jade/store/app.store';
+import { setIsAppInitialized, setIsReloadingApp, setStoreInfo, setUserId, setUserInfo } from '@Jade/store/app.store';
 import type { RootState } from '@Jade/store/global.store';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,6 +16,7 @@ export default function LoadingScreen() {
     const context = useSessionContext();
     const dispatch = useDispatch();
     const isAppInitialized = useSelector((state: RootState) => state.app.isAppInitialized);
+    const isShouldReloadApp = useSelector((state: RootState) => state.app.isReloadingApp);
     const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -71,6 +72,7 @@ export default function LoadingScreen() {
 
     const handlerFetchUserInfo = useCallback(() => {
         if (context.loading) return;
+        setProgress(0);
         const contextUserId = context.userId;
         setErrorMessage(null);
         dispatch(setUserId(contextUserId));
@@ -84,6 +86,15 @@ export default function LoadingScreen() {
         }, 0);
         return () => clearTimeout(timer);
     }, [handlerFetchUserInfo]);
+
+    useEffect(() => {
+        if (isShouldReloadApp) {
+            handlerFetchUserInfo();
+        }
+        return () => {
+            dispatch(setIsReloadingApp(false));
+        }
+    }, [isShouldReloadApp, handlerFetchUserInfo]);
 
     useEffect(() => clearAllTimeouts, []);
 
