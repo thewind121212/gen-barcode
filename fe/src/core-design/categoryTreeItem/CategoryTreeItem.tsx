@@ -1,7 +1,8 @@
-import { useLayoutEffect, useMemo, useState } from "react";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Plus, Trash2 } from "lucide-react";
 import { type HandleSubCategory } from "@Jade/components/category-module/utils";
+import ActionMenu, { type ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { allColors } from "@Jade/core-design/modal/colorOptions";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 export type FlatCategory = {
     id: string;
@@ -24,6 +25,10 @@ export type CategoryItemProps = {
   controlledOpen?: boolean;
   onToggleOpen?: (nextOpen: boolean) => void;
   onExpandToggle?: () => void;
+  menuActions: ActionMenuItem[];
+  activeMenuId?: string | null;
+  setActiveMenuId?: (menuId: string | null) => void;
+  autoOpenPathIds?: string[];
 };
 
 export default function CategoryItem({
@@ -35,15 +40,24 @@ export default function CategoryItem({
   controlledOpen,
   onToggleOpen,
   onExpandToggle,
+  menuActions,
+  activeMenuId,
+  setActiveMenuId,
+  autoOpenPathIds,
 }: CategoryItemProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [layer2OpenMap, setLayer2OpenMap] = useState<Record<string, boolean>>({});
+  const lastDefaultOpenRef = useRef<boolean>(defaultOpen);
   const hasChildren = node.children && node.children.length > 0;
   const childrenId = `cat-children-${node.id}`;
   const isRootLayer = level === 0;
   const isControlled = controlledOpen !== undefined;
 
   const effectiveOpen = isRootLayer ? true : (isControlled ? Boolean(controlledOpen) : isOpen);
+  const isMenuOpen = activeMenuId === node.id;
+  const onMenuToggle = (open: boolean) => {
+    setActiveMenuId?.(open ? node.id : null);
+  };
 
   useLayoutEffect(() => {
     if (isControlled) return;
@@ -54,15 +68,30 @@ export default function CategoryItem({
   useLayoutEffect(() => {
     if (!isRootLayer) return;
     if (!hasChildren) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLayer2OpenMap(() => {
+    const defaultOpenChanged = lastDefaultOpenRef.current !== defaultOpen;
+    lastDefaultOpenRef.current = defaultOpen;
+
+    const autoOpenSet = new Set(autoOpenPathIds ?? []);
+    setLayer2OpenMap((prev) => {
       const next: Record<string, boolean> = {};
-      node.children.forEach((child) => {
-        next[child.id] = defaultOpen;
-      });
+      for (const child of node.children) {
+        next[child.id] = defaultOpenChanged
+          ? defaultOpen
+          : (autoOpenSet.has(child.id) ? true : (prev[child.id] ?? defaultOpen));
+      }
       return next;
     });
-  }, [defaultOpen, hasChildren, isRootLayer, node.children]);
+  }, [autoOpenPathIds, defaultOpen, hasChildren, isRootLayer, node.children]);
+
+  // Auto-open deeper nodes on the path (so the newly created node becomes visible).
+  useLayoutEffect(() => {
+    if (isRootLayer) return;
+    if (!hasChildren) return;
+    if (isControlled) return;
+    if (!autoOpenPathIds?.includes(node.id)) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsOpen(true);
+  }, [autoOpenPathIds, hasChildren, isControlled, isRootLayer, node.id]);
 
 
   const toggleSelf = () => {
@@ -81,12 +110,6 @@ export default function CategoryItem({
     if (isControlled) onToggleOpen?.(next);
     else setIsOpen(next);
   };
-
-  // const openSelf = () => {
-  //   if (isRootLayer) return;
-  //   if (isControlled) onToggleOpen?.(true);
-  //   else setIsOpen(true);
-  // };
 
   const color = useMemo(() => allColors.find((c) => c.id === node.colorId), [node.colorId]);
   const badgeClass = color ? `${color.bg} text-white` : "bg-slate-100 text-slate-700";
@@ -136,26 +159,22 @@ export default function CategoryItem({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onAddSub({ mode: "create", categoryCreateParentId: node.id, categoryCreateLayer: node.layer, categoryCreateName: node.name });
+              onAddSub({ mode: "CREATE_NEST", categoryEditId: undefined, categoryCreateParentId: node.id });
             }}
             className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors text-xs flex items-center gap-1 dark:text-gray-500 dark:hover:text-indigo-200 dark:hover:bg-indigo-900/30"
             title="Add Subcategory"
             type="button"
           >
             <Plus size={14} />
-            <span className="hidden sm:inline">Sub</span>
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(node.id);
-            }}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors dark:text-gray-500 dark:hover:text-red-300 dark:hover:bg-red-900/20"
-            title="Delete Category"
-            type="button"
-          >
-            <Trash2 size={14} />
-          </button>
+          {menuActions.length > 0 && (
+            <ActionMenu actions={menuActions}
+              isOpen={isMenuOpen}
+              onToggle={() => onMenuToggle(!isMenuOpen)}
+              targetId={node.id}
+              portal
+            />
+          )}
         </div>
       </div>
 
@@ -184,6 +203,10 @@ export default function CategoryItem({
                       ? (nextOpen) => setLayer2OpenMap((prev) => ({ ...prev, [child.id]: nextOpen }))
                       : undefined
                   }
+                  menuActions={menuActions}
+                  activeMenuId={activeMenuId}
+                  setActiveMenuId={setActiveMenuId}
+                  autoOpenPathIds={autoOpenPathIds}
                 />
               ))}
             </div>

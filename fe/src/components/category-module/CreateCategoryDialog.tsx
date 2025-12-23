@@ -19,7 +19,7 @@ import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { NIL as NIL_UUID } from 'uuid';
 import * as yup from "yup";
-import { useCategoryModuleStore } from './store';
+import { useCategoryModuleStore } from '@Jade/components/category-module/store';
 
 
 const Modal = lazy(() => import('@Jade/core-design/modal/ModalBase'));
@@ -34,6 +34,8 @@ type CategoryFormValues = {
     description: string;
     color: string;
     icon: string;
+    layer?: string;
+    parentName?: string;
 };
 
 const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
@@ -43,6 +45,8 @@ const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
     description: yup.string().optional().default(''),
     color: yup.string().optional().default('indigo-400'),
     icon: yup.string().optional().default('layout-grid'),
+    layer: yup.string().optional().default('0'),
+    parentName: yup.string().optional().default(''),
 });
 
 type CreateCategoryDialogProps = {
@@ -58,11 +62,9 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
     const { rootCategoryId } = useParams();
     const createCategoryModalData = useCategoryModuleStore((s) => s.categories.createCategoryModalData);
     const resetCreateCategoryModalData = useCategoryModuleStore((s) => s.resetCreateCategoryModalData);
+    const categoryCreateParentId = createCategoryModalData.categoryCreateParentId;
     const mode = createCategoryModalData.mode;
     const categoryEditId = createCategoryModalData.categoryEditId;
-    const categoryCreateParentId = createCategoryModalData.categoryCreateParentId;
-    const categoryCreateLayer = createCategoryModalData.categoryCreateLayer;
-    const categoryCreateName = createCategoryModalData.categoryCreateName;
 
     const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
@@ -81,12 +83,29 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
         onSuccess: (data) => {
             const cat = data?.data;
             if (!cat) return;
-            setValue('name', cat.name ?? '');
-            setValue('status', (cat.status as CategoryStatus) ?? 'ACTIVE');
-            setValue('parentId', cat.parentId ?? NIL_UUID);
-            setValue('description', cat.description ?? '');
-            setValue('color', cat.colorSettings ?? 'slate-400');
-            setValue('icon', cat.icon ?? 'layout-grid');
+            // Set all form values in one shot (avoids duplicated setValue calls)
+            if (mode === "EDIT") {
+                reset({
+                    name: cat.name ?? '',
+                    status: (cat.status as CategoryStatus) ?? 'ACTIVE',
+                    parentId: cat.parentId ?? NIL_UUID,
+                    description: cat.description ?? '',
+                    color: cat.colorSettings ?? 'slate-400',
+                    icon: cat.icon ?? 'layout-grid',
+                    layer: cat.layer ?? INITIAL_LAYER,
+                    parentName: cat.parentName ?? '',
+                });
+            }
+            else if (mode === "CREATE_NEST") {
+                reset({
+                    parentId: cat.categoryId ?? NIL_UUID,
+                    layer: cat.layer ?? INITIAL_LAYER,
+                    parentName: cat.name ?? '',
+                    color: cat.colorSettings ?? 'slate-400',
+                    icon: cat.icon ?? 'layout-grid',
+                    status: 'ACTIVE'
+                });
+            }
         },
         onError: (error) => {
             reset();
@@ -98,24 +117,21 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
     useEffect(() => {
         if (!mainModal.isOpen) return;
-        if (categoryEditId && mode === "edit") {
+        if (categoryEditId && (mode === "EDIT")) {
             getCategoryById({ categoryId: categoryEditId });
         }
-        // getCategoryById is stable from react-query, safe to depend on
-    }, [categoryEditId, getCategoryById, mainModal.isOpen, mode]);
-
-    useEffect(() => {
-        if (!mainModal.isOpen) return;
-        if (mode !== "create") return;
-        if (categoryCreateParentId) {
-            setValue('parentId', categoryCreateParentId, { shouldValidate: true });
+        if (categoryCreateParentId && (mode === "CREATE_NEST")) {
+            getCategoryById({ categoryId: categoryCreateParentId });
         }
-    }, [categoryCreateName, categoryCreateParentId, mainModal.isOpen, mode, setValue]);
+        // getCategoryById is stable from react-query, safe to depend on
+    }, [categoryEditId, getCategoryById, mainModal.isOpen, mode, categoryCreateParentId]);
+
 
     const status = useWatch({ control, name: 'status' });
     const parentId = useWatch({ control, name: 'parentId' });
     const color = useWatch({ control, name: 'color' });
     const icon = useWatch({ control, name: 'icon' });
+    const parentName = useWatch({ control, name: 'parentName' });
 
     const { mutate: createCategory, isPending: isLoadingCreateCategory } = useCreateCategory({
         storeId: storeId,
@@ -148,9 +164,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
     useEffect(() => {
         let isMounted = true;
-
         const loader = dynamicIconImports[icon as IconName] ?? dynamicIconImports['layout-grid'];
-
         loader()
             .then((mod) => {
                 if (isMounted && mod?.default) {
@@ -162,7 +176,6 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                     setSelectedIcon(() => LayoutGrid);
                 }
             });
-
         return () => {
             isMounted = false;
         };
@@ -176,7 +189,6 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
         setValue('icon', iconName, { shouldValidate: true });
     };
 
-
     const quickColorsList = useMemo(() => {
         const isSelectedColorExistsInQuickColors = quickColors.some(c => c.id === color);
         if (isSelectedColorExistsInQuickColors) return quickColors;
@@ -189,7 +201,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
 
     const onSubmit = (data: CategoryFormValues) => {
-        const layerRequest = categoryCreateLayer ? categoryCreateLayer : INITIAL_LAYER;
+        let layerRequest = data.layer ? data.layer : INITIAL_LAYER;
         // if parentId is provided, then layer must be get from be first and recheck at be 
         if (rootCategoryId && !layerRequest) {
             toast.error('Layer is required');
@@ -208,7 +220,11 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
             return;
         }
         const resolvedParentId =
-            mode === "create" && categoryCreateParentId ? categoryCreateParentId : data.parentId;
+            mode === "EDIT" || mode === "CREATE_NEST" && data.parentId ? data.parentId : data.parentId;
+
+        if (mode === "CREATE_NEST") {
+            layerRequest = (Number(layerRequest) + 1).toString();
+        }
 
         const payload: CreateCategoryRequest = {
             name: data.name,
@@ -219,15 +235,14 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
             colorSettings: data.color,
             icon: data.icon,
         };
-        if (mode === "create") {
+        if (mode === "CREATE" || mode === "CREATE_NEST") {
             createCategory(payload);
-        } else if (mode === "edit" && categoryEditId) {
+        } else if (mode === "EDIT" && categoryEditId) {
             updateCategory({
                 categoryId: categoryEditId,
                 categoryUpdate: payload,
             });
         }
-
     };
 
     const buildParentCategoryOptions = useMemo(() => {
@@ -235,14 +250,14 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
             value: NIL_UUID,
             label: 'No Parent (Root Category)',
         }];
-        if (categoryCreateParentId && categoryCreateParentId !== NIL_UUID) {
+        if (parentId && parentId !== NIL_UUID) {
             options.push({
-                value: categoryCreateParentId,
-                label: categoryCreateName?.trim()?.length ? categoryCreateName : categoryCreateParentId,
+                value: parentId,
+                label: parentName ?? parentId,
             });
         }
         return options;
-    }, [categoryCreateName, categoryCreateParentId]);
+    }, [parentId, parentName]);
 
     return (
         <>
@@ -257,13 +272,13 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                 }}
                 layer={mainModal.layer}
                 maxWidthClass="max-w-2xl"
-                title={mode === "create" ? "Create New Category" : "Edit Category"}
+                title={mode === "CREATE" ? "Create New Category" : "Edit Category"}
                 subtitle="Organize your items with a new classification."
                 blurEffect={true}
                 className={"mb-0"}
                 onConfirm={() => handleSubmit(onSubmit)()}
-                confirmButtonText={mode === "create" ? "Create" : "Update"}
-                isLoading={mode === "create" ? isLoadingCreateCategory : isLoadingUpdateCategory}
+                confirmButtonText={mode === "CREATE" || mode === "CREATE_NEST" ? "Create" : "Update"}
+                isLoading={mode === "CREATE" || mode === "CREATE_NEST" ? isLoadingCreateCategory : isLoadingUpdateCategory}
                 isLoadingComponent={isLoadingGetCategoryById}
                 loadingComponent={<CategorySkeleton />}
             >

@@ -13,8 +13,7 @@ import { allColors } from "@Jade/core-design/modal/colorOptions";
 import type { RootState } from "@Jade/store/global.store";
 import type { CategoryResponse } from "@Jade/types/category.d";
 import toast from "react-hot-toast";
-import { useCategoryModuleStore } from "./store";
-import { INITIAL_LAYER } from "@Jade/config";
+import { useCategoryModuleStore } from '@Jade/components/category-module/store';
 import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
@@ -71,7 +70,7 @@ const INITIAL_ITEMS: Item[] = [
 
 
 
-export type Mode = "create" | "edit" | null;
+export type Mode = "CREATE" | "EDIT" | "CREATE_NEST" | null;
 
 
 const getCategoryStats = (items: Item[], catId: string): CategoryStats => {
@@ -132,7 +131,7 @@ const CategoriesView = () => {
     },
     {
       label: "Edit",
-      onClick: (id: string) => handleModeDialog("edit", id),
+      onClick: (id: string) => handleModeDialog("EDIT", id),
       icon: Edit2Icon,
       // loading: isRemovingCategory,
     },
@@ -170,14 +169,12 @@ const CategoriesView = () => {
     }));
 
   const handleModeDialog = (mode: Mode, categoryEditId?: string) => {
-    if (mode !== "create" && mode !== "edit") return;
+    if (mode !== "CREATE" && mode !== "EDIT") return;
 
     setCreateCategoryModalData({
       mode,
-      categoryEditId: mode === "edit" ? (categoryEditId ?? null) : null,
+      categoryEditId: mode === "EDIT" ? (categoryEditId ?? null) : null,
       categoryCreateParentId: null,
-      categoryCreateLayer: INITIAL_LAYER,
-      categoryCreateName: null,
     });
     mainModal.open();
   };
@@ -224,7 +221,7 @@ const CategoriesView = () => {
         <div className="lg:col-span-1">
           <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 sticky top-4 dark:bg-gray-900 dark:border-gray-800">
             <CommonButton
-              onClick={() => handleModeDialog("create")}
+              onClick={() => handleModeDialog("CREATE")}
               className="w-full h-10 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm dark:hover:bg-indigo-500"
               icon={<Plus size={18} />}
             >

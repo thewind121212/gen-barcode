@@ -89,12 +89,13 @@ export default function LoadingScreen() {
 
     useEffect(() => {
         if (isShouldReloadApp) {
-            handlerFetchUserInfo();
+            const timer = setTimeout(() => {
+                handlerFetchUserInfo();
+                dispatch(setIsReloadingApp(false));
+            }, 0);
+            return () => clearTimeout(timer);
         }
-        return () => {
-            dispatch(setIsReloadingApp(false));
-        }
-    }, [isShouldReloadApp, handlerFetchUserInfo]);
+    }, [isShouldReloadApp, handlerFetchUserInfo, dispatch]);
 
     useEffect(() => clearAllTimeouts, []);
 
