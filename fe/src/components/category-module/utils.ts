@@ -1,11 +1,9 @@
 import type { CategoryNode, FlatCategory } from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
 
 export interface HandleSubCategory {
-    mode: "create" | "edit";
+    mode: "CREATE" | "EDIT" | "CREATE_NEST";
     categoryEditId?: string;
-    categoryCreateParentId: string;
-    categoryCreateLayer: string;
-    categoryCreateName: string;
+    categoryCreateParentId?: string;
 }
 
 

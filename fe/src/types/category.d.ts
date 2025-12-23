@@ -27,6 +27,7 @@ export interface CategoryResponse {
   categoryId?: string;
   name?: string;
   parentId?: string;
+  parentName?: string;
   description?: string;
   colorSettings?: string;
   layer?: string;

@@ -1,18 +1,17 @@
-import { lazy, useEffect, useMemo, useRef, useState } from "react";
-import { FolderTree, Plus } from "lucide-react";
-import { NIL as NIL_UUID } from "uuid";
-import CategoryItem from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
-import { type CategoryNode, type FlatCategory } from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
-import { buildCategoryTree, type HandleSubCategory } from "@Jade/components/category-module/utils";
-import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 import { useCategoryModuleStore } from "@Jade/components/category-module/store";
+import { buildCategoryTree, type HandleSubCategory } from "@Jade/components/category-module/utils";
+import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
+import CategoryItem, { type CategoryNode, type FlatCategory } from "@Jade/core-design/categoryTreeItem/CategoryTreeItem";
+import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 import { useGetCategoryTree } from "@Jade/services/category/useQuery";
-import { useSelector } from "react-redux";
 import type { RootState } from "@Jade/store/global.store";
-import toast from "react-hot-toast";
-import { useParams } from "react-router-dom";
 import type { CategoryResponse } from "@Jade/types/category.d";
-import { MAX_LAYER } from "@Jade/config";
+import { Edit2Icon, FolderTree, Plus, Trash2Icon } from "lucide-react";
+import { lazy, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { NIL as NIL_UUID } from "uuid";
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 const DEFAULT_EXPAND_ALL = false;
@@ -156,11 +155,31 @@ function seedDetailCategories(rootId: string): FlatCategory[] {
 
 export default function NestedCategoriesView({ rootId, showHeader = true }: NestedCategoriesViewProps) {
   const [expandedAll, setExpandedAll] = useState<boolean>(DEFAULT_EXPAND_ALL);
+  const [autoOpenPathIds, setAutoOpenPathIds] = useState<string[]>([]);
   const mainModal = useModal(ModalId.CREATE_CATEGORY_FROM_TREE);
   const setCreateCategoryModalData = useCategoryModuleStore((s) => s.setCreateCategoryModalData);
+  const activeMenuId = useCategoryModuleStore((s) => s.categories.activeMenuId);
+  const setActiveMenuId = useCategoryModuleStore((s) => s.setActiveMenuId);
   const storeInfo = useSelector((state: RootState) => state.app);
   const { rootCategoryId } = useParams();
   const lastCategoryTreeErrorRef = useRef<string | null>(null);
+  const prevCategoryIdsRef = useRef<Set<string>>(new Set());
+
+  const MENU_ACTIONS: ActionMenuItem[] = [
+    {
+      label: "Edit",
+      onClick: (id: string) => { handleCreateCategoryDialog({ mode: "EDIT", categoryEditId: id, categoryCreateParentId: undefined }) },
+      icon: Edit2Icon,
+    },
+    {
+      label: "Delete",
+      onClick: () => { },
+      icon: Trash2Icon,
+      danger: true,
+    },
+  ];
+
+
 
   const categoryTreeRequest = useMemo(() => ({
     categoryId: rootCategoryId ?? "",
@@ -211,6 +230,35 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
     return [...categories, ...seedDetailCategories(rootId)];
   }, [categories, rootId]);
 
+  // Detect newly created categories (after refetch) and auto-open the path to reveal them in the tree.
+  useEffect(() => {
+    const ids = derivedCategories.map((c) => c.id);
+
+    // Reset detection when switching root context.
+    if (prevCategoryIdsRef.current.size === 0) {
+      prevCategoryIdsRef.current = new Set(ids);
+      return;
+    }
+
+    const prevIds = prevCategoryIdsRef.current;
+    const newIds = ids.filter((id) => !prevIds.has(id));
+    prevCategoryIdsRef.current = new Set(ids);
+
+    if (newIds.length === 0) return;
+    const newId = newIds[0];
+
+    const parentById = new Map(derivedCategories.map((c) => [c.id, c.parentId]));
+    const path: string[] = [];
+    let cur: string | null | undefined = newId;
+    // Walk up parent chain including the new node and its ancestors.
+    while (cur) {
+      path.push(cur);
+      cur = parentById.get(cur) ?? null;
+    }
+    const raf = requestAnimationFrame(() => setAutoOpenPathIds(path));
+    return () => cancelAnimationFrame(raf);
+  }, [derivedCategories]);
+
   const categoryTree = useMemo(() => buildCategoryTree(derivedCategories), [derivedCategories]);
   const treeToRender = useMemo(() => {
     if (!rootId) return categoryTree;
@@ -220,8 +268,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
 
 
   const handleCreateCategoryDialog = (payload: HandleSubCategory) => {
-    if (Number(payload.categoryCreateLayer) > 5) return;
-    if (payload.mode !== "create" && payload.mode !== "edit") {
+    if (payload.mode !== "CREATE" && payload.mode !== "EDIT"  && payload.mode !== "CREATE_NEST") {
       toast.error("Invalid mode");
       return
     }
@@ -230,17 +277,14 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
       return
     }
     // The add layer create so we need to add plus one to current layer to next layer
-    const layer = Number(payload.categoryCreateLayer) + 1
-    if (layer > MAX_LAYER) {
-      toast.error(`max layer is ${MAX_LAYER}`);
+    if (payload.categoryCreateParentId === undefined && payload.mode === "CREATE_NEST") {
+      toast.error("Parent ID is required");
       return
     }
     setCreateCategoryModalData({
       mode: payload.mode,
-      categoryEditId: payload.mode === "edit" ? (payload.categoryEditId ?? null) : null,
-      categoryCreateParentId: payload.categoryCreateParentId,
-      categoryCreateLayer: layer.toString(),
-      categoryCreateName: payload.categoryCreateName,
+      categoryEditId: (payload.mode === "EDIT" || payload.mode === "CREATE_NEST") ? (payload.categoryEditId ?? null) : null,
+      categoryCreateParentId: payload.categoryCreateParentId ?? null,
     });
     mainModal.open();
   };
@@ -280,6 +324,10 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
                 level={0}
                 defaultOpen={expandedAll}
                 onExpandToggle={() => setExpandedAll((prev) => !prev)}
+                menuActions={MENU_ACTIONS}
+                activeMenuId={activeMenuId}
+                setActiveMenuId={setActiveMenuId}
+                autoOpenPathIds={autoOpenPathIds}
               />
             ))
           )}

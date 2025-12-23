@@ -15,7 +15,22 @@ tasks:
     desc: View logs from Docker containers
     cmds:
       - docker compose -f ./deploy/monitor/docker-compose.yml -f ./deploy/infrastructure/docker-compose.yml logs -f
-
+  
+  fe:
+    desc: Start frontend development server
+    cmds:
+      - npm run dev:fe
+  
+  be:
+    desc: Start backend development server
+    cmds:
+      - npm run dev:be
+  
+  lint:
+    desc: Lint the code
+    cmds:
+      - npm run lint:all
+  
   docker-restart:
     desc: Restart Docker containers
     cmds:

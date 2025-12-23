@@ -8,6 +8,8 @@ import { useForm, type SubmitHandler } from "react-hook-form"
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 import CommonButton from '@Jade/core-design/input/CommonButton';
+import { useDispatch } from 'react-redux';
+import { reloadApp } from '@Jade/store/app.store';
 
 
 const schema = yup.object({
@@ -25,6 +27,7 @@ export default function Onboarding() {
         resolver: yupResolver(schema),
     });
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     // Animation state for the storage builder
     const [stockAnimationStep, setStockAnimationStep] = useState(0);
@@ -94,6 +97,7 @@ export default function Onboarding() {
         if (currentStep < slides.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {
+            dispatch(reloadApp());
             navigate("/", { replace: true });
         }
     };
@@ -162,7 +166,6 @@ export default function Onboarding() {
                         {currentStep === 2 && (
                             <Input
                                 label="Store Name"
-                                className="mt-4"
                                 icon={<Store className="w-6 h-6" />}
                                 register={register}
                                 registerOptions={{ required: true }}

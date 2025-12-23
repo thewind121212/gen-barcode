@@ -1,7 +1,8 @@
-import { useLayoutEffect, useMemo, useState } from "react";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Plus, Trash2 } from "lucide-react";
 import { type HandleSubCategory } from "@Jade/components/category-module/utils";
+import ActionMenu, { type ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { allColors } from "@Jade/core-design/modal/colorOptions";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 export type FlatCategory = {
     id: string;
@@ -24,6 +25,10 @@ export type CategoryItemProps = {
   controlledOpen?: boolean;
   onToggleOpen?: (nextOpen: boolean) => void;
   onExpandToggle?: () => void;
+  menuActions: ActionMenuItem[];
+  activeMenuId?: string | null;
+  setActiveMenuId?: (menuId: string | null) => void;
+  autoOpenPathIds?: string[];
 };
 
 export default function CategoryItem({
@@ -35,15 +40,24 @@ export default function CategoryItem({
   controlledOpen,
   onToggleOpen,
   onExpandToggle,
+  menuActions,
+  activeMenuId,
+  setActiveMenuId,
+  autoOpenPathIds,
 }: CategoryItemProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [layer2OpenMap, setLayer2OpenMap] = useState<Record<string, boolean>>({});
+  const lastDefaultOpenRef = useRef<boolean>(defaultOpen);
   const hasChildren = node.children && node.children.length > 0;
   const childrenId = `cat-children-${node.id}`;
   const isRootLayer = level === 0;
   const isControlled = controlledOpen !== undefined;
 
   const effectiveOpen = isRootLayer ? true : (isControlled ? Boolean(controlledOpen) : isOpen);
+  const isMenuOpen = activeMenuId === node.id;
+  const onMenuToggle = (open: boolean) => {
+    setActiveMenuId?.(open ? node.id : null);
+  };
 
   useLayoutEffect(() => {
     if (isControlled) return;
@@ -54,15 +68,30 @@ export default function CategoryItem({
   useLayoutEffect(() => {
     if (!isRootLayer) return;
     if (!hasChildren) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLayer2OpenMap(() => {
+    const defaultOpenChanged = lastDefaultOpenRef.current !== defaultOpen;
+    lastDefaultOpenRef.current = defaultOpen;
+
+    const autoOpenSet = new Set(autoOpenPathIds ?? []);
+    setLayer2OpenMap((prev) => {
       const next: Record<string, boolean> = {};
-      node.children.forEach((child) => {
-        next[child.id] = defaultOpen;
-      });
+      for (const child of node.children) {
+        next[child.id] = defaultOpenChanged
+          ? defaultOpen
+          : (autoOpenSet.has(child.id) ? true : (prev[child.id] ?? defaultOpen));
+      }
       return next;
     });
-  }, [defaultOpen, hasChildren, isRootLayer, node.children]);
+  }, [autoOpenPathIds, defaultOpen, hasChildren, isRootLayer, node.children]);
+
+  // Auto-open deeper nodes on the path (so the newly created node becomes visible).
+  useLayoutEffect(() => {
+    if (isRootLayer) return;
+    if (!hasChildren) return;
+    if (isControlled) return;
+    if (!autoOpenPathIds?.includes(node.id)) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsOpen(true);
+  }, [autoOpenPathIds, hasChildren, isControlled, isRootLayer, node.id]);
 
 
   const toggleSelf = () => {
@@ -82,19 +111,13 @@ export default function CategoryItem({
     else setIsOpen(next);
   };
 
-  // const openSelf = () => {
-  //   if (isRootLayer) return;
-  //   if (isControlled) onToggleOpen?.(true);
-  //   else setIsOpen(true);
-  // };
-
   const color = useMemo(() => allColors.find((c) => c.id === node.colorId), [node.colorId]);
   const badgeClass = color ? `${color.bg} text-white` : "bg-slate-100 text-slate-700";
 
   return (
     <div className="select-none">
       <div
-        className={`flex items-center justify-between p-3 mb-2 rounded-lg border border-gray-100 bg-white hover:border-indigo-200 transition-all ${level > 0 ? "ml-6" : ""
+        className={`flex items-center justify-between p-3 mb-2 rounded-lg border border-gray-100 bg-white hover:border-indigo-200 transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-indigo-900/60 ${level > 0 ? "ml-6" : ""
           }`}
       >
         <div
@@ -107,7 +130,7 @@ export default function CategoryItem({
           {!isRootLayer && hasChildren ? (
             <ChevronRight
               size={16}
-              className={`text-gray-400 transition-transform duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-transform motion-reduce:transition-none ${effectiveOpen ? "rotate-90" : "rotate-0"}`}
+              className={`text-gray-400 dark:text-gray-500 transition-transform duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-transform motion-reduce:transition-none ${effectiveOpen ? "rotate-90" : "rotate-0"}`}
             />
           ) : (
             <div className="w-4" />
@@ -115,7 +138,7 @@ export default function CategoryItem({
 
           <span className={`px-2 py-0.5 rounded text-xs font-semibold ${badgeClass}`}>{node.layer}</span>
 
-          <span className="font-medium text-gray-900">{node.name}</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{node.name}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -125,7 +148,7 @@ export default function CategoryItem({
                 e.stopPropagation();
                 onExpandToggle();
               }}
-              className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+              className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors dark:text-gray-500 dark:hover:text-indigo-200 dark:hover:bg-indigo-900/30"
               title={defaultOpen ? "Collapse all" : "Expand all"}
               aria-label={defaultOpen ? "Collapse all categories" : "Expand all categories"}
               type="button"
@@ -136,33 +159,29 @@ export default function CategoryItem({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onAddSub({ mode: "create", categoryCreateParentId: node.id, categoryCreateLayer: node.layer, categoryCreateName: node.name });
+              onAddSub({ mode: "CREATE_NEST", categoryEditId: undefined, categoryCreateParentId: node.id });
             }}
-            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors text-xs flex items-center gap-1"
+            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors text-xs flex items-center gap-1 dark:text-gray-500 dark:hover:text-indigo-200 dark:hover:bg-indigo-900/30"
             title="Add Subcategory"
             type="button"
           >
             <Plus size={14} />
-            <span className="hidden sm:inline">Sub</span>
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(node.id);
-            }}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-            title="Delete Category"
-            type="button"
-          >
-            <Trash2 size={14} />
-          </button>
+          {menuActions.length > 0 && (
+            <ActionMenu actions={menuActions}
+              isOpen={isMenuOpen}
+              onToggle={() => onMenuToggle(!isMenuOpen)}
+              targetId={node.id}
+              portal
+            />
+          )}
         </div>
       </div>
 
       {hasChildren && (
         <div
           id={childrenId}
-          className={`ml-5 pl-2 border-l-2 border-gray-100 grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-[grid-template-rows] motion-reduce:transition-none ${effectiveOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          className={`ml-5 pl-2 border-l-2 border-gray-200 dark:border-gray-800 grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(.2,.9,.2,1)] will-change-[grid-template-rows] motion-reduce:transition-none ${effectiveOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
             }`}
         >
           <div className="overflow-hidden">
@@ -184,6 +203,10 @@ export default function CategoryItem({
                       ? (nextOpen) => setLayer2OpenMap((prev) => ({ ...prev, [child.id]: nextOpen }))
                       : undefined
                   }
+                  menuActions={menuActions}
+                  activeMenuId={activeMenuId}
+                  setActiveMenuId={setActiveMenuId}
+                  autoOpenPathIds={autoOpenPathIds}
                 />
               ))}
             </div>

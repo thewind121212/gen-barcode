@@ -35,14 +35,15 @@ message CategoryResponse {
   optional string categoryId = 1;
   optional string name = 2;
   optional string parentId = 3;
-  optional string description = 4;
-  optional string colorSettings = 5;
-  optional string layer = 6;
-  optional string icon = 7;
-  optional int32 subCategoriesCount = 8;
-  optional string status = 9;
-  string storeId = 10;
-  int32 itemCount = 11;
+  optional string parentName = 4;
+  optional string description = 5;
+  optional string colorSettings = 6;
+  optional string layer = 7;
+  optional string icon = 8;
+  optional int32 subCategoriesCount = 9;
+  optional string status = 10;
+  string storeId = 11;
+  int32 itemCount = 12;
   int64 totalValue = 13;
   int32 lowStockCount = 14;
 }
