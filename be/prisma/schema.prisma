@@ -24,6 +24,12 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum BarcodeKind {
+  INTERNAL
+  ALIAS
+  UOM
+}
+
 model Store {
   id        String   @id @default(uuid())
   name      String
@@ -139,8 +145,8 @@ model ProductBarcode {
   value     String
   productId String
   packId    String?
-  kind      String       @default("ALIAS")
-  isActive  Boolean      @default(true)
+  /// INTERNAL barcode is the system-generated "core" barcode; ALIAS are user-provided/extra barcodes.
+  kind      BarcodeKind  @default(ALIAS)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -148,6 +154,8 @@ model ProductBarcode {
 
   // Barcode must be unique in a store
   @@unique([storeId, value])
+  @@index([storeId, kind])
   @@index([storeId, productId])
+  @@index([productId, kind])
   @@index([storeId, packId])
 }

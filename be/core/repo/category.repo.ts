@@ -1,47 +1,53 @@
 import type { Category } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
-import { Prisma } from "@Ciri/generated/prisma/client";
+import { Prisma, type PrismaClient } from "@Ciri/generated/prisma/client";
 
 export class CategoryRepository {
-  async create(data: Prisma.CategoryCreateInput) {
-    return prisma.category.create({ data });
+  async create(data: Prisma.CategoryCreateInput, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.category.create({ data });
   }
 
-  async findById(id: string, storeId: string) {
-    return prisma.category.findFirst({
+  async findById(id: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.category.findFirst({
       where: { id, storeId, isDelete: false },
     });
   }
 
-  async findByIds(ids: string[], storeId: string) {
-    return prisma.category.findMany({
+  async findByIds(ids: string[], storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.category.findMany({
       where: { id: { in: ids }, storeId, isDelete: false },
     });
   }
 
-  async findOneAndUpdate(id: string, data: Prisma.CategoryUpdateInput) {
-    return prisma.category.update({
+  async findOneAndUpdate(id: string, data: Prisma.CategoryUpdateInput, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.category.update({
       where: { id, isDelete: false },
       data,
     });
   }
 
-  async softDelete(id: string, storeId: string) {
-    return this.softDeleteMany([id], storeId);
+  async softDelete(id: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    return this.softDeleteMany([id], storeId, db);
   }
 
-  async unLinkParentCategoryById(categoryId: string, storeId: string) {
-    return prisma.category.update({
+  async unLinkParentCategoryById(categoryId: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.category.update({
       where: { id: categoryId, storeId, isDelete: false },
       data: { parentId: null },
     });
   }
 
-  async softDeleteMany(ids: string[], storeId: string) {
+  async softDeleteMany(ids: string[], storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
     if (ids.length === 0)
       return 0;
-    return prisma.$executeRaw`
+    return client.$executeRaw`
       WITH RECURSIVE subtree AS (
         SELECT id
         FROM "Category"
@@ -61,14 +67,16 @@ export class CategoryRepository {
     `;
   }
 
-  async countChildren(id: string, storeId: string) {
-    return prisma.category.count({
+  async countChildren(id: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.category.count({
       where: { parentId: id, storeId, isDelete: false },
     });
   }
 
-  async countDescendants(rootId: string, storeId: string): Promise<number> {
-    const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+  async countDescendants(rootId: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient): Promise<number> {
+    const client = db ?? prisma;
+    const rows = await client.$queryRaw<Array<{ count: bigint }>>`
       WITH RECURSIVE subtree AS (
         SELECT id
         FROM "Category"
@@ -90,14 +98,16 @@ export class CategoryRepository {
     return Number(value);
   }
 
-  async deleteMany(ids: string[], storeId: string) {
-    return prisma.category.deleteMany({
+  async deleteMany(ids: string[], storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.category.deleteMany({
       where: { id: { in: ids }, storeId, isDelete: false },
     });
   }
 
-  async findAllByStore(storeId: string) {
-    const rows = await prisma.$queryRaw<Array<Category & { descendantsCount: bigint }>>`
+  async findAllByStore(storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    const rows = await client.$queryRaw<Array<Category & { descendantsCount: bigint }>>`
       WITH RECURSIVE edges AS (
         SELECT id, "parentId"
         FROM "Category"

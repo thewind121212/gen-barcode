@@ -1,41 +1,47 @@
-import type { Prisma } from "@Ciri/generated/prisma/client";
+import type { Prisma, PrismaClient } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
 
 export class StoreRepository {
-  async create(data: Prisma.StoreCreateInput) {
-    return prisma.store.create({
+  async create(data: Prisma.StoreCreateInput, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.store.create({
       data,
     });
   }
 
-  async update(id: string, data: Prisma.StoreUpdateInput) {
-    return prisma.store.update({
+  async update(id: string, data: Prisma.StoreUpdateInput, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.store.update({
       where: { id, isDelete: false },
       data,
     });
   }
 
-  async delete(id: string) {
-    return prisma.store.delete({
+  async delete(id: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.store.delete({
       where: { id, isDelete: false },
     });
   }
 
-  async findById(id: string) {
-    return prisma.store.findUnique({
+  async findById(id: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.store.findUnique({
       where: { id, isDelete: false },
     });
   }
 
-  async getStoreEnrolledByUserId(userId: string) {
-    return prisma.storeMember.count({
+  async getStoreEnrolledByUserId(userId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.storeMember.count({
       where: { userId },
     });
   }
 
-  async findByUserId(userId: string) {
-    return prisma.store.findMany({
+  async findByUserId(userId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.store.findMany({
       where: { members: { some: { userId } }, isDelete: false },
     });
   }
