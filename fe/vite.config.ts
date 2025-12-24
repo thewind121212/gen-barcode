@@ -13,6 +13,8 @@ export default defineConfig(({ mode }) => {
     env = process.env as unknown as Record<string, string>
   }
   return {
+    // Keep logs visible when running FE+BE in a single terminal (Vite defaults to clearing screen)
+    clearScreen: false,
     // Base path for assets: prefer VITE_BASE_URL, then VITE_WEBSITE_BASE_URL, fallback '/'
     base: env.VITE_BASE_URL || '/',
     plugins: [react(), tailwindcss()],

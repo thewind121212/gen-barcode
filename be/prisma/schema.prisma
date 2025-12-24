@@ -18,46 +18,58 @@ enum StoreRole {
   STAFF
 }
 
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum BarcodeKind {
+  INTERNAL
+  ALIAS
+  UOM
+}
+
 model Store {
-  id        String        @id @default(uuid())
+  id        String   @id @default(uuid())
   name      String
-  createdAt DateTime      @default(now())
-  updatedAt      DateTime  @default(now())
-  isDelete       Boolean   @default(false)
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  isDelete  Boolean  @default(false)
+
   // Relationsk
-  members   StoreMember[]
-  storage   Storage?
+  members    StoreMember[]
+  storage    Storage?
   categories Category[]
+  products   Product[]
 }
 
 model StoreMember {
   id        String    @id @default(uuid())
   storeId   String
-  userId    String    // ID from external Auth service
+  userId    String // ID from external Auth service
   role      StoreRole // Enum: OWNER or STAFF
   joinedAt  DateTime  @default(now())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now())
 
-  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   // A user can only have one specific role per store to prevent duplicates
   @@unique([storeId, userId])
 }
 
 model Storage {
-  id       String  @id @default(uuid())
-  location String?
-  isDelete       Boolean   @default(false)
-  capacity Int?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @default(now())
-  
-  storeId  String  @unique
-  store    Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
-}
+  id        String   @id @default(uuid())
+  location  String?
+  isDelete  Boolean  @default(false)
+  capacity  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
+  storeId String @unique
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
 
 enum CategoryStatus {
   ACTIVE
@@ -66,26 +78,84 @@ enum CategoryStatus {
 }
 
 model Category {
-  id             String    @id @default(uuid())
-  name           String
-  status         CategoryStatus
-  description    String?
-  colorSettings  String?
-  layer          String
-  icon           String?
-  imageUrl       String?
-  isDelete       Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @default(now())
-
+  id            String         @id @default(uuid())
+  name          String
+  status        CategoryStatus
+  description   String?
+  colorSettings String?
+  layer         String
+  icon          String?
+  imageUrl      String?
+  isDelete      Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
   // Relations
-  storeId        String
-  store          Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  parentId       String?
-  parent         Category? @relation("CategoryChildren", fields: [parentId], references: [id])
-  children       Category[] @relation("CategoryChildren")
+  storeId       String
+  store         Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  parentId      String?
+  parent        Category?      @relation("CategoryChildren", fields: [parentId], references: [id])
+  children      Category[]     @relation("CategoryChildren")
+  products      Product[]
 
   @@index([storeId, name])
   @@index([parentId])
 }
 
+model Product {
+  id           String           @id @default(uuid())
+  storeId      String
+  store        Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  categoryId   String?
+  category     Category?        @relation(fields: [categoryId], references: [id])
+  description  String?
+  imageUrl     String?
+  name         String
+  status       ProductStatus    @default(ACTIVE)
+  isDelete     Boolean          @default(false)
+  baseUnitCode String           @default("each")
+  sellPrice    Decimal          @db.Decimal(18, 2)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @default(now())
+  packs        ProductPack[]
+  barcodes     ProductBarcode[]
+
+  @@index([storeId])
+  @@index([storeId, categoryId])
+}
+
+model ProductPack {
+  id            String           @id @default(uuid())
+  storeId       String
+  productId     String
+  name          String
+  multiplier    Int
+  sellPrice     Decimal?         @db.Decimal(18, 2)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  product       Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  barcodes      ProductBarcode[]
+
+  @@unique([storeId, productId, name])
+  @@index([storeId, productId])
+}
+
+model ProductBarcode {
+  id        String       @id @default(uuid())
+  storeId   String
+  value     String
+  productId String
+  packId    String?
+  /// INTERNAL barcode is the system-generated "core" barcode; ALIAS are user-provided/extra barcodes.
+  kind      BarcodeKind  @default(ALIAS)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  pack      ProductPack? @relation(fields: [packId], references: [id], onDelete: SetNull)
+
+  // Barcode must be unique in a store
+  @@unique([storeId, value])
+  @@index([storeId, kind])
+  @@index([storeId, productId])
+  @@index([productId, kind])
+  @@index([storeId, packId])
+}

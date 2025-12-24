@@ -11,7 +11,7 @@
         "build:all": "npm run build --workspace=fe && npm run build --workspace=be",
         "dev:fe": "npm run dev --workspace=fe",
         "dev:be": "npm run dev --workspace=be",
-        "dev:fullstack": "npm run dev:fe && npm run dev:be",
+        "dev:fullstack": "sh -lc 'npm run dev:be & npm run dev:fe & wait'",
         "lint:all": "npm run lint --workspace=fe && npm run lint --workspace=be",
         "typecheck:all": "npm run typecheck --workspace=be && cd fe && tsc -b"
     },
