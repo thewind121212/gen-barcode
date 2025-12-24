@@ -4,15 +4,19 @@ import enLoading from '@Jade/locales/en/loading.json';
 import viLoading from '@Jade/locales/vi/loading.json';
 import enAuth from '@Jade/locales/en/auth.json';
 import viAuth from '@Jade/locales/vi/auth.json';
+import enCategory from '@Jade/locales/en/category.json';
+import viCategory from '@Jade/locales/vi/category.json';
 
 const resources = {
   en: {
     loading: enLoading,
     auth: enAuth,
+    category: enCategory,
   },
   vi: {
     loading: viLoading,
     auth: viAuth,
+    category: viCategory,
   },
 } as const;
 
@@ -28,7 +32,7 @@ i18n.use(initReactI18next).init({
   lng: initialLng,
   fallbackLng,
   supportedLngs: ['en', 'vi'],
-  ns: ['loading', 'auth'],
+  ns: ['loading', 'auth', 'category'],
   defaultNS: 'loading',
   interpolation: {
     escapeValue: false,
