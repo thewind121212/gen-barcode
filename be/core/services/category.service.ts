@@ -16,7 +16,7 @@ import type {
   UpdateCategoryResponseServices,
 } from "@Ciri/core/api/category/category.routes";
 import type { RequestContext } from "@Ciri/core/middlewares";
-import type { Prisma } from "@Ciri/generated/prisma/client.js";
+import type { Category, Prisma } from "@Ciri/generated/prisma/client.js";
 import type {
   RemoveCategoryRequest,
 } from "@Ciri/types/category";
@@ -69,6 +69,10 @@ export class CategoryService {
       return null;
     }
     return parentId;
+  }
+
+  private async _unLinkParentCategoryById(categoryId: string, storeId: string): Promise<Category> {
+    return this.categoryRepo.unLinkParentCategoryById(categoryId, storeId);
   }
 
   async CreateCategory(ctx: RequestContext, req: CreateCategoryRequestBody): Promise<CreateCategoryResponseServices> {
