@@ -31,6 +31,13 @@ export class CategoryRepository {
     return this.softDeleteMany([id], storeId);
   }
 
+  async unLinkParentCategoryById(categoryId: string, storeId: string) {
+    return prisma.category.update({
+      where: { id: categoryId, storeId, isDelete: false },
+      data: { parentId: null },
+    });
+  }
+
   async softDeleteMany(ids: string[], storeId: string) {
     if (ids.length === 0)
       return 0;
