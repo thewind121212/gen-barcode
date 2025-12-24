@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import {
   ListMainCategory,
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
@@ -123,20 +124,21 @@ const CategoriesView = () => {
 
 
 
+  const { t } = useTranslation('category');
   const MENU_ACTIONS: ActionMenuItem[] = [
     {
-      label: "View",
+      label: t('view'),
       onClick: () => { },
       icon: EyeIcon,
     },
     {
-      label: "Edit",
+      label: t('edit'),
       onClick: (id: string) => handleModeDialog("EDIT", id),
       icon: Edit2Icon,
       // loading: isRemovingCategory,
     },
     {
-      label: "Delete",
+      label: t('delete'),
       onClick: (id: string) => {
         setCategoryToDelete(id);
         confirmModal.open();
@@ -184,10 +186,10 @@ const CategoriesView = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">
-            Categories
+            {t('categories')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Manage your product classifications
+            {t('manageProductClassifications')}
           </p>
         </div>
 
@@ -199,7 +201,7 @@ const CategoriesView = () => {
               ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
               : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               }`}
-            title="Grid View"
+            title={t('gridView')}
           >
             <LayoutGrid size={18} />
           </button>
@@ -209,7 +211,7 @@ const CategoriesView = () => {
               ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
               : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               }`}
-            title="List View"
+            title={t('listView')}
           >
             <List size={18} />
           </button>
@@ -225,12 +227,12 @@ const CategoriesView = () => {
               className="w-full h-10 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm dark:hover:bg-indigo-500"
               icon={<Plus size={18} />}
             >
-              Create Main Category
+              {t('createMainCategory')}
             </CommonButton>
             <div className="mt-8">
               <div className="flex items-center gap-2 mb-4 text-gray-800 dark:text-gray-200">
                 <Info size={18} className="text-indigo-500" />
-                <h3 className="font-bold text-sm uppercase tracking-wide">Quick Guide</h3>
+                <h3 className="font-bold text-sm uppercase tracking-wide">{t('quickGuide')}</h3>
               </div>
 
               <div className="space-y-6 relative">
@@ -243,9 +245,9 @@ const CategoriesView = () => {
                     1
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Create Main Layer</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('createMainLayer')}</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      Start by using the button above to create your top-level categories.
+                      {t('createMainLayerDesc')}
                     </p>
                   </div>
                 </div>
@@ -256,9 +258,9 @@ const CategoriesView = () => {
                     2
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Enter Details</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('enterDetails')}</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      Click on any category card to enter it and view its contents.
+                      {t('enterDetailsDesc')}
                     </p>
                   </div>
                 </div>
@@ -269,9 +271,14 @@ const CategoriesView = () => {
                     3
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Nest Layers</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('nestLayers')}</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      Create sub-layers easily. You can nest up to <span className="font-bold text-indigo-600 dark:text-indigo-400">5 levels</span> deep.
+                      <Trans
+                        i18nKey="nestLayersDesc"
+                        components={{
+                          1: <span className="font-bold text-indigo-600 dark:text-indigo-400" />
+                        }}
+                      />
                     </p>
                   </div>
                 </div>
@@ -282,9 +289,9 @@ const CategoriesView = () => {
                     4
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Assign Items</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('assignItems')}</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      Add items to any specific layer you are currently viewing.
+                      {t('assignItemsDesc')}
                     </p>
                   </div>
                 </div>
@@ -298,7 +305,7 @@ const CategoriesView = () => {
           {categoriesToRender.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 dark:bg-gray-900 dark:border-gray-800">
               <p className="text-gray-500 dark:text-gray-400">
-                No categories yet. Create one to get started!
+                {t('noCategoriesMain')}
               </p>
             </div>
           ) : (
@@ -359,11 +366,11 @@ const CategoriesView = () => {
       />
       <ConfirmModal
         modal={confirmModal}
-        title="Delete category?"
-        subtitle="This action cannot be undone."
+        title={t('deleteCategoryTitle')}
+        subtitle={t('deleteCategorySubtitle')}
         isLoading={false}
-        cancelButtonText="Cancel"
-        confirmButtonText="Delete"
+        cancelButtonText={t('cancel')}
+        confirmButtonText={t('delete')}
         onClose={() => setCategoryToDelete(null)}
         onConfirm={() => {
           if (!categoryToDelete)
@@ -373,7 +380,7 @@ const CategoriesView = () => {
           setCategoryToDelete(null);
         }}
       >
-        Are you sure you want to delete this category?
+        {t('deleteCategoryConfirm')}
       </ConfirmModal>
     </div>
   );

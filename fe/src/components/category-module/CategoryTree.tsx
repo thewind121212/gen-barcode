@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { NIL as NIL_UUID } from "uuid";
 import CategoryTreeSkeleton from "./CategoryTreeSkeleton";
+import { useTranslation, Trans } from "react-i18next";
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
 const DEFAULT_EXPAND_ALL = false;
@@ -33,6 +34,7 @@ function findNodeById(nodes: CategoryNode[], id: string): CategoryNode | undefin
 }
 
 export default function NestedCategoriesView({ rootId, showHeader = true }: NestedCategoriesViewProps) {
+  const { t } = useTranslation('category');
   const [expandedAll, setExpandedAll] = useState<boolean>(DEFAULT_EXPAND_ALL);
   const [autoOpenPathIds, setAutoOpenPathIds] = useState<string[]>([]);
   const mainModal = useModal(ModalId.CREATE_CATEGORY_FROM_TREE);
@@ -50,12 +52,12 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
 
   const MENU_ACTIONS: ActionMenuItem[] = [
     {
-      label: "Edit",
+      label: t('edit'),
       onClick: (id: string) => { handleCreateCategoryDialog({ mode: "EDIT", categoryEditId: id, categoryCreateParentId: undefined }) },
       icon: Edit2Icon,
     },
     {
-      label: "Delete",
+      label: t('delete'),
       onClick: (id: string) => {
         setCategoryToDelete(id);
         confirmModal.open();
@@ -86,7 +88,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
   const { mutate: removeCategory } = useRemoveCategory({
     storeId: storeInfo?.storeId,
     onSuccess: () => {
-      toast.success("Category removed successfully");
+      toast.success(t('categoryRemoved'));
       refetchGetCategoryTree();
     },
     onError: (error: Error) => {
@@ -168,16 +170,16 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
 
   const handleCreateCategoryDialog = (payload: HandleSubCategory) => {
     if (payload.mode !== "CREATE" && payload.mode !== "EDIT" && payload.mode !== "CREATE_NEST") {
-      toast.error("Invalid mode");
+      toast.error(t('invalidMode'));
       return
     }
     if (payload.categoryCreateParentId === null || payload.categoryCreateParentId === NIL_UUID) {
-      toast.error("Parent ID is required");
+      toast.error(t('parentIdRequired'));
       return
     }
     // The add layer create so we need to add plus one to current layer to next layer
     if (payload.categoryCreateParentId === undefined && payload.mode === "CREATE_NEST") {
-      toast.error("Parent ID is required");
+      toast.error(t('parentIdRequired'));
       return
     }
     setCreateCategoryModalData({
@@ -193,8 +195,8 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
       {showHeader && (
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Categories Hierarchy</h1>
-            <p className="text-gray-500">Manage nested categories up to 5+ layers</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('categoriesHierarchy')}</h1>
+            <p className="text-gray-500">{t('manageNestedCategories')}</p>
           </div>
           <button
             onClick={() => { }}
@@ -202,7 +204,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
             type="button"
           >
             <Plus size={18} />
-            Add Root Category
+            {t('addRootCategory')}
           </button>
         </div>
       )}
@@ -213,7 +215,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
             <CategoryTreeSkeleton />
           ) : treeToRender.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-              <p className="text-gray-500">No categories yet. Start by adding one!</p>
+              <p className="text-gray-500">{t('noCategoriesTree')}</p>
             </div>
           ) : (
             treeToRender.map((node) => (
@@ -237,13 +239,17 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
           <div className="sticky top-4 bg-indigo-50 p-6 rounded-xl border border-indigo-100">
             <h3 className="font-semibold text-indigo-900 mb-2 flex items-center gap-2">
               <FolderTree size={20} />
-              Structure Tips
+              {t('structureTips')}
             </h3>
             <ul className="text-sm text-indigo-800 space-y-2 list-disc pl-4">
-              <li>Click the <strong>Arrow</strong> to expand folders.</li>
-              <li>Click <strong>Sub</strong> to add a child category.</li>
-              <li>You can nest as deep as you want (Layer 1 to Layer 5+).</li>
-              <li>Later we’ll replace this dummy list with API data.</li>
+              <li>
+                <Trans i18nKey="tipExpand" components={{ 1: <strong /> }} />
+              </li>
+              <li>
+                <Trans i18nKey="tipSub" components={{ 1: <strong /> }} />
+              </li>
+              <li>{t('tipNest')}</li>
+              <li>{t('tipData')}</li>
             </ul>
           </div>
         </div>
@@ -253,11 +259,11 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
         />
         <ConfirmModal
           modal={confirmModal}
-          title="Delete category?"
-          subtitle="This action cannot be undone."
+          title={t('deleteCategoryTitle')}
+          subtitle={t('deleteCategorySubtitle')}
           isLoading={false}
-          cancelButtonText="Cancel"
-          confirmButtonText="Delete"
+          cancelButtonText={t('cancel')}
+          confirmButtonText={t('delete')}
           onClose={() => setCategoryToDelete(null)}
           onConfirm={() => {
             if (!categoryToDelete)
@@ -267,7 +273,7 @@ export default function NestedCategoriesView({ rootId, showHeader = true }: Nest
             setCategoryToDelete(null);
           }}
         >
-          Are you sure you want to delete this category?
+          {t('deleteCategoryConfirm')}
         </ConfirmModal>
       </div>
     </div>

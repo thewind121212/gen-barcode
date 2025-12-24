@@ -14,9 +14,8 @@ export function CategoryTreeItemSkeleton({
   return (
     <div className="select-none">
       <div
-        className={`flex items-center justify-between p-3 mb-2 min-h-[62px] rounded-lg border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 ${
-          level > 0 ? "ml-6" : ""
-        }`}
+        className={`flex items-center justify-between p-3 mb-2 min-h-[62px] rounded-lg border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 ${level > 0 ? "ml-6" : ""
+          }`}
       >
         <div className="flex items-center gap-3 flex-1">
           {/* Chevron placeholder */}
@@ -51,15 +50,15 @@ export default function CategoryTreeSkeleton() {
       <CategoryTreeItemSkeleton level={0} >
         <CategoryTreeItemSkeleton level={1} />
         <CategoryTreeItemSkeleton level={1} >
-             <CategoryTreeItemSkeleton level={2} />
-             <CategoryTreeItemSkeleton level={2} />
+          <CategoryTreeItemSkeleton level={2} />
+          <CategoryTreeItemSkeleton level={2} />
         </CategoryTreeItemSkeleton>
         <CategoryTreeItemSkeleton level={1} />
       </CategoryTreeItemSkeleton>
-      
+
       <CategoryTreeItemSkeleton level={0} />
-      
-       <CategoryTreeItemSkeleton level={0} >
+
+      <CategoryTreeItemSkeleton level={0} >
         <CategoryTreeItemSkeleton level={1} />
       </CategoryTreeItemSkeleton>
     </div>
