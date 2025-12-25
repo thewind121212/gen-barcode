@@ -12,7 +12,12 @@ message CreateProductRequest {
   optional string imageUrl = 5;
   optional string status = 6;
   optional string baseUnitCode = 7;
+  optional string baseUnitLabel = 11;
   double sellPrice = 8;
+  optional double exportPrice = 12;
+  optional string trackingMode = 13;
+  optional string containerLabel = 14;
+  optional double containerSize = 15;
   repeated CreateProductPackRequest packs = 9;
   repeated CreateProductBarcodeRequest barcodes = 10;
 }
@@ -65,7 +70,12 @@ message ProductResponse {
   string status = 7;
   bool isDelete = 8;
   string baseUnitCode = 9;
+  optional string baseUnitLabel = 13;
   double sellPrice = 10;
+  optional double exportPrice = 14;
+  string trackingMode = 15;
+  optional string containerLabel = 16;
+  optional double containerSize = 17;
   repeated ProductPackResponse packs = 11;
   repeated ProductBarcodeResponse barcodes = 12;
 }

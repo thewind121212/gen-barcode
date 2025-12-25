@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client"
@@ -30,6 +25,23 @@ enum BarcodeKind {
   UOM
 }
 
+enum TrackingMode {
+  TOTAL_ONLY
+  LOT_CONTAINER
+}
+
+enum LotStatus {
+  OPEN
+  CLOSED
+}
+
+enum StockMoveType {
+  IMPORT
+  SALE
+  TRANSFER
+  ADJUST
+}
+
 model Store {
   id        String   @id @default(uuid())
   name      String
@@ -39,7 +51,7 @@ model Store {
 
   // Relationsk
   members    StoreMember[]
-  storage    Storage?
+  storages   Storage[]
   categories Category[]
   products   Product[]
 }
@@ -56,20 +68,31 @@ model StoreMember {
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   // A user can only have one specific role per store to prevent duplicates
-  @@unique([storeId, userId])
+  @@unique([userId, storeId])
 }
 
 model Storage {
   id        String   @id @default(uuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  name      String   @default("Main Warehouse")
   location  String?
   isDelete  Boolean  @default(false)
-  capacity  Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  isPrimary Boolean  @default(false)
 
-  storeId String @unique
-  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  // Relations
+  balances     InventoryBalance[]
+  lots         InventoryLot[]
+  movesFrom    StockMove[] @relation("MoveFromStorage")
+  movesTo      StockMove[] @relation("MoveToStorage")
+  activeLots   StorageActiveLot[]
+
+  @@index([storeId])
 }
+
 
 enum CategoryStatus {
   ACTIVE
@@ -113,14 +136,112 @@ model Product {
   status       ProductStatus    @default(ACTIVE)
   isDelete     Boolean          @default(false)
   baseUnitCode String           @default("each")
+  baseUnitLabel String?         // e.g. "Cái", "Hộp"
   sellPrice    Decimal          @db.Decimal(18, 2)
+  exportPrice  Decimal?         @db.Decimal(18, 2) // Wholesale/Export price
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @default(now())
   packs        ProductPack[]
   barcodes     ProductBarcode[]
+  trackingMode   TrackingMode @default(TOTAL_ONLY)
+  containerLabel String?  
+  containerSize  Decimal?  @db.Decimal(18, 3) 
+
+  inventoryBalances InventoryBalance[]
+  inventoryLots     InventoryLot[]
+  stockMoves        StockMove[]
+  activeLots        StorageActiveLot[]
 
   @@index([storeId])
   @@index([storeId, categoryId])
+}
+
+model InventoryBalance {
+  id         String   @id @default(uuid())
+  storeId    String
+  storageId  String
+  productId  String
+
+  qtyOnHand  Decimal  @db.Decimal(18, 3) @default(0)
+
+  updatedAt  DateTime @updatedAt
+
+  storage    Storage  @relation(fields: [storageId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([storageId, productId])
+  @@index([storeId, storageId])
+  @@index([storeId, productId])
+}
+
+model InventoryLot {
+  id           String    @id @default(uuid())
+  storeId      String
+  storageId    String
+  productId    String
+
+  qtyInitial   Decimal   @db.Decimal(18, 3)
+  qtyRemaining Decimal   @db.Decimal(18, 3)
+  status       LotStatus @default(OPEN)
+
+  receivedAt   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sourceMoveId String?
+  sourceMove   StockMove? @relation("LotSource", fields: [sourceMoveId], references: [id])
+
+  storage      Storage   @relation(fields: [storageId], references: [id], onDelete: Cascade)
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  allocations  StockMoveLotAllocation[]
+  activeInStorages StorageActiveLot[]
+
+  @@index([storageId, productId, status, receivedAt])
+}
+
+model StockMoveLotAllocation {
+  id       String      @id @default(uuid())
+  moveId   String
+  lotId    String
+  qtyTaken Decimal     @db.Decimal(18, 3)
+
+  move     StockMove   @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  lot      InventoryLot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+
+  @@index([moveId])
+  @@index([lotId])
+}
+
+model StockMove {
+  id             String       @id @default(uuid())
+  storeId         String
+  type           StockMoveType
+
+  productId       String
+  qtyBase         Decimal      @db.Decimal(18, 3) // ALWAYS base unit qty
+
+  fromStorageId   String?
+  toStorageId     String?
+
+  unitCostSnapshot Decimal?    @db.Decimal(18, 4) // import
+  unitSellSnapshot Decimal?    @db.Decimal(18, 2) // sale
+
+  refId           String?       // saleId / importId / transferId
+
+  createdAt       DateTime      @default(now())
+
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  fromStorage     Storage?      @relation("MoveFromStorage", fields: [fromStorageId], references: [id])
+  toStorage       Storage?      @relation("MoveToStorage", fields: [toStorageId], references: [id])
+
+  lotAllocations  StockMoveLotAllocation[]
+  createdLots     InventoryLot[]           @relation("LotSource")
+
+  @@index([storeId, type, createdAt])
+  @@index([fromStorageId])
+  @@index([toStorageId])
+  @@index([productId])
 }
 
 model ProductPack {
@@ -158,4 +279,19 @@ model ProductBarcode {
   @@index([storeId, productId])
   @@index([productId, kind])
   @@index([storeId, packId])
+}
+
+model StorageActiveLot {
+  id          String  @id @default(uuid())
+  storageId   String
+  productId   String
+  activeLotId String?
+
+  updatedAt   DateTime @updatedAt
+
+  storage     Storage      @relation(fields: [storageId], references: [id], onDelete: Cascade)
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  activeLot   InventoryLot? @relation(fields: [activeLotId], references: [id], onDelete: SetNull)
+
+  @@unique([storageId, productId])
 }

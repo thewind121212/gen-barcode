@@ -1,5 +1,6 @@
-import prisma from "@Ciri/core/prisma";
 import type { Prisma, PrismaClient } from "@Ciri/generated/prisma/client";
+
+import prisma from "@Ciri/core/prisma";
 
 export class ProductRepository {
   private async softDeleteMany(ids: string[], storeId: string, db?: PrismaClient | Prisma.TransactionClient) {

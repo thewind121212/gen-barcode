@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 
-
 const createProductBarcodeSchema = z.object({
   value: z.string().min(1, "Value is required"),
 });
@@ -11,9 +10,8 @@ const createProductPackSchema = z.object({
   sellPrice: z.number().min(0, "Sell price must be greater than 0").optional(),
   exportPrice: z.string().optional(),
   isDefaultSell: z.boolean().optional(),
-  barcodes: z.array(createProductBarcodeSchema).optional()
+  barcodes: z.array(createProductBarcodeSchema).optional(),
 });
-
 
 // Schema used to validate the createProduct request body
 export const createProductSchema = z.object({
@@ -26,7 +24,7 @@ export const createProductSchema = z.object({
   sellPrice: z.number().min(0, "Sell price must be greater than 0"),
   barcodes: z.array(createProductBarcodeSchema).optional(),
   packs: z.array(createProductPackSchema).optional(),
-})
+});
 
 // Inferred TypeScript DTO type for codegen / services
 export type CreateProductDto = z.infer<typeof createProductSchema>;

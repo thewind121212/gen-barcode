@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import { validate as validateUuid } from "uuid";
 
 import type {
@@ -69,7 +68,12 @@ export class ProductService {
       status: entity.status,
       isDelete: entity.isDelete,
       baseUnitCode: entity.baseUnitCode,
+      baseUnitLabel: entity.baseUnitLabel ?? undefined,
       sellPrice: toNumberSafe(entity.sellPrice),
+      exportPrice: entity.exportPrice ? toNumberSafe(entity.exportPrice) : undefined,
+      trackingMode: entity.trackingMode,
+      containerLabel: entity.containerLabel ?? undefined,
+      containerSize: entity.containerSize ? toNumberSafe(entity.containerSize) : undefined,
       packs: (entity.packs ?? []).map((p: any) => ({
         id: p.id,
         storeId: p.storeId,
@@ -115,7 +119,12 @@ export class ProductService {
           // Request validation ensures these are valid values.
           status: (req as any).status ?? "ACTIVE",
           baseUnitCode: (req as any).baseUnitCode ?? "each",
+          baseUnitLabel: (req as any).baseUnitLabel, // New field
           sellPrice: new Prisma.Decimal((req as any).sellPrice),
+          exportPrice: (req as any).exportPrice ? new Prisma.Decimal((req as any).exportPrice) : undefined, // New field
+          trackingMode: (req as any).trackingMode ?? "TOTAL_ONLY", // New field
+          containerLabel: (req as any).containerLabel, // New field
+          containerSize: (req as any).containerSize ? new Prisma.Decimal((req as any).containerSize) : undefined, // New field
         };
 
         if (req.categoryId) {
@@ -199,5 +208,3 @@ export class ProductService {
     }
   }
 }
-
-
