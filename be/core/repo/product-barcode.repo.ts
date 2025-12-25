@@ -1,5 +1,6 @@
-import prisma from "@Ciri/core/prisma";
 import type { Prisma, PrismaClient } from "@Ciri/generated/prisma/client";
+
+import prisma from "@Ciri/core/prisma";
 
 export class ProductBarcodeRepository {
   async createMany(data: Prisma.ProductBarcodeCreateManyInput[], db?: PrismaClient | Prisma.TransactionClient) {
@@ -17,5 +18,3 @@ export class ProductBarcodeRepository {
     });
   }
 }
-
-

@@ -99,7 +99,24 @@
           "baseUnitCode": {
             "type": "string"
           },
+          "baseUnitLabel": {
+            "type": "string"
+          },
           "sellPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "exportPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "trackingMode": {
+            "type": "string"
+          },
+          "containerLabel": {
+            "type": "string"
+          },
+          "containerSize": {
             "type": "number",
             "format": "double"
           },
@@ -275,7 +292,24 @@
           "baseUnitCode": {
             "type": "string"
           },
+          "baseUnitLabel": {
+            "type": "string"
+          },
           "sellPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "exportPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "trackingMode": {
+            "type": "string"
+          },
+          "containerLabel": {
+            "type": "string"
+          },
+          "containerSize": {
             "type": "number",
             "format": "double"
           },
@@ -299,7 +333,8 @@
           "status",
           "isDelete",
           "baseUnitCode",
-          "sellPrice"
+          "sellPrice",
+          "trackingMode"
         ]
       }
     }

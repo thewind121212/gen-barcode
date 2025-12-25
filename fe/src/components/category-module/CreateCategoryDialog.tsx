@@ -261,7 +261,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
             });
         }
         return options;
-    }, [parentId, parentName]);
+    }, [parentId, parentName, t]);
 
     return (
         <>

@@ -1,5 +1,6 @@
-import prisma from "@Ciri/core/prisma";
 import type { Prisma, PrismaClient } from "@Ciri/generated/prisma/client";
+
+import prisma from "@Ciri/core/prisma";
 
 export class ProductPackRepository {
   async create(data: Prisma.ProductPackCreateInput, db?: PrismaClient | Prisma.TransactionClient) {
@@ -21,5 +22,3 @@ export class ProductPackRepository {
     });
   }
 }
-
-

@@ -5,27 +5,26 @@ import express from "express";
 import type { CreateProductResponse, ProductResponse } from "@Ciri/types/product";
 
 import { createProductSchema } from "@Ciri/core/dto/product/create-product.dto";
-
 import { getProductByIdSchema } from "@Ciri/core/dto/product/get-product-by-id.dto";
 import { getContext } from "@Ciri/core/middlewares";
 import { ProductService } from "@Ciri/core/services/product.service";
 import { ErrorResponses, sendSuccessResponse } from "@Ciri/core/utils/error-response";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
-import { getValidatedBody, validateBody, getValidatedQuery, validateQuery } from "@Ciri/core/utils/validation";
+import { getValidatedBody, getValidatedQuery, validateBody, validateQuery } from "@Ciri/core/utils/validation";
 
 const router = express.Router();
 const productService = new ProductService();
 
 export type CreateProductRequestBody = z.infer<typeof createProductSchema>;
 export type CreateProductResponseServices = {
-      resData: CreateProductResponse | null;
-      error: string | null;
-    };
+  resData: CreateProductResponse | null;
+  error: string | null;
+};
 export type GetProductByIdRequestQuery = z.infer<typeof getProductByIdSchema>;
 export type GetProductByIdResponseServices = {
-      resData: ProductResponse | null;
-      error: string | null;
-    };
+  resData: ProductResponse | null;
+  error: string | null;
+};
 
 router.post(
   "/CreateProduct",

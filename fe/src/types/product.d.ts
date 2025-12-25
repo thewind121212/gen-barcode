@@ -8,7 +8,12 @@ export interface CreateProductRequest {
   imageUrl?: string;
   status?: string;
   baseUnitCode?: string;
+  baseUnitLabel?: string;
   sellPrice: number;
+  exportPrice?: number;
+  trackingMode?: string;
+  containerLabel?: string;
+  containerSize?: number;
   packs: CreateProductPackRequest[];
   barcodes: CreateProductBarcodeRequest[];
 }
@@ -61,7 +66,12 @@ export interface ProductResponse {
   status: string;
   isDelete: boolean;
   baseUnitCode: string;
+  baseUnitLabel?: string;
   sellPrice: number;
+  exportPrice?: number;
+  trackingMode: string;
+  containerLabel?: string;
+  containerSize?: number;
   packs: ProductPackResponse[];
   barcodes: ProductBarcodeResponse[];
 }

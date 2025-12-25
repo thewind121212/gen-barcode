@@ -1,7 +1,6 @@
-import type { Category } from "@Ciri/generated/prisma/client";
+import type { Category, Prisma, type PrismaClient } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
-import { Prisma, type PrismaClient } from "@Ciri/generated/prisma/client";
 
 export class CategoryRepository {
   async create(data: Prisma.CategoryCreateInput, db?: PrismaClient | Prisma.TransactionClient) {

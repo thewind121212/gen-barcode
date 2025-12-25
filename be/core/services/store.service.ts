@@ -52,7 +52,7 @@ export class StoreService {
       await this.storageRepo.create({
         store: { connect: { id: store.id } },
         location: "Default Location",
-        capacity: 100,
+        isPrimary: true, // Mark as primary storage
       });
 
       return { resData: { storeId: store.id }, error: null };
