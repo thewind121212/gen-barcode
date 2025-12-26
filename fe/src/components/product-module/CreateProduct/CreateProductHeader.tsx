@@ -11,7 +11,7 @@ export function CreateProductHeader({
   isSaving: boolean;
 }) {
   return (
-    <header className="fixed w-full left-0 top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800">
+    <header className="fixed w-full left-0 pl-[79px] top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
@@ -23,7 +23,7 @@ export function CreateProductHeader({
           </button>
           <div>
             <h1 className="text-lg font-bold text-slate-900 dark:text-white">Create New Product</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">V1 Specification</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Start creating your product</p>
           </div>
         </div>
         <div className="flex items-center gap-3">

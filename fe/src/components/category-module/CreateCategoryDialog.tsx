@@ -10,7 +10,7 @@ import { useCreateCategory, useGetCategoryById, useUpdateCategory } from '@Jade/
 import type { RootState } from '@Jade/store/global.store';
 import type { CreateCategoryRequest } from '@Jade/types/category';
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Activity, Check, LayoutGrid, Palette, Plus, Upload, type LucideIcon } from 'lucide-react';
+import { Activity, Check, LayoutGrid, Palette, Plus, type LucideIcon } from 'lucide-react';
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { lazy, useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -298,10 +298,11 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                                 <InputCommon
                                     type="text"
                                     name="name"
+                                    placeholder="Category Name"
                                     register={register}
                                     registerOptions={{ required: true }}
                                     error={errors.name?.message}
-                                    className='h-[46px]!'
+                                    className='h-[46px]! placeholder:text-sm placeholder:font-normal'
                                     floatingLabel={false}
                                 />
                             </div>
@@ -399,14 +400,6 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                                         className="flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all bg-gray-50 border-gray-200 hover:border-gray-300 text-slate-600 dark:bg-slate-950 dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
                                     >
                                         <span className="text-xs opacity-70 bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-400 px-2 py-0.5 rounded">{t('more')}</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={iconModal.open}
-                                        className="flex items-center justify-between gap-1 px-4 py-2.5 rounded-xl border transition-all bg-gray-50 border-gray-200 hover:border-gray-300 text-slate-600 dark:bg-slate-950 dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
-                                    >
-                                        <Upload size={16} className="text-green-500 dark:text-green-300" />
-                                        <span className="text-xs opacity-70 bg-green-500/10 text-green-500 dark:bg-green-300/20 dark:text-green-300 px-2 py-0.5 rounded">{t('upload')}</span>
                                     </button>
                                 </div>
                             </div>

@@ -17,6 +17,7 @@ import Session, { SessionAuth, useSessionContext } from "supertokens-auth-react/
 import type { ReactNode } from "react";
 import Product from "@Jade/page/Product";
 import CreateProductPage from "@Jade/page/CreateProduct";
+import Storage from "@Jade/page/Storage";
 
 
 // Create a client for TanStack Query
@@ -114,6 +115,7 @@ function App() {
               <Route path="/settings" element={<Generator />} />
               <Route path="/products/create" element={<CreateProductPage />} />
               <Route path="/products" element={<Product />} />
+              <Route path="/storage" element={<Storage />} />
             </Route>
           </Routes>
         </BrowserRouter>

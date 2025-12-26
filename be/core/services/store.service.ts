@@ -51,8 +51,7 @@ export class StoreService {
 
       await this.storageRepo.create({
         store: { connect: { id: store.id } },
-        location: "Default Location",
-        isPrimary: true, // Mark as primary storage
+        isPrimary: true,
       });
 
       return { resData: { storeId: store.id }, error: null };

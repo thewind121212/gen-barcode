@@ -14,13 +14,15 @@ import CommonButton from "@Jade/core-design/input/CommonButton";
 import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
 import { useProductModuleStore } from "./store";
-import ActionMenu, { type ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
+import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
+import { CardMainProduct } from "@Jade/core-design/card/main-product-card/MainProductCard";
+import { ListMainProduct } from "@Jade/core-design/list/main-product-list/MainProductListItem";
 
 // ==========================================
 // --- MOCK DATA (for now - dummy API) ---
 // ==========================================
 
-type Product = {
+export type Product = {
   id: string;
   name: string;
   category: string;
@@ -56,186 +58,6 @@ const MOCK_PRODUCTS: Product[] = [
     stock: 30,
   },
 ];
-
-// ==========================================
-// --- PRODUCT CARD COMPONENT ---
-// ==========================================
-
-const ProductCard = ({
-  product,
-  isMenuOpen,
-  onMenuToggle,
-  menuActions,
-}: {
-  product: Product;
-  isMenuOpen: boolean;
-  onMenuToggle: (open: boolean) => void;
-  menuActions: ActionMenuItem[];
-}) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
-
-  return (
-    <div
-      className={`relative bg-white dark:bg-slate-900 rounded-xl border transition-all group ${
-        isMenuOpen
-          ? "border-indigo-300 dark:border-indigo-500 shadow-md"
-          : "border-gray-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md"
-      }`}
-    >
-      <div className="p-4">
-        <div className="flex items-start gap-4">
-          {/* Product Image */}
-          <div className="w-16 h-16 rounded-lg bg-gradient-linear-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 flex items-center justify-center shrink-0">
-            {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <Package className="text-indigo-400" size={24} />
-            )}
-          </div>
-
-          {/* Product Info */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-slate-900 dark:text-white truncate">
-              {product.name}
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {product.category}
-            </p>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                {formatPrice(product.sellPrice)}
-              </span>
-              <span className="text-xs text-slate-400">/{product.baseUnit}</span>
-            </div>
-          </div>
-
-          {/* Menu Button */}
-          {menuActions.length > 0 && (
-            <ActionMenu
-              actions={menuActions}
-              isOpen={isMenuOpen}
-              onToggle={() => onMenuToggle(!isMenuOpen)}
-              targetId={product.id}
-              portal
-            />
-          )}
-        </div>
-
-        {/* Stock Badge */}
-        <div className="mt-3 flex items-center justify-between">
-          <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              product.stock > 20
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                : product.stock > 0
-                ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                : "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-            }`}
-          >
-            Stock: {product.stock}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ==========================================
-// --- PRODUCT LIST ITEM ---
-// ==========================================
-
-const ProductListItem = ({
-  product,
-  isMenuOpen,
-  onMenuToggle,
-  menuActions,
-}: {
-  product: Product;
-  isMenuOpen: boolean;
-  onMenuToggle: (open: boolean) => void;
-  menuActions: ActionMenuItem[];
-}) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
-
-  return (
-    <div
-      className={`relative bg-white dark:bg-slate-900 rounded-lg border p-3 flex items-center gap-4 transition-all ${
-        isMenuOpen
-          ? "border-indigo-300 dark:border-indigo-500 shadow-md"
-          : "border-gray-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-500"
-      }`}
-    >
-      {/* Product Image */}
-      <div className="w-12 h-12 rounded-lg bg-gradient-linear-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 flex items-center justify-center shrink-0">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-full object-cover rounded-lg"
-          />
-        ) : (
-          <Package className="text-indigo-400" size={20} />
-        )}
-      </div>
-
-      {/* Product Info */}
-      <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-slate-900 dark:text-white truncate text-sm">
-            {product.name}
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{product.category}</p>
-        </div>
-
-        <div className="flex items-center gap-6 shrink-0">
-          <div className="text-right">
-            <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-              {formatPrice(product.sellPrice)}
-            </span>
-            <p className="text-xs text-slate-400">/{product.baseUnit}</p>
-          </div>
-
-          <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              product.stock > 20
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                : product.stock > 0
-                ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                : "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-            }`}
-          >
-            {product.stock}
-          </span>
-
-          {/* Menu Button */}
-          {menuActions.length > 0 && (
-            <ActionMenu
-              actions={menuActions}
-              isOpen={isMenuOpen}
-              onToggle={() => onMenuToggle(!isMenuOpen)}
-              targetId={product.id}
-              portal
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const MainProduct = () => {
   const { t } = useTranslation("product");
@@ -418,21 +240,37 @@ const MainProduct = () => {
                 const isMenuOpen = activeMenuId === product.id;
 
                 return viewMode === "grid" ? (
-                  <ProductCard
+                  <div
                     key={product.id}
-                    product={product}
-                    isMenuOpen={isMenuOpen}
-                    onMenuToggle={(open) => setActiveMenuId(open ? product.id : null)}
-                    menuActions={MENU_ACTIONS}
-                  />
+                    className={`relative bg-white dark:bg-slate-900 rounded-xl border transition-all group ${
+                      isMenuOpen
+                        ? "border-indigo-300 dark:border-indigo-500 shadow-md"
+                        : "border-gray-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md"
+                    }`}
+                  >
+                    <CardMainProduct
+                      product={product}
+                      isMenuOpen={isMenuOpen}
+                      onMenuToggle={(open) => setActiveMenuId(open ? product.id : null)}
+                      menuActions={MENU_ACTIONS}
+                    />
+                  </div>
                 ) : (
-                  <ProductListItem
+                  <div
                     key={product.id}
-                    product={product}
-                    isMenuOpen={isMenuOpen}
-                    onMenuToggle={(open) => setActiveMenuId(open ? product.id : null)}
-                    menuActions={MENU_ACTIONS}
-                  />
+                    className={`relative bg-white dark:bg-slate-900 rounded-lg border p-3 flex items-center gap-4 transition-all ${
+                      isMenuOpen
+                        ? "border-indigo-300 dark:border-indigo-500 shadow-md"
+                        : "border-gray-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-500"
+                    }`}
+                  >
+                    <ListMainProduct
+                      product={product}
+                      isMenuOpen={isMenuOpen}
+                      onMenuToggle={(open) => setActiveMenuId(open ? product.id : null)}
+                      menuActions={MENU_ACTIONS}
+                    />
+                  </div>
                 );
               })}
             </div>

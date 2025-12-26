@@ -8,6 +8,12 @@ interface InputProps {
     error?: string;
     success?: boolean;
     expandOnError?: boolean;
+    /** Wrapper <div> className */
+    containerClassName?: string;
+    /** Input className (preferred). `className` is kept for backwards compatibility. */
+    inputClassName?: string;
+    /** Placeholder-specific className helper (optional). */
+    placeholderClassName?: string;
     className?: string;
     floatingLabel?: boolean;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,18 +29,22 @@ const Input = ({
     error,
     success,
     expandOnError = true,
-    className,
+    containerClassName,
+    inputClassName,
+    placeholderClassName,
+    className, // backwards compatible (maps to input styling)
     register,
     registerOptions,
     floatingLabel = true,
     ...props
 }: InputProps) => {
+    const computedPlaceholder = floatingLabel ? ' ' : (props.placeholder ?? '');
     return (
-        <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''}`}>
+        <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''} ${containerClassName || ''}`}>
 
             <input
                 {...props}
-                placeholder=" " 
+                placeholder={computedPlaceholder}
                 {...(register ? register(props.name, { ...registerOptions }) : {})}
                 className={`
             peer
@@ -47,7 +57,7 @@ const Input = ({
             outline-none
             transition-all
             duration-200
-            placeholder-transparent
+            ${floatingLabel ? 'placeholder-transparent' : 'placeholder-slate-400 dark:placeholder-slate-500'}
             text-slate-900
             dark:text-white
             font-medium
@@ -60,6 +70,8 @@ const Input = ({
                     }
   
             ${icon ? 'pl-12' : ''}
+            ${placeholderClassName || ''}
+            ${inputClassName || ''}
             ${className || ''}
           `}
             />

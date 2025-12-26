@@ -6,46 +6,88 @@ import {
   QrCode,
   Settings,
   Trash2,
-  Warehouse,
   Package,
   Archive,
   Check,
   Layers,
 } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import CommonInput from "@Jade/core-design/input/CommonInput";
-import type { ContainerConfig, PackFormData, ProductModuleStore } from "../../store";
 import { cn } from "../utils";
+
+type PackFormData = {
+  id: number;
+  name: string;
+  multiplier: number;
+  price: string;
+  barcode: string;
+};
+
+type ContainerConfig = {
+  name: string;
+  multiplier: number;
+  barcode: string;
+};
+
+type InventoryType = "TOTAL_ONLY" | "LOT_CONTAINER";
+
+type CreateProductFormValues = {
+  packs: PackFormData[];
+  inventoryType: InventoryType;
+  containerConfig: ContainerConfig;
+};
 
 export function AdvancedSection({
   showAdvanced,
   setShowAdvanced,
-  setAdvancedTab,
-  packs,
-  addPack,
-  removePack,
-  updatePack,
-  inventoryType,
-  setInventoryType,
-  containerConfig,
-  setContainerConfig,
   getBaseUnitLabel,
 }: {
   showAdvanced: boolean;
   setShowAdvanced: (show: boolean) => void;
-  setAdvancedTab: (tab: ProductModuleStore["advancedTab"]) => void;
-  packs: PackFormData[];
-  addPack: () => void;
-  removePack: (id: number) => void;
-  updatePack: (id: number, field: keyof PackFormData, value: string | number) => void;
-  inventoryType: ProductModuleStore["inventoryType"];
-  setInventoryType: (type: ProductModuleStore["inventoryType"]) => void;
-  containerConfig: ContainerConfig;
-  setContainerConfig: (config: Partial<ContainerConfig>) => void;
   getBaseUnitLabel: () => string;
 }) {
+  const { watch, setValue } = useFormContext<CreateProductFormValues>();
+  const packs = watch("packs");
+  const inventoryType = watch("inventoryType");
+  const containerConfig = watch("containerConfig");
+
   const isLotContainerMode = inventoryType === "LOT_CONTAINER";
   const canAddPack = !isLotContainerMode || packs.length < 1;
+
+  const addPack = () => {
+    const current = packs ?? [];
+    const newId = current.length > 0 ? Math.max(...current.map((p) => p.id)) + 1 : 1;
+    setValue(
+      "packs",
+      [...current, { id: newId, name: "", multiplier: 1, price: "", barcode: "" }],
+      { shouldDirty: true },
+    );
+  };
+
+  const removePack = (id: number) => {
+    setValue(
+      "packs",
+      (packs ?? []).filter((p) => p.id !== id),
+      { shouldDirty: true },
+    );
+  };
+
+  const updatePack = (id: number, field: keyof PackFormData, value: string | number) => {
+    setValue(
+      "packs",
+      (packs ?? []).map((p) => (p.id === id ? { ...p, [field]: value } : p)),
+      { shouldDirty: true },
+    );
+  };
+
+  const setInventoryType = (type: InventoryType) => {
+    setValue("inventoryType", type, { shouldDirty: true });
+  };
+
+  const setContainerConfig = (config: Partial<ContainerConfig>) => {
+    setValue("containerConfig", { ...(containerConfig ?? { name: "", multiplier: 0, barcode: "" }), ...config }, { shouldDirty: true });
+  };
 
   // Keep containerConfig synced with the single "container unit" pack (so save payload stays correct).
   useEffect(() => {
@@ -60,9 +102,8 @@ export function AdvancedSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLotContainerMode, packs]);
 
-  const handleSelectInventoryType = (type: ProductModuleStore["inventoryType"]) => {
+  const handleSelectInventoryType = (type: InventoryType) => {
     setInventoryType(type);
-    setAdvancedTab(type === "LOT_CONTAINER" ? "inventory" : "packs");
 
     // Enforce "only 1 pack" when switching into LOT_CONTAINER mode.
     if (type === "LOT_CONTAINER" && packs.length > 1) {
@@ -297,39 +338,6 @@ export function AdvancedSection({
                 </div>
               )}
             </div>
-
-            {/* Keep a small read-only debug for containerConfig when in lot mode (helps verify syncing) */}
-            {isLotContainerMode && (
-              <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                  <Warehouse size={14} />
-                  Container Config (synced)
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <CommonInput
-                    name="containerConfigName"
-                    value={containerConfig.name}
-                    readOnly
-                    floatingLabel={false}
-                    className="opacity-80"
-                  />
-                  <CommonInput
-                    name="containerConfigMultiplier"
-                    value={containerConfig.multiplier}
-                    readOnly
-                    floatingLabel={false}
-                    className="opacity-80"
-                  />
-                  <CommonInput
-                    name="containerConfigBarcode"
-                    value={containerConfig.barcode}
-                    readOnly
-                    floatingLabel={false}
-                    className="opacity-80"
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
