@@ -4,8 +4,7 @@ export enum ModalId {
   COLOR = 'color-picker-dialog',
   ICON = 'icon-picker-dialog',
   CONFIRM = 'confirm-dialog',
-  // Product module
-  CREATE_PRODUCT = 'create-product-dialog',
+  CREATE_STORAGE = 'create-storage-dialog',
 }
 
 export type ModalKey = ModalId | string;

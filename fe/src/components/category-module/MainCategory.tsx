@@ -1,5 +1,4 @@
 import { lazy } from "react";
-import { useTranslation, Trans } from "react-i18next";
 import {
   ListMainCategory,
 } from "@Jade/core-design/list/main-category-list/MainCategoryList";
@@ -16,6 +15,9 @@ import type { CategoryResponse } from "@Jade/types/category.d";
 import toast from "react-hot-toast";
 import { useCategoryModuleStore } from '@Jade/components/category-module/store';
 import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
+import Spinner from "@Jade/core-design/loader/Spinner";
+import CategoryListSkeleton from "@Jade/core-design/loader/CategoryListSkeleton";
+import { useTranslation } from "react-i18next";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
@@ -103,7 +105,12 @@ const CategoriesView = () => {
   const categoryToDelete = useCategoryModuleStore((s) => s.categories.categoryToDelete);
   const mainModal = useModal(ModalId.MAIN_CATEGORY);
   const confirmModal = useModal(ModalId.CONFIRM);
-  const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverviewWithDepth(
+  const {
+    data: categoryOverview,
+    refetch: refetchCategoryOverview,
+    isLoading: isLoadingCategories,
+    isFetching: isFetchingCategories,
+  } = useGetCategoryOverviewWithDepth(
     { storeId: appStoreInfo?.storeId || "", depth: 1 },
     appStoreInfo?.storeId,
     { enabled: Boolean(appStoreInfo?.storeId) },
@@ -186,10 +193,10 @@ const CategoriesView = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">
-            {t('categories')}
+            Categories
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            {t('manageProductClassifications')}
+            Manage your product classifications
           </p>
         </div>
 
@@ -201,7 +208,7 @@ const CategoriesView = () => {
               ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
               : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               }`}
-            title={t('gridView')}
+            title="Grid View"
           >
             <LayoutGrid size={18} />
           </button>
@@ -211,7 +218,7 @@ const CategoriesView = () => {
               ? "bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/40 dark:text-indigo-200"
               : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               }`}
-            title={t('listView')}
+            title="List View"
           >
             <List size={18} />
           </button>
@@ -227,12 +234,12 @@ const CategoriesView = () => {
               className="w-full h-10 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm dark:hover:bg-indigo-500"
               icon={<Plus size={18} />}
             >
-              {t('createMainCategory')}
+              Create Main Category
             </CommonButton>
             <div className="mt-8">
               <div className="flex items-center gap-2 mb-4 text-gray-800 dark:text-gray-200">
                 <Info size={18} className="text-indigo-500" />
-                <h3 className="font-bold text-sm uppercase tracking-wide">{t('quickGuide')}</h3>
+                <h3 className="font-bold text-sm uppercase tracking-wide">Quick Guide</h3>
               </div>
 
               <div className="space-y-6 relative">
@@ -245,9 +252,9 @@ const CategoriesView = () => {
                     1
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('createMainLayer')}</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Create Main Layer</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      {t('createMainLayerDesc')}
+                      Start by using the button above to create your top-level categories.
                     </p>
                   </div>
                 </div>
@@ -258,9 +265,9 @@ const CategoriesView = () => {
                     2
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('enterDetails')}</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Enter Details</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      {t('enterDetailsDesc')}
+                      Click on any category card to enter it and view its contents.
                     </p>
                   </div>
                 </div>
@@ -271,14 +278,9 @@ const CategoriesView = () => {
                     3
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('nestLayers')}</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Nest Layers</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      <Trans
-                        i18nKey="nestLayersDesc"
-                        components={{
-                          1: <span className="font-bold text-indigo-600 dark:text-indigo-400" />
-                        }}
-                      />
+                      Create sub-layers easily. You can nest up to <span className="font-bold text-indigo-600 dark:text-indigo-400">5 levels</span> deep.
                     </p>
                   </div>
                 </div>
@@ -289,9 +291,9 @@ const CategoriesView = () => {
                     4
                   </div>
                   <div className="pt-1">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('assignItems')}</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Assign Items</h4>
                     <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
-                      {t('assignItemsDesc')}
+                      Add items to any specific layer you are currently viewing.
                     </p>
                   </div>
                 </div>
@@ -302,10 +304,17 @@ const CategoriesView = () => {
 
         {/* Category List - Responsive Grid or List */}
         <div className="lg:col-span-2">
-          {categoriesToRender.length === 0 ? (
+          {isLoadingCategories ? (
+            <CategoryListSkeleton viewMode={categoryViewMode} />
+          ) : categoriesToRender.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+              {isFetchingCategories && (
+                <div className="mb-3 flex items-center justify-center">
+                  <Spinner className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
+                </div>
+              )}
               <p className="text-gray-500 dark:text-gray-400">
-                {t('noCategoriesMain')}
+                No categories yet. Create one to get started!
               </p>
             </div>
           ) : (
@@ -366,11 +375,11 @@ const CategoriesView = () => {
       />
       <ConfirmModal
         modal={confirmModal}
-        title={t('deleteCategoryTitle')}
-        subtitle={t('deleteCategorySubtitle')}
+        title="Delete category?"
+        subtitle="This action cannot be undone."
         isLoading={false}
-        cancelButtonText={t('cancel')}
-        confirmButtonText={t('delete')}
+        cancelButtonText="Cancel"
+        confirmButtonText="Delete"
         onClose={() => setCategoryToDelete(null)}
         onConfirm={() => {
           if (!categoryToDelete)
@@ -380,7 +389,7 @@ const CategoriesView = () => {
           setCategoryToDelete(null);
         }}
       >
-        {t('deleteCategoryConfirm')}
+        Are you sure you want to delete this category?
       </ConfirmModal>
     </div>
   );

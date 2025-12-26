@@ -2,11 +2,10 @@ import ThemeToggle from "@Jade/theme/ThemeToggle";
 import {
     ChevronLeft,
     ChevronRight,
+    Warehouse,
     Home,
     Menu,
     Package,
-    Printer,
-    ScanBarcode,
     Settings,
     SquareChartGantt
 } from "lucide-react";
@@ -32,11 +31,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
     const menuItems = [
         { id: 'home', label: 'Trang Chủ', icon: Home, url: '/' },
-        { id: 'inventory', label: 'Quản Lý Kho', icon: Package, url: '/inventory' },
-        { id: 'create', label: 'Tạo Mã Vạch', icon: ScanBarcode, url: '/barcode-generator' },
-        { id: 'printer', label: 'Kiểm Tra Máy In', icon: Printer, url: '/printer' },
-        { id: 'settings', label: 'Cài Đặt', icon: Settings, url: '/settings' },
+        { id: 'products', label: 'Sản Phẩm', icon: Package, url: '/products' },
+        { id: 'storage', label: 'Kho', icon: Warehouse, url: '/storage' },
         { id: 'category', label: 'Danh Mục', icon: SquareChartGantt, url: '/categories' },
+        { id: 'settings', label: 'Cài Đặt', icon: Settings, url: '/settings' },
     ];
 
     const isActiveTab = (tab: string) => {

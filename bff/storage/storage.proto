@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "api/models;models";
+
+package storage;
+
+message CreateStorageRequest {
+  string storeId = 1;
+  string name = 2;
+  optional bool isPrimary = 4;
+  optional bool active = 5;
+  optional string address = 6;
+  optional string color = 7;
+  optional string icon = 8;
+
+}
+
+message CreateStorageResponse {
+  optional string storageId = 1;
+}
+
+message GetStorageByIdRequest {
+  string storageId = 1;
+}
+
+message GetStorageByStoreIdRequest {
+  string storeId = 1;
+}
+
+message GetStorageByStoreIdResponse {
+  repeated StorageResponse storages = 1;
+}
+
+message StorageResponse {
+  string id = 1;
+  string storeId = 2;
+  string name = 3;
+  bool isDelete = 5;
+  bool isPrimary = 6;
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+  optional string address = 9;
+  optional string color = 10;
+  optional string icon = 11;
+  bool active = 12;
+}
+
+message StorageResponseOverview {
+  string id = 1;
+  string storeId = 2;
+  string name = 3;
+  bool isDelete = 5;
+  bool isPrimary = 6;
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+  optional string address = 9;
+  optional string color = 10;
+  optional string icon = 11;
+  bool active = 12;
+  int32 itemCount = 13;
+  int64 totalValue = 14;
+  int64 lowStockValue = 15;
+}
+
+message GetStorageByStoreIdOverviewResponse {
+  repeated StorageResponseOverview storages = 1;
+}
+
+service UserService {
+  rpc CreateStorage(CreateStorageRequest) returns (CreateStorageResponse) {
+    option (google.api.http) = {
+      post: "/v1/storage/CreateStorage"
+      body: "*"
+    };
+  }
+  rpc GetStorageById(GetStorageByIdRequest) returns (StorageResponse) {
+    option (google.api.http) = {
+      get: "/v1/storage/GetStorageById"
+      body: "*"
+    };
+  }
+  rpc GetStorageByStoreId(GetStorageByStoreIdRequest) returns (GetStorageByStoreIdResponse) {
+    option (google.api.http) = {
+      get: "/v1/storage/GetStorageByStoreId"
+      body: "*"
+    };
+  }
+  rpc GetStorageByStoreIdOverview(GetStorageByStoreIdRequest) returns (GetStorageByStoreIdOverviewResponse) {
+    option (google.api.http) = {
+      get: "/v1/storage/GetStorageByStoreIdOverview"
+      body: "*"
+    };
+  }
+}

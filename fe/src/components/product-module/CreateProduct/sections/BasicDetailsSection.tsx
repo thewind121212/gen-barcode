@@ -10,11 +10,25 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import CommonInput from "@Jade/core-design/input/CommonInput";
+import { useGetStorageByStoreId } from "@Jade/services/storage/useQuery";
 import CoreSelect from "@Jade/core-design/input/Select";
-import { AVAILABLE_UOMS } from "../constants";
-import { cn } from "../utils";
+import { AVAILABLE_UOMS } from "@Jade/components/product-module/CreateProduct/constants";
+import { useSelector } from "react-redux";
+import type { RootState } from "@Jade/store/global.store";
+import { cn } from "@Jade/components/product-module/CreateProduct/utils";
+
+type CreateProductFormValues = {
+  productName: string;
+  category: string;
+  baseUnit: string;
+  storageId: string;
+  sellPrice: string;
+  barcodeInput: string;
+  barcodes: string[];
+};
 
 export function BasicDetailsSection({
   fileInputRef,
@@ -22,45 +36,59 @@ export function BasicDetailsSection({
   handleFileChange,
   handleImageClick,
   handleClearImage,
-  productName,
-  setProductName,
-  category,
-  setCategory,
-  baseUnit,
-  setBaseUnit,
-  storageId,
-  setStorageId,
-  sellPrice,
-  setSellPrice,
-  barcodeInput,
-  setBarcodeInput,
-  handleBarcodeKeyDown,
-  handleAddBarcode,
-  barcodes,
-  removeBarcode,
 }: {
   fileInputRef: RefObject<HTMLInputElement | null>;
   imagePreview: string | null;
   handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleImageClick: () => void;
   handleClearImage: (e: MouseEvent) => void;
-  productName: string;
-  setProductName: (v: string) => void;
-  category: string;
-  setCategory: (v: string) => void;
-  baseUnit: string;
-  setBaseUnit: (v: string) => void;
-  storageId: string;
-  setStorageId: (v: string) => void;
-  sellPrice: string;
-  setSellPrice: (v: string) => void;
-  barcodeInput: string;
-  setBarcodeInput: (v: string) => void;
-  handleBarcodeKeyDown: (e: KeyboardEvent) => void;
-  handleAddBarcode: () => void;
-  barcodes: string[];
-  removeBarcode: (index: number) => void;
 }) {
+  const { register, watch, setValue } = useFormContext<CreateProductFormValues>();
+  const appStoreInfo = useSelector((state: RootState) => state.app)
+
+
+  const productName = watch("productName");
+  const category = watch("category");
+  const baseUnit = watch("baseUnit");
+  const storageId = watch("storageId");
+  const sellPrice = watch("sellPrice");
+  const barcodeInput = watch("barcodeInput");
+  const barcodes = watch("barcodes");
+
+  const handleAddBarcode = () => {
+    const v = (barcodeInput ?? "").trim();
+    if (!v) return;
+    setValue("barcodes", [...(barcodes ?? []), v], { shouldDirty: true });
+    setValue("barcodeInput", "", { shouldDirty: true });
+  };
+
+  const handleBarcodeKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddBarcode();
+    }
+  };
+
+  const { data: storageData } = useGetStorageByStoreId({
+    storeId: appStoreInfo?.storeId || "",
+  }, appStoreInfo?.storeId, {
+    enabled: Boolean(appStoreInfo?.storeId),
+  });
+
+
+  const storageOptions = storageData?.data.storages.map((storage) => ({
+    label: storage.name,
+    value: storage.id,
+  }));
+
+  const removeBarcode = (index: number) => {
+    setValue(
+      "barcodes",
+      (barcodes ?? []).filter((_, i) => i !== index),
+      { shouldDirty: true },
+    );
+  };
+
   return (
     <section
       id="basic-details"
@@ -139,16 +167,19 @@ export function BasicDetailsSection({
                 name="productName"
                 label="Product Name"
                 value={productName}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setProductName(e.target.value)}
+                placeholder="Product Name"
+                register={register}
                 floatingLabel={false}
-                className="h-[46px]!"
+                className="h-[46px]! placeholder:text-xs placeholder:font-normal"
               />
               <CoreSelect
                 name="category"
                 label="Category"
                 value={category}
-                onChange={(v) => setCategory(String(v))}
-                placeholder="Select Category..."
+                register={register}
+                className="h-[46px]!"
+                placeholder="Select Category"
+                placeholderClassName="text-xs font-normal"
                 options={[
                   { label: "Electronics", value: "electronics" },
                   { label: "Groceries", value: "groceries" },
@@ -162,18 +193,12 @@ export function BasicDetailsSection({
                 name="storageId"
                 label="Storage Location"
                 value={storageId}
-                onChange={(v) => setStorageId(String(v))}
-                placeholder="Select Storage Location..."
+                register={register}
+                placeholder="Select Storage Location"
+                placeholderClassName="text-xs font-normal"
                 icon={<Home size={16} />}
-                options={[{
-                  label: "Main Warehouse",
-                  value: "main-warehouse",
-                }, 
-                {
-                  label: "District 1 Warehouse",
-                  value: "district-1-warehouse",
-                },
-              ]}
+                className="h-[46px]!"
+                options={storageOptions}
               />
 
               <CommonInput
@@ -183,8 +208,8 @@ export function BasicDetailsSection({
                 icon={<DollarSign size={16} />}
                 value={sellPrice}
                 placeholder="0.00"
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setSellPrice(e.target.value)}
-                className="font-bold text-indigo-700 dark:text-indigo-400 h-[46px]!"
+                register={register}
+                className="font-bold text-indigo-700 dark:text-indigo-400 h-[46px]! placeholder:text-xs placeholder:font-normal"
                 floatingLabel={false}
               />
               <div className="space-y-1.5">
@@ -192,7 +217,10 @@ export function BasicDetailsSection({
                   name="baseUnit"
                   label="Base Unit"
                   value={baseUnit}
-                  onChange={(v) => setBaseUnit(String(v))}
+                  register={register}
+                  placeholder="Select Base Unit"
+                  placeholderClassName="text-xs font-normal"
+                  className="h-[46px]!"
                   options={AVAILABLE_UOMS.map((u) => ({
                     label: `${u.label_en} (${u.label_vi})`,
                     value: u.code,
@@ -211,9 +239,11 @@ export function BasicDetailsSection({
                   <CommonInput
                     name="barcodeInput"
                     icon={<Barcode size={16} className="translate-y-[-4px]" />}
+                    placeholder="Enter Barcode (optional)"
+                    placeholderClassName="text-xs font-normal"
                     value={barcodeInput}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setBarcodeInput(e.target.value)}
                     onKeyDown={handleBarcodeKeyDown}
+                    register={register}
                     floatingLabel={false}
                     className="h-[40px]!"
                   />

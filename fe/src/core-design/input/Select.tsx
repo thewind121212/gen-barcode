@@ -23,6 +23,7 @@ interface SelectProps {
   className?: string;
   name: string;
   floatingLabel?: boolean;
+  placeholderClassName?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   register?: UseFormRegister<any>;
   registerOptions?: RegisterOptions<FieldValues, string>;
@@ -40,6 +41,7 @@ const Select = ({
   success,
   expandOnError = true,
   className,
+  placeholderClassName,
   disabled,
   name,
   register,
@@ -94,7 +96,7 @@ const Select = ({
   }, [closeDropdown]);
 
   return (
-    <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''} ${className || ''}`} ref={containerRef}>
+    <div className={`relative w-full ${!expandOnError ? 'mb-6' : ''}`} ref={containerRef}>
 
       {/* Hidden input for react-hook-form integration */}
       {register && (
@@ -114,6 +116,7 @@ const Select = ({
         className={`
           w-full flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-200 outline-none
           disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-50 dark:disabled:bg-slate-800
+          ${className || ''}
           ${isOpen
             ? 'ring-2 ring-indigo-500/20 border-indigo-500'
             : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'
@@ -127,17 +130,22 @@ const Select = ({
         <div className="flex items-center gap-3 overflow-hidden">
           {Icon && (
             <span className="text-slate-400 dark:text-slate-500 flex items-center">
-              {typeof Icon === "function" ? (
-                <Icon size={18} />
-              ) : (
-                Icon
-              )}
+              {(() => {
+                if (React.isValidElement(Icon)) {
+                  return Icon;
+                }
+                if (typeof Icon === "function" || (typeof Icon === "object" && Icon && "$$typeof" in Icon)) {
+                  const IconComp = Icon as React.ComponentType<{ size?: number; className?: string }>;
+                  return <IconComp size={18} />;
+                }
+                return null;
+              })()}
             </span>
           )}
           {selectedOption ? (
             <span className="truncate">{selectedOption.label}</span>
           ) : (
-            <span className="text-slate-400 dark:text-slate-500">{placeholder}</span>
+            <span className={`text-slate-400 dark:text-slate-500 ${placeholderClassName}`}>{placeholder}</span>
           )}
         </div>
 
