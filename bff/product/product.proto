@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+option go_package = "api/models;models";
+package product;
+
+message CreateProductRequest {
+  string storeId = 1;
+  optional string categoryId = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string imageUrl = 5;
+  optional string status = 6;
+  optional string baseUnitCode = 7;
+  optional string baseUnitLabel = 11;
+  double sellPrice = 8;
+  optional double exportPrice = 12;
+  optional string trackingMode = 13;
+  optional string containerLabel = 14;
+  optional double containerSize = 15;
+  repeated CreateProductPackRequest packs = 9;
+  repeated CreateProductBarcodeRequest barcodes = 10;
+}
+
+message CreateProductPackRequest {
+  string name = 1;
+  int32 multiplier = 2;
+  repeated CreateProductBarcodeRequest barcodes = 3;
+}
+
+message CreateProductBarcodeRequest {
+  string value = 1;
+  optional bool isActive = 3;
+}
+
+message CreateProductResponse {
+  optional string productId = 1;
+}
+
+message GetProductByIdRequest {
+  string productId = 2;
+}
+
+message ProductBarcodeResponse {
+  string id = 1;
+  string storeId = 2;
+  string value = 3;
+  string productId = 4;
+  optional string packId = 5;
+  bool isActive = 7;
+}
+
+message ProductPackResponse {
+  string id = 1;
+  string storeId = 2;
+  string productId = 3;
+  string name = 4;
+  int32 multiplier = 5;
+  optional double sellPrice = 6;
+  repeated ProductBarcodeResponse barcodes = 7;
+}
+
+message ProductResponse {
+  string id = 1;
+  string storeId = 2;
+  optional string categoryId = 3;
+  optional string description = 4;
+  optional string imageUrl = 5;
+  string name = 6;
+  string status = 7;
+  bool isDelete = 8;
+  string baseUnitCode = 9;
+  optional string baseUnitLabel = 13;
+  double sellPrice = 10;
+  optional double exportPrice = 14;
+  string trackingMode = 15;
+  optional string containerLabel = 16;
+  optional double containerSize = 17;
+  repeated ProductPackResponse packs = 11;
+  repeated ProductBarcodeResponse barcodes = 12;
+}
+
+service UserService {
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse) {
+    option (google.api.http) = {
+      post: "/v1/product/CreateProduct"
+      body: "*"
+    };
+  }
+  rpc GetProductById(GetProductByIdRequest) returns (ProductResponse) {
+    option (google.api.http) = {
+      get: "/v1/product/GetProductById"
+      body: "*"
+    };
+  }
+}

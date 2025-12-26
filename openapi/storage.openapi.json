@@ -1,0 +1,335 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "storage API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/storage/CreateStorage": {
+      "post": {
+        "operationId": "CreateStorage",
+        "summary": "CreateStorage",
+        "tags": [
+          "storage"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateStorageResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorageRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/GetStorageById": {
+      "get": {
+        "operationId": "GetStorageById",
+        "summary": "GetStorageById",
+        "tags": [
+          "storage"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "storageId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/storage/GetStorageByStoreId": {
+      "get": {
+        "operationId": "GetStorageByStoreId",
+        "summary": "GetStorageByStoreId",
+        "tags": [
+          "storage"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStorageByStoreIdResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/storage/GetStorageByStoreIdOverview": {
+      "get": {
+        "operationId": "GetStorageByStoreIdOverview",
+        "summary": "GetStorageByStoreIdOverview",
+        "tags": [
+          "storage"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStorageByStoreIdOverviewResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateStorageRequest": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "address": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storeId",
+          "name"
+        ]
+      },
+      "CreateStorageResponse": {
+        "type": "object",
+        "properties": {
+          "storageId": {
+            "type": "string"
+          }
+        }
+      },
+      "GetStorageByIdRequest": {
+        "type": "object",
+        "properties": {
+          "storageId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storageId"
+        ]
+      },
+      "GetStorageByStoreIdRequest": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storeId"
+        ]
+      },
+      "GetStorageByStoreIdResponse": {
+        "type": "object",
+        "properties": {
+          "storages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StorageResponse"
+            }
+          }
+        }
+      },
+      "StorageResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDelete": {
+            "type": "boolean"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "address": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "storeId",
+          "name",
+          "isDelete",
+          "isPrimary",
+          "createdAt",
+          "updatedAt",
+          "active"
+        ]
+      },
+      "StorageResponseOverview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDelete": {
+            "type": "boolean"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "address": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalValue": {
+            "type": "string",
+            "format": "int64"
+          },
+          "lowStockValue": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "id",
+          "storeId",
+          "name",
+          "isDelete",
+          "isPrimary",
+          "createdAt",
+          "updatedAt",
+          "active",
+          "itemCount",
+          "totalValue",
+          "lowStockValue"
+        ]
+      },
+      "GetStorageByStoreIdOverviewResponse": {
+        "type": "object",
+        "properties": {
+          "storages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StorageResponseOverview"
+            }
+          }
+        }
+      }
+    }
+  }
+}

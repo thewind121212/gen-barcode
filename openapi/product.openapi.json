@@ -1,0 +1,342 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "product API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/product/CreateProduct": {
+      "post": {
+        "operationId": "CreateProduct",
+        "summary": "CreateProduct",
+        "tags": [
+          "product"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateProductResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product/GetProductById": {
+      "get": {
+        "operationId": "GetProductById",
+        "summary": "GetProductById",
+        "tags": [
+          "product"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateProductRequest": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "baseUnitCode": {
+            "type": "string"
+          },
+          "baseUnitLabel": {
+            "type": "string"
+          },
+          "sellPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "exportPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "trackingMode": {
+            "type": "string"
+          },
+          "containerLabel": {
+            "type": "string"
+          },
+          "containerSize": {
+            "type": "number",
+            "format": "double"
+          },
+          "packs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateProductPackRequest"
+            }
+          },
+          "barcodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateProductBarcodeRequest"
+            }
+          }
+        },
+        "required": [
+          "storeId",
+          "name",
+          "sellPrice"
+        ]
+      },
+      "CreateProductPackRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "multiplier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "barcodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateProductBarcodeRequest"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "multiplier"
+        ]
+      },
+      "CreateProductBarcodeRequest": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "CreateProductResponse": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          }
+        }
+      },
+      "GetProductByIdRequest": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "productId"
+        ]
+      },
+      "ProductBarcodeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "packId": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "storeId",
+          "value",
+          "productId",
+          "isActive"
+        ]
+      },
+      "ProductPackResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "multiplier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sellPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "barcodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductBarcodeResponse"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "storeId",
+          "productId",
+          "name",
+          "multiplier"
+        ]
+      },
+      "ProductResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "isDelete": {
+            "type": "boolean"
+          },
+          "baseUnitCode": {
+            "type": "string"
+          },
+          "baseUnitLabel": {
+            "type": "string"
+          },
+          "sellPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "exportPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "trackingMode": {
+            "type": "string"
+          },
+          "containerLabel": {
+            "type": "string"
+          },
+          "containerSize": {
+            "type": "number",
+            "format": "double"
+          },
+          "packs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPackResponse"
+            }
+          },
+          "barcodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductBarcodeResponse"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "storeId",
+          "name",
+          "status",
+          "isDelete",
+          "baseUnitCode",
+          "sellPrice",
+          "trackingMode"
+        ]
+      }
+    }
+  }
+}

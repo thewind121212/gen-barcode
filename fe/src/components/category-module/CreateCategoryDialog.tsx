@@ -10,7 +10,7 @@ import { useCreateCategory, useGetCategoryById, useUpdateCategory } from '@Jade/
 import type { RootState } from '@Jade/store/global.store';
 import type { CreateCategoryRequest } from '@Jade/types/category';
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Activity, Check, LayoutGrid, Palette, Plus, Upload, type LucideIcon } from 'lucide-react';
+import { Activity, Check, LayoutGrid, Palette, Plus, type LucideIcon } from 'lucide-react';
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { lazy, useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -20,6 +20,7 @@ import { useParams } from 'react-router-dom';
 import { NIL as NIL_UUID } from 'uuid';
 import * as yup from "yup";
 import { useCategoryModuleStore } from '@Jade/components/category-module/store';
+import { useTranslation } from 'react-i18next';
 
 
 const Modal = lazy(() => import('@Jade/core-design/modal/ModalBase'));
@@ -38,16 +39,7 @@ type CategoryFormValues = {
     parentName?: string;
 };
 
-const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
-    name: yup.string().required('Name is required'),
-    status: yup.mixed<CategoryStatus>().oneOf(['ACTIVE', 'INACTIVE', 'ARCHIVED']).required('Status is required'),
-    parentId: yup.string().optional().uuid("parentId must be a valid UUID"),
-    description: yup.string().optional().default(''),
-    color: yup.string().optional().default('indigo-400'),
-    icon: yup.string().optional().default('layout-grid'),
-    layer: yup.string().optional().default('0'),
-    parentName: yup.string().optional().default(''),
-});
+
 
 type CreateCategoryDialogProps = {
     mainModal: UseModalReturn;
@@ -55,6 +47,7 @@ type CreateCategoryDialogProps = {
 };
 
 export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallback }: CreateCategoryDialogProps) {
+    const { t } = useTranslation('category');
     const colorModal = useModal(ModalId.COLOR);
     const iconModal = useModal(ModalId.ICON);
     const storeId = useSelector((state: RootState) => state.app.storeId);
@@ -65,6 +58,17 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
     const categoryCreateParentId = createCategoryModalData.categoryCreateParentId;
     const mode = createCategoryModalData.mode;
     const categoryEditId = createCategoryModalData.categoryEditId;
+
+    const categorySchema: yup.ObjectSchema<CategoryFormValues> = yup.object({
+        name: yup.string().required(t('nameRequired')),
+        status: yup.mixed<CategoryStatus>().oneOf(['ACTIVE', 'INACTIVE', 'ARCHIVED']).required(t('statusRequired')),
+        parentId: yup.string().optional().uuid(t('parentIdUuid')),
+        description: yup.string().optional().default(''),
+        color: yup.string().optional().default('indigo-400'),
+        icon: yup.string().optional().default('layout-grid'),
+        layer: yup.string().optional().default('0'),
+        parentName: yup.string().optional().default(''),
+    });
 
     const { handleSubmit, register, control, setValue, formState: { errors }, reset } = useForm<CategoryFormValues>({
         resolver: yupResolver(categorySchema),
@@ -111,7 +115,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
             reset();
             resetCreateCategoryModalData();
             mainModal.close();
-            toast.error('Failed to get category:' + error?.message);
+            toast.error(t('getFailed') + ': ' + error?.message);
         },
     });
 
@@ -136,28 +140,28 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
     const { mutate: createCategory, isPending: isLoadingCreateCategory } = useCreateCategory({
         storeId: storeId,
         onSuccess: () => {
-            toast.success('Category created successfully');
+            toast.success(t('categoryCreated'));
             onCategoryCreatedCallback();
             reset();
             resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
-            toast.error(error?.message || 'Failed to create category');
+            toast.error(error?.message || t('createFailed'));
         },
     });
 
     const { mutate: updateCategory, isPending: isLoadingUpdateCategory } = useUpdateCategory({
         storeId: storeId,
         onSuccess: () => {
-            toast.success('Category updated successfully');
+            toast.success(t('categoryUpdated'));
             onCategoryCreatedCallback();
             reset();
             resetCreateCategoryModalData();
             mainModal.close();
         },
         onError: (error) => {
-            toast.error(error?.message || 'Failed to update category');
+            toast.error(error?.message || t('updateFailed'));
         },
     });
 
@@ -204,19 +208,19 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
         let layerRequest = data.layer ? data.layer : INITIAL_LAYER;
         // if parentId is provided, then layer must be get from be first and recheck at be 
         if (rootCategoryId && !layerRequest) {
-            toast.error('Layer is required');
+            toast.error(t('layerRequired'));
             return;
         }
         if (rootCategoryId && data.parentId === NIL_UUID) {
-            toast.error('Parent ID is required');
+            toast.error(t('parentIdRequired'));
             return;
         }
         if (layerRequest === undefined) {
-            toast.error('Layer is required');
+            toast.error(t('layerRequired'));
             return;
         }
         if (!storeId) {
-            toast.error('Store ID is required');
+            toast.error(t('storeIdRequired'));
             return;
         }
         const resolvedParentId =
@@ -248,7 +252,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
     const buildParentCategoryOptions = useMemo(() => {
         const options: { value: string; label: string }[] = [{
             value: NIL_UUID,
-            label: 'No Parent (Root Category)',
+            label: t('noParentRoot'),
         }];
         if (parentId && parentId !== NIL_UUID) {
             options.push({
@@ -257,7 +261,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
             });
         }
         return options;
-    }, [parentId, parentName]);
+    }, [parentId, parentName, t]);
 
     return (
         <>
@@ -272,12 +276,12 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                 }}
                 layer={mainModal.layer}
                 maxWidthClass="max-w-2xl"
-                title={mode === "CREATE" ? "Create New Category" : "Edit Category"}
-                subtitle="Organize your items with a new classification."
+                title={mode === "CREATE" ? t('createNewCategory') : t('editCategory')}
+                subtitle={t('dialogSubtitle')}
                 blurEffect={true}
                 className={"mb-0"}
                 onConfirm={() => handleSubmit(onSubmit)()}
-                confirmButtonText={mode === "CREATE" || mode === "CREATE_NEST" ? "Create" : "Update"}
+                confirmButtonText={mode === "CREATE" || mode === "CREATE_NEST" ? t('create') : t('update')}
                 isLoading={mode === "CREATE" || mode === "CREATE_NEST" ? isLoadingCreateCategory : isLoadingUpdateCategory}
                 isLoadingComponent={isLoadingGetCategoryById}
                 loadingComponent={<CategorySkeleton />}
@@ -290,20 +294,21 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2 flex flex-col gap-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category Name</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('categoryName')}</label>
                                 <InputCommon
                                     type="text"
                                     name="name"
+                                    placeholder="Category Name"
                                     register={register}
                                     registerOptions={{ required: true }}
                                     error={errors.name?.message}
-                                    className='h-[46px]!'
+                                    className='h-[46px]! placeholder:text-sm placeholder:font-normal'
                                     floatingLabel={false}
                                 />
                             </div>
 
                             <div className="space-y-2 flex flex-col gap-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('status')}</label>
                                 <Select
                                     name="status"
                                     value={status}
@@ -311,9 +316,9 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                                     registerOptions={{ required: true }}
                                     error={errors.status?.message}
                                     options={[
-                                        { value: 'ACTIVE', label: 'Active' },
-                                        { value: 'INACTIVE', label: 'Inactive' },
-                                        { value: 'ARCHIVED', label: 'Archived' },
+                                        { value: 'ACTIVE', label: t('active') },
+                                        { value: 'INACTIVE', label: t('inactive') },
+                                        { value: 'ARCHIVED', label: t('archived') },
                                     ]}
                                     icon={Activity}
                                 />
@@ -322,7 +327,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
                         <div className="space-y-6">
                             <div className="relative flex flex-col transition-all gap-1 space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Parent Category</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('parentCategory')}</label>
                                 <Select
                                     name="parentId"
                                     value={parentId}
@@ -335,11 +340,11 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                                 />
                             </div>
                             <div className="space-y-2 flex flex-col gap-1">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('description')}</label>
                                 <textarea
                                     {...register('description')}
                                     rows={3}
-                                    placeholder="Briefly describe what belongs in this category..."
+                                    placeholder={t('descriptionPlaceholder')}
                                     className="w-full rounded-xl border px-4 py-3 text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50 border-gray-200 text-slate-900 placeholder:text-slate-400 dark:bg-slate-950 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-600"
                                 ></textarea>
                             </div>
@@ -349,7 +354,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    <Palette size={14} /> Color Tag
+                                    <Palette size={14} /> {t('colorTag')}
                                 </label>
                                 <div className="flex items-center gap-3">
                                     <div className="flex gap-2 duration-200 transition-all">
@@ -381,7 +386,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
 
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    <LayoutGrid size={14} /> Category Icon
+                                    <LayoutGrid size={14} /> {t('categoryIcon')}
                                 </label>
 
                                 <div className="flex items-end gap-4">
@@ -394,15 +399,7 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                                         onClick={iconModal.open}
                                         className="flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all bg-gray-50 border-gray-200 hover:border-gray-300 text-slate-600 dark:bg-slate-950 dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
                                     >
-                                        <span className="text-xs opacity-70 bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-400 px-2 py-0.5 rounded">More</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={iconModal.open}
-                                        className="flex items-center justify-between gap-1 px-4 py-2.5 rounded-xl border transition-all bg-gray-50 border-gray-200 hover:border-gray-300 text-slate-600 dark:bg-slate-950 dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
-                                    >
-                                        <Upload size={16} className="text-green-500 dark:text-green-300" />
-                                        <span className="text-xs opacity-70 bg-green-500/10 text-green-500 dark:bg-green-300/20 dark:text-green-300 px-2 py-0.5 rounded">Upload</span>
+                                        <span className="text-xs opacity-70 bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-400 px-2 py-0.5 rounded">{t('more')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -416,12 +413,12 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                 isOpen={colorModal.isOpen}
                 isClosing={colorModal.isClosing}
                 onClose={colorModal.close}
-                title="Select Color Tag"
+                title={t('selectColorTag')}
                 layer={colorModal.layer}
                 blurEffect={false}
                 showCancelButton={false}
                 showConfirmButton={true}
-                confirmButtonText="Done"
+                confirmButtonText={t('done')}
                 onConfirm={colorModal.close}
             >
                 <ColorPicker
@@ -436,12 +433,12 @@ export default function CreateCategoryDialog({ mainModal, onCategoryCreatedCallb
                 isOpen={iconModal.isOpen}
                 isClosing={iconModal.isClosing}
                 onClose={iconModal.close}
-                title="Select Icon"
+                title={t('selectIcon')}
                 layer={iconModal.layer}
                 blurEffect={false}
                 showCancelButton={false}
                 showConfirmButton={true}
-                confirmButtonText="Done"
+                confirmButtonText={t('done')}
                 maxWidthClass="max-w-2xl"
                 onConfirm={iconModal.close}
             >

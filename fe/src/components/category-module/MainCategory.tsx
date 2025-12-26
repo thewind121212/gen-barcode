@@ -15,6 +15,9 @@ import type { CategoryResponse } from "@Jade/types/category.d";
 import toast from "react-hot-toast";
 import { useCategoryModuleStore } from '@Jade/components/category-module/store';
 import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
+import Spinner from "@Jade/core-design/loader/Spinner";
+import CategoryListSkeleton from "@Jade/core-design/loader/CategoryListSkeleton";
+import { useTranslation } from "react-i18next";
 
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 
@@ -102,7 +105,12 @@ const CategoriesView = () => {
   const categoryToDelete = useCategoryModuleStore((s) => s.categories.categoryToDelete);
   const mainModal = useModal(ModalId.MAIN_CATEGORY);
   const confirmModal = useModal(ModalId.CONFIRM);
-  const { data: categoryOverview, refetch: refetchCategoryOverview } = useGetCategoryOverviewWithDepth(
+  const {
+    data: categoryOverview,
+    refetch: refetchCategoryOverview,
+    isLoading: isLoadingCategories,
+    isFetching: isFetchingCategories,
+  } = useGetCategoryOverviewWithDepth(
     { storeId: appStoreInfo?.storeId || "", depth: 1 },
     appStoreInfo?.storeId,
     { enabled: Boolean(appStoreInfo?.storeId) },
@@ -123,20 +131,21 @@ const CategoriesView = () => {
 
 
 
+  const { t } = useTranslation('category');
   const MENU_ACTIONS: ActionMenuItem[] = [
     {
-      label: "View",
+      label: t('view'),
       onClick: () => { },
       icon: EyeIcon,
     },
     {
-      label: "Edit",
+      label: t('edit'),
       onClick: (id: string) => handleModeDialog("EDIT", id),
       icon: Edit2Icon,
       // loading: isRemovingCategory,
     },
     {
-      label: "Delete",
+      label: t('delete'),
       onClick: (id: string) => {
         setCategoryToDelete(id);
         confirmModal.open();
@@ -295,8 +304,15 @@ const CategoriesView = () => {
 
         {/* Category List - Responsive Grid or List */}
         <div className="lg:col-span-2">
-          {categoriesToRender.length === 0 ? (
+          {isLoadingCategories ? (
+            <CategoryListSkeleton viewMode={categoryViewMode} />
+          ) : categoriesToRender.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+              {isFetchingCategories && (
+                <div className="mb-3 flex items-center justify-center">
+                  <Spinner className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
+                </div>
+              )}
               <p className="text-gray-500 dark:text-gray-400">
                 No categories yet. Create one to get started!
               </p>

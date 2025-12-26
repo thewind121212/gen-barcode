@@ -18,10 +18,6 @@ export type ActionMenuProps = {
   callBack?: () => void;
   actions: ActionMenuItem[];
   targetId: string;
-  /**
-   * Render dropdown in a portal (document.body) to avoid parent overflow / stacking context clipping.
-   * Useful inside trees/virtualized lists/animated containers.
-   */
   portal?: boolean;
 };
 
@@ -153,7 +149,7 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
   const displayOpen = openState && (!portal || (portalReady && portalShown));
   const dropdownClassName = useMemo(() => (`
     ${portal ? 'fixed' : 'absolute right-0 top-full'}
-    mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-9999
+    mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-99
     origin-top-right
     ${portal ? 'transition-opacity duration-150 ease-out' : 'transition-all duration-200 ease-out'}
     ${displayOpen
@@ -223,7 +219,6 @@ const ActionMenu: React.FC<ActionMenuProps> = ({ isOpen, onToggle, callBack, act
         <MoreHorizontal size={20} />
       </button>
 
-      {/* Dropdown Menu */}
       {portal
         ? (typeof document !== 'undefined' ? createPortal(dropdown, document.body) : null)
         : dropdown}
