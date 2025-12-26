@@ -1,4 +1,4 @@
-import type { Category, Prisma, type PrismaClient } from "@Ciri/generated/prisma/client";
+import { Prisma, type Category, type PrismaClient } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
 
