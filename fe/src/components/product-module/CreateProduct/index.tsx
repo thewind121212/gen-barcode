@@ -40,7 +40,6 @@ export default function CreateProduct() {
     barcodeInput,
     imagePreview,
     showAdvanced,
-    advancedTab,
     packs,
     inventoryType,
     containerConfig,
