@@ -15,7 +15,8 @@ interface SelectProps {
   value?: string | number;
   onChange?: (value: string | number) => void;
   placeholder?: string;
-  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  /** Accept either a ReactNode (preferred) or legacy icon component type */
+  icon?: React.ReactNode | React.ComponentType<{ size?: number; className?: string }>;
   error?: string;
   success?: boolean;
   expandOnError?: boolean;
@@ -125,7 +126,13 @@ const Select = ({
       >
         <div className="flex items-center gap-3 overflow-hidden">
           {Icon && (
-            <Icon size={18} className="text-slate-400 dark:text-slate-500" />
+            <span className="text-slate-400 dark:text-slate-500 flex items-center">
+              {typeof Icon === "function" ? (
+                <Icon size={18} />
+              ) : (
+                Icon
+              )}
+            </span>
           )}
           {selectedOption ? (
             <span className="truncate">{selectedOption.label}</span>
@@ -164,6 +171,7 @@ const Select = ({
         duration-200
         pointer-events-none
         bg-white dark:bg-slate-900
+        text-slate-900 dark:text-white
         ${error
                     ? 'text-red-500'
                     : success
@@ -171,7 +179,7 @@ const Select = ({
                         : 'text-slate-400 peer-placeholder-shown:text-slate-500 peer-focus:text-indigo-500'
                 }
 
-        ${floatingLabel ? 'peer-placeholder-shown:top-5 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-placeholder-shown:font-medium' : ''}
+        ${floatingLabel ? 'peer-placeholder-shown:top-5 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-placeholder-shown:font-medium' : 'peer-placeholder-shown:left-4!'}
         ${Icon ? 'peer-placeholder-shown:left-12' : 'peer-placeholder-shown:left-4'}
       `}
         >
