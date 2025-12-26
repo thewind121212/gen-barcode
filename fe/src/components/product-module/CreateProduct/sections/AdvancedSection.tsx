@@ -1,13 +1,16 @@
 import type { ChangeEvent } from "react";
+import { useEffect } from "react";
 import {
   ChevronDown,
-  DollarSign,
-  Layers,
   Plus,
   QrCode,
   Settings,
   Trash2,
   Warehouse,
+  Package,
+  Archive,
+  Check,
+  Layers,
 } from "lucide-react";
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import CommonInput from "@Jade/core-design/input/CommonInput";
@@ -17,7 +20,6 @@ import { cn } from "../utils";
 export function AdvancedSection({
   showAdvanced,
   setShowAdvanced,
-  advancedTab,
   setAdvancedTab,
   packs,
   addPack,
@@ -31,7 +33,6 @@ export function AdvancedSection({
 }: {
   showAdvanced: boolean;
   setShowAdvanced: (show: boolean) => void;
-  advancedTab: ProductModuleStore["advancedTab"];
   setAdvancedTab: (tab: ProductModuleStore["advancedTab"]) => void;
   packs: PackFormData[];
   addPack: () => void;
@@ -43,21 +44,69 @@ export function AdvancedSection({
   setContainerConfig: (config: Partial<ContainerConfig>) => void;
   getBaseUnitLabel: () => string;
 }) {
+  const isLotContainerMode = inventoryType === "LOT_CONTAINER";
+  const canAddPack = !isLotContainerMode || packs.length < 1;
+
+  // Keep containerConfig synced with the single "container unit" pack (so save payload stays correct).
+  useEffect(() => {
+    if (!isLotContainerMode) return;
+    const p = packs[0];
+    if (!p) return;
+    setContainerConfig({
+      name: p.name ?? "",
+      multiplier: Number(p.multiplier || 0),
+      barcode: p.barcode ?? "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLotContainerMode, packs]);
+
+  const handleSelectInventoryType = (type: ProductModuleStore["inventoryType"]) => {
+    setInventoryType(type);
+    setAdvancedTab(type === "LOT_CONTAINER" ? "inventory" : "packs");
+
+    // Enforce "only 1 pack" when switching into LOT_CONTAINER mode.
+    if (type === "LOT_CONTAINER" && packs.length > 1) {
+      for (const p of packs.slice(1)) {
+        removePack(p.id);
+      }
+    }
+  };
+
+  const handlePackFieldChange = (
+    packId: number,
+    field: keyof PackFormData,
+    value: string | number
+  ) => {
+    updatePack(packId, field, value);
+    if (!isLotContainerMode) return;
+    // When in LOT_CONTAINER, treat the (only) pack as container definition too.
+    if (field === "name") setContainerConfig({ name: String(value) });
+    if (field === "multiplier") setContainerConfig({ multiplier: Number(value) });
+    if (field === "barcode") setContainerConfig({ barcode: String(value) });
+  };
+
   return (
     <section
       id="advanced"
-      className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden scroll-mt-24"
+      className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden scroll-mt-24 transition-all"
     >
       <button
         type="button"
         onClick={() => setShowAdvanced(!showAdvanced)}
-        className="w-full px-6 py-4 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/30 hover:bg-gray-100 dark:hover:bg-slate-800/50 transition-colors text-left"
+        className="w-full px-6 py-4 flex items-center justify-between bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors text-left group"
       >
-        <div className="flex items-center gap-2">
-          <Settings className="text-indigo-600 dark:text-indigo-400" size={18} />
-          <h2 className="font-semibold text-slate-800 dark:text-slate-200">Advanced Configuration</h2>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+            <Settings size={18} />
+          </div>
+          <div>
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Advanced Configuration</h2>
+            <p className="text-xs text-slate-500 font-normal">
+              Manage sales packs and inventory strategy
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
           {showAdvanced ? "Collapse" : "Expand"}
           <ChevronDown
             size={16}
@@ -69,271 +118,219 @@ export function AdvancedSection({
       {/* Collapsible Content */}
       {showAdvanced && (
         <div className="p-6 border-t border-gray-100 dark:border-slate-800 animate-in slide-in-from-top-2 duration-200">
-          {/* Internal Tabs */}
-          <div className="flex gap-4 border-b border-gray-200 dark:border-slate-700 mb-6">
+          {/* Main Tabs (mapped to inventory type) */}
+          <div className="flex p-1 bg-slate-100 dark:bg-slate-800/50 rounded-lg mb-8 w-fit">
             <button
               type="button"
-              onClick={() => setAdvancedTab("packs")}
+              onClick={() => handleSelectInventoryType("TOTAL_ONLY")}
               className={cn(
-                "pb-2 text-sm font-medium transition-all relative",
-                advancedTab === "packs"
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                "px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2",
+                !isLotContainerMode
+                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
               )}
             >
-              Sales Packs
-              {advancedTab === "packs" && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-t-full" />
-              )}
+              <Layers size={16} />
+              Simple Quantity
             </button>
             <button
               type="button"
-              onClick={() => setAdvancedTab("inventory")}
+              onClick={() => handleSelectInventoryType("LOT_CONTAINER")}
               className={cn(
-                "pb-2 text-sm font-medium transition-all relative",
-                advancedTab === "inventory"
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                "px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2",
+                isLotContainerMode
+                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
               )}
             >
-              Inventory & Logistics
-              {advancedTab === "inventory" && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-t-full" />
-              )}
+              <Package size={16} />
+              Lot & Container
             </button>
           </div>
 
-          {/* TAB 1: Sales Packs */}
-          {advancedTab === "packs" && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-left-2">
-              <div className="flex items-center justify-between mb-4">
+          <div className="space-y-8 animate-in fade-in slide-in-from-left-2 duration-300">
+            {/* Pack / Container Config Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Layers size={16} /> Sales Packs
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    {isLotContainerMode ? "Container Unit Configuration" : "Pack Configuration"}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Create multiple pack variants (e.g. Box, Case) for selling.
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-slate-500">
+                      {isLotContainerMode
+                        ? "Define the single container unit (e.g. Pallet) used for lot tracking."
+                        : "Define selling units (e.g. Box, Case). Multiple variants allowed."}
+                    </span>
+                  </div>
                 </div>
-                <CommonButton
-                  className="w-auto! py-2! px-3! rounded-lg! text-sm! font-semibold!"
-                  icon={<Plus size={18} />}
-                  iconPosition="left"
-                  onClick={addPack}
-                >
-                  Add Pack
-                </CommonButton>
+
+                {canAddPack && (
+                  <CommonButton
+                    className="w-auto! py-2! px-4! rounded-lg! text-sm! font-semibold! shadow-sm"
+                    icon={<Plus size={16} />}
+                    iconPosition="left"
+                    onClick={addPack}
+                  >
+                    {isLotContainerMode ? "Create Container Unit" : "Add Pack"}
+                  </CommonButton>
+                )}
               </div>
 
+              {isLotContainerMode && packs.length >= 1 && (
+                <div className="flex items-start gap-2 p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-200 text-xs rounded-lg border border-indigo-100 dark:border-indigo-900/30">
+                  <Check size={14} className="mt-0.5 shrink-0" />
+                  <p>
+                    <strong>Container Defined:</strong> This unit acts as both the container definition
+                    and the primary sales pack for lot management.
+                  </p>
+                </div>
+              )}
+
               {packs.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50/50 dark:bg-slate-900/50">
-                  <p className="text-sm text-slate-500">
-                    No packs defined. Sold as <strong>{getBaseUnitLabel()}</strong> only.
+                <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50/30 dark:bg-slate-900/30">
+                  <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full mb-3 text-slate-400">
+                    <Archive size={24} />
+                  </div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    {isLotContainerMode ? "No container unit defined" : "No packs configured"}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    This item is sold only by its base unit ({getBaseUnitLabel()}).
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {packs.map((p) => (
+                <div className="grid gap-4">
+                  {packs.map((p, index) => (
                     <div
                       key={p.id}
-                      className="grid grid-cols-12 gap-3 items-start bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700"
+                      className="group relative bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-900 shadow-sm hover:shadow-md transition-all"
                     >
-                      <div className="col-span-12 sm:col-span-4">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">
-                          Pack Name
-                        </label>
-                        <CommonInput
-                          name={`pack-name-${p.id}`}
-                          value={p.name}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            updatePack(p.id, "name", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="col-span-6 sm:col-span-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">
-                          Multiplier
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            className="w-full rounded-lg border border-gray-300 bg-white px-2 py-2.5 text-sm text-center font-bold text-indigo-600 focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-indigo-400 outline-none"
-                            value={p.multiplier}
-                            onChange={(e) => updatePack(p.id, "multiplier", e.target.value)}
-                          />
-                          <span className="absolute right-8 top-2.5 text-xs text-slate-400 pointer-events-none">
-                            x
+                      <div className="absolute -left-px top-4 bottom-4 w-1 bg-indigo-500 rounded-r opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 text-xs font-bold text-slate-500">
+                            {isLotContainerMode ? "1" : index + 1}
+                          </span>
+                          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                            {isLotContainerMode ? "Container Unit" : "Pack Variant"}
                           </span>
                         </div>
-                      </div>
-                      <div className="col-span-6 sm:col-span-3">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">
-                          Price Override
-                        </label>
-                        <CommonInput
-                          name={`pack-price-${p.id}`}
-                          icon={<DollarSign size={18} />}
-                          value={p.price}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            updatePack(p.id, "price", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="col-span-11 sm:col-span-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">
-                          Pack Barcode
-                        </label>
-                        <CommonInput
-                          name={`pack-barcode-${p.id}`}
-                          icon={<QrCode size={18} />}
-                          value={p.barcode || ""}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            updatePack(p.id, "barcode", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="col-span-1 pt-6 flex justify-end">
                         <button
                           type="button"
                           onClick={() => removePack(p.id)}
-                          className="text-slate-400 hover:text-red-500"
+                          className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-colors"
+                          title="Remove"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
+                      </div>
+
+                      <div className="grid grid-cols-12 gap-4">
+                        <div className="col-span-12 sm:col-span-5">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 block">
+                            {isLotContainerMode ? "Container Name" : "Pack Name"}
+                          </label>
+                          <CommonInput
+                            name={`pack-name-${p.id}`}
+                            value={p.name}
+                            placeholder={isLotContainerMode ? "e.g. Pallet" : "e.g. Small Box"}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handlePackFieldChange(p.id, "name", e.target.value)
+                            }
+                            floatingLabel={false}
+                          />
+                        </div>
+                        <div className="col-span-6 sm:col-span-2">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 block">
+                            {isLotContainerMode ? "Capacity" : "Qty"} ({getBaseUnitLabel()})
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              className="w-full rounded-lg border border-gray-200 bg-slate-50 px-2 py-2.5 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white outline-none transition-all"
+                              value={p.multiplier}
+                              onChange={(e) =>
+                                handlePackFieldChange(p.id, "multiplier", e.target.value)
+                              }
+                            />
+                            <span className="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none font-medium">
+                              ×
+                            </span>
+                          </div>
+                        </div>
+                        <div className="col-span-6 sm:col-span-5">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 block">
+                            Barcode / SKU
+                          </label>
+                          <CommonInput
+                            name={`pack-barcode-${p.id}`}
+                            icon={<QrCode size={16} />}
+                            value={p.barcode || ""}
+                            placeholder="Scan or enter..."
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handlePackFieldChange(p.id, "barcode", e.target.value)
+                            }
+                            floatingLabel={false}
+                          />
+                        </div>
+
+                        <div className="col-span-12">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 block">
+                            Price Override (Optional)
+                          </label>
+                          <CommonInput
+                            name={`pack-price-${p.id}`}
+                            icon={null}
+                            value={p.price ?? ""}
+                            placeholder="Leave empty to calculate automatically"
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handlePackFieldChange(p.id, "price", e.target.value)
+                            }
+                            floatingLabel={false}
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          )}
 
-          {/* TAB 2: Inventory & Logistics */}
-          {advancedTab === "inventory" && (
-            <div className="animate-in fade-in slide-in-from-right-2">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-                <Warehouse size={16} /> Inventory Strategy
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Strategy Toggle */}
-                <div className="space-y-3">
-                  <div
-                    onClick={() => setInventoryType("TOTAL_ONLY")}
-                    className={cn(
-                      "p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-3",
-                      inventoryType === "TOTAL_ONLY"
-                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-500"
-                        : "border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                        inventoryType === "TOTAL_ONLY" ? "border-indigo-600" : "border-slate-400"
-                      )}
-                    >
-                      {inventoryType === "TOTAL_ONLY" && (
-                        <div className="w-2 h-2 rounded-full bg-indigo-600" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">
-                        Total Quantity Only
-                      </p>
-                      <p className="text-[10px] text-slate-500">
-                        Simple tracking (e.g. 150 items in stock)
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setInventoryType("LOT_CONTAINER")}
-                    className={cn(
-                      "p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-3",
-                      inventoryType === "LOT_CONTAINER"
-                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-500"
-                        : "border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                        inventoryType === "LOT_CONTAINER" ? "border-indigo-600" : "border-slate-400"
-                      )}
-                    >
-                      {inventoryType === "LOT_CONTAINER" && (
-                        <div className="w-2 h-2 rounded-full bg-indigo-600" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">
-                        Lot & Container
-                      </p>
-                      <p className="text-[10px] text-slate-500">
-                        Track expiration, lots, and pallet locations.
-                      </p>
-                    </div>
-                  </div>
+            {/* Keep a small read-only debug for containerConfig when in lot mode (helps verify syncing) */}
+            {isLotContainerMode && (
+              <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                  <Warehouse size={14} />
+                  Container Config (synced)
                 </div>
-
-                {/* Container Settings (Conditional) */}
-                <div className="space-y-4">
-                  {inventoryType === "LOT_CONTAINER" && (
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-left-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                        Container Definition (Singular)
-                      </label>
-
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">
-                              Container Name
-                            </label>
-                            <CommonInput
-                              name="containerName"
-                              value={containerConfig.name}
-                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                setContainerConfig({ name: e.target.value })
-                              }
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">
-                              Capacity ({getBaseUnitLabel()}s)
-                            </label>
-                            <CommonInput
-                              name="containerCapacity"
-                              type="number"
-                              value={containerConfig.multiplier}
-                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                setContainerConfig({ multiplier: Number(e.target.value) })
-                              }
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-400 uppercase">
-                            Barcode (Label)
-                          </label>
-                          <CommonInput
-                            name="containerBarcode"
-                            icon={<QrCode size={18} />}
-                            value={containerConfig.barcode}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              setContainerConfig({ barcode: e.target.value })
-                            }
-                            className="font-mono"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <CommonInput
+                    name="containerConfigName"
+                    value={containerConfig.name}
+                    readOnly
+                    floatingLabel={false}
+                    className="opacity-80"
+                  />
+                  <CommonInput
+                    name="containerConfigMultiplier"
+                    value={containerConfig.multiplier}
+                    readOnly
+                    floatingLabel={false}
+                    className="opacity-80"
+                  />
+                  <CommonInput
+                    name="containerConfigBarcode"
+                    value={containerConfig.barcode}
+                    readOnly
+                    floatingLabel={false}
+                    className="opacity-80"
+                  />
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </section>

@@ -264,7 +264,6 @@ export default function CreateProduct() {
             <AdvancedSection
               showAdvanced={showAdvanced}
               setShowAdvanced={setShowAdvanced}
-              advancedTab={advancedTab}
               setAdvancedTab={setAdvancedTab}
               packs={packs}
               addPack={addPack}
