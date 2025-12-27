@@ -1,12 +1,25 @@
 import { validate as validateUuid } from "uuid";
 
-import type { CreateStorageRequestBody, CreateStorageResponseServices, GetStorageByIdRequestQuery, GetStorageByIdResponseServices, GetStorageByStoreIdOverviewResponseServices, GetStorageByStoreIdRequestQuery, GetStorageByStoreIdResponseServices } from "@Ciri/core/api/storage/storage.routes";
+import type {
+  CreateStorageRequestBody,
+  CreateStorageResponseServices,
+  GetStorageByIdRequestQuery,
+  GetStorageByIdResponseServices,
+  GetStorageByStoreIdOverviewResponseServices,
+  GetStorageByStoreIdRequestQuery,
+  GetStorageByStoreIdResponseServices,
+  RemoveStorageRequestBody,
+  RemoveStorageResponseServices,
+  UpdateStorageRequestBody,
+  UpdateStorageResponseServices,
+} from "@Ciri/core/api/storage/storage.routes";
 import type { RequestContext } from "@Ciri/core/middlewares";
 import type { StorageResponse, StorageResponseOverview } from "@Ciri/types/storage";
 
 import prisma from "@Ciri/core/prisma";
 import { StorageRepository } from "@Ciri/core/repo/storage.repo";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
+import { ProductRepository } from "@Ciri/core/repo/product.repo";
 
 type ProtoTimestamp = { seconds: number; nanos: number };
 
@@ -19,9 +32,11 @@ function toProtoTimestamp(date: Date): ProtoTimestamp {
 
 export class StorageService {
   private storageRepo: StorageRepository;
+  private productRepo: ProductRepository;
 
   constructor() {
     this.storageRepo = new StorageRepository();
+    this.productRepo = new ProductRepository();
   }
 
   private ensureUserId(ctx: RequestContext): string {
@@ -240,6 +255,60 @@ export class StorageService {
     }
     catch (error) {
       UnitLogger(LogType.SERVICE, "Storage Get", LogLevel.ERROR, (error as Error).message);
+      return { resData: null, error: (error as Error).message };
+    }
+  }
+
+  async UpdateStorage(ctx: RequestContext, req: UpdateStorageRequestBody): Promise<UpdateStorageResponseServices> {
+    try {
+      this.ensureUserId(ctx);
+      const storeId = this.ensureStoreId(ctx);
+      const storageId = this.ensureStorageId(req.storageId);
+
+      const existing = await this.storageRepo.findById(storageId, storeId);
+      if (!existing) {
+        throw new Error("Storage not found");
+      }
+
+      const updated = await this.storageRepo.updateById(storageId, storeId, {
+        name: req.name,
+        address: req.address ?? undefined,
+        color: req.color ?? undefined,
+        icon: req.icon ?? undefined,
+        active: req.active ?? undefined,
+      });
+
+      return { resData: { storageId: updated.id }, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "Storage Update", LogLevel.ERROR, (error as Error).message);
+      return { resData: null, error: (error as Error).message };
+    }
+  }
+
+  async RemoveStorage(ctx: RequestContext, req: RemoveStorageRequestBody): Promise<RemoveStorageResponseServices> {
+    try {
+      this.ensureUserId(ctx);
+      const storeId = this.ensureStoreId(ctx);
+      const storageId = this.ensureStorageId(req.storageId);
+
+      const existing = await this.storageRepo.findById(storageId, storeId);
+      if (!existing) {
+        throw new Error("Storage not found");
+      }
+      if (existing.isPrimary) {
+        throw new Error("Cannot remove primary storage");
+      }
+
+      // Detach product inventory/lots from this storage before soft-delete
+      await this.productRepo.unsetStorageById(storageId, storeId);
+
+      const removed = await this.storageRepo.softDeleteById(storageId, storeId);
+
+      return { resData: { storageId: removed.id }, error: null };
+    }
+    catch (error) {
+      UnitLogger(LogType.SERVICE, "Storage Remove", LogLevel.ERROR, (error as Error).message);
       return { resData: null, error: (error as Error).message };
     }
   }

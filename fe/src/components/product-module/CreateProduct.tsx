@@ -1,3 +1,3 @@
-export { default } from "./CreateProduct/index";
+export { default } from "@Jade/components/product-module/CreateProduct/index";
 
 

@@ -15,7 +15,8 @@ import type { IconName } from "@Jade/core-design/modal/IconPicker";
 import { allColors, quickColors } from "@Jade/core-design/modal/colorOptions";
 import { ModalId, type UseModalReturn, useModal } from "@Jade/core-design/modal/useModal";
 import type { RootState } from "@Jade/store/global.store";
-import { useCreateStorage } from "@Jade/services/storage/useQuery";
+import { useCreateStorage, useUpdateStorage } from "@Jade/services/storage/useQuery";
+import { useStorageModuleStore } from "@Jade/components/storage-module/store";
 
 const Modal = lazy(() => import("@Jade/core-design/modal/ModalBase"));
 const IconPickerContent = lazy(() => import("@Jade/core-design/modal/IconPicker"));
@@ -38,11 +39,16 @@ export type CreateStorageDialogProps = {
     icon: string;
     isActive: boolean;
   }) => void;
+  onStorageUpdatedCallback?: () => void;
 };
 
-export default function CreateStorageDialog({ mainModal, onStorageCreatedCallback }: CreateStorageDialogProps) {
+
+export default function CreateStorageDialog({ mainModal, onStorageCreatedCallback, onStorageUpdatedCallback }: CreateStorageDialogProps) {
   const { t } = useTranslation("storage");
   const storeId = useSelector((state: RootState) => state.app.storeId);
+  const editingStorage = useStorageModuleStore((s) => s.editingStorage);
+  const setEditingStorage = useStorageModuleStore((s) => s.setEditingStorage);
+  const isEditMode = Boolean(editingStorage?.id);
 
   const colorModal = useModal(ModalId.COLOR);
   const iconModal = useModal(ModalId.ICON);
@@ -120,6 +126,43 @@ export default function CreateStorageDialog({ mainModal, onStorageCreatedCallbac
     },
   });
 
+  const { mutate: updateStorage, isPending: isUpdating } = useUpdateStorage({
+    storeId: storeId,
+    onSuccess: () => {
+      toast.success(t("storageUpdated", "Storage updated"));
+      onStorageUpdatedCallback?.();
+      reset();
+      setEditingStorage(null);
+      mainModal.close();
+    },
+    onError: (error) => {
+      toast.error(error.message || t("updateFailed", "Failed to update storage"));
+    },
+  });
+
+  useEffect(() => {
+    if (!mainModal.isOpen) return;
+
+    if (editingStorage) {
+      reset({
+        name: editingStorage.name ?? "",
+        address: editingStorage.address ?? "",
+        color: editingStorage.color ?? "slate-400",
+        icon: editingStorage.icon ?? "layout-grid",
+        isActive: Boolean(editingStorage.active),
+      });
+      return;
+    }
+
+    reset({
+      name: "",
+      address: "",
+      color: "slate-400",
+      icon: "layout-grid",
+      isActive: true,
+    });
+  }, [editingStorage, mainModal.isOpen, reset]);
+
   const handleColorSelect = (colorId: string) => setValue("color", colorId, { shouldValidate: true });
   const handleIconSelect = (iconName: IconName) => setValue("icon", iconName, { shouldValidate: true });
 
@@ -128,13 +171,26 @@ export default function CreateStorageDialog({ mainModal, onStorageCreatedCallbac
       toast.error(t("storeIdRequired", "storeId is required"));
       return;
     }
-    createStorage({
-      storeId,
+    const address = values.address?.trim();
+    const payload = {
       name: values.name,
-      address: values.address,
+      address: address ? address : undefined,
       active: values.isActive,
       color: values.color,
       icon: values.icon,
+    };
+
+    if (isEditMode && editingStorage?.id) {
+      updateStorage({
+        storageId: editingStorage.id,
+        ...payload,
+      });
+      return;
+    }
+
+    createStorage({
+      storeId,
+      ...payload,
     });
   };
 
@@ -146,17 +202,18 @@ export default function CreateStorageDialog({ mainModal, onStorageCreatedCallbac
         isClosing={mainModal.isClosing}
         onClose={() => {
           reset();
+          setEditingStorage(null);
           mainModal.close();
         }}
         layer={mainModal.layer}
         maxWidthClass="max-w-2xl"
-        title={t('createNewStorage', 'Create New Storage')}
+        title={isEditMode ? t("editStorage", "Edit Storage") : t('createNewStorage', 'Create New Storage')}
         subtitle={t('dialogSubtitle', 'Enter storage details')}
         blurEffect={true}
         className={"mb-0"}
         onConfirm={() => handleSubmit(onSubmit)()}
-        confirmButtonText={t('create', 'Create')}
-        isLoading={isCreating}
+        confirmButtonText={isEditMode ? t("update", "Update") : t('create', 'Create')}
+        isLoading={isEditMode ? isUpdating : isCreating}
       >
         <div className="relative w-full overflow-hidden transition-all duration-300 z-50 animate-in fade-in zoom-in-95 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 dark:shadow-black/50">
           <form
@@ -266,6 +323,9 @@ export default function CreateStorageDialog({ mainModal, onStorageCreatedCallbac
                 </div>
               </div>
             </div>
+
+            {/* Allow "Enter" key to submit the form even though the modal footer button is outside this <form>. */}
+            <button type="submit" className="hidden" aria-hidden="true" tabIndex={-1} />
           </form>
         </div>
 

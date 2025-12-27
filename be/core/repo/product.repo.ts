@@ -1,8 +1,21 @@
 import type { Prisma, PrismaClient } from "@Ciri/generated/prisma/client";
 
 import prisma from "@Ciri/core/prisma";
+import { InventoryBalanceRepository } from "@Ciri/core/repo/inventory-balance.repo";
+import { InventoryLotRepository } from "@Ciri/core/repo/inventory-lot.repo";
+import { StorageActiveLotRepository } from "@Ciri/core/repo/storage-active-lot.repo";
 
 export class ProductRepository {
+  private storageActiveLotRepo: StorageActiveLotRepository;
+  private inventoryLotRepo: InventoryLotRepository;
+  private inventoryBalanceRepo: InventoryBalanceRepository;
+
+  constructor() {
+    this.storageActiveLotRepo = new StorageActiveLotRepository();
+    this.inventoryLotRepo = new InventoryLotRepository();
+    this.inventoryBalanceRepo = new InventoryBalanceRepository();
+  }
+
   private async softDeleteMany(ids: string[], storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
     const client = db ?? prisma;
     return client.product.updateMany({
@@ -47,6 +60,16 @@ export class ProductRepository {
       where: { id, isDelete: false },
       data,
     });
+  }
+
+  async unsetStorageById(storageId: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const [activeLots, lots, balances] = await Promise.all([
+      this.storageActiveLotRepo.clearActiveLotForStorage(storageId, storeId, db),
+      this.inventoryLotRepo.closeLotsForStorage(storageId, storeId, db),
+      this.inventoryBalanceRepo.deleteByStorage(storageId, storeId, db),
+    ]);
+
+    return { activeLots, lots, balances };
   }
 
   async deleteById(id: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient) {

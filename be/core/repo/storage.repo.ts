@@ -17,6 +17,27 @@ export class StorageRepository {
     });
   }
 
+  async updateById(
+    id: string,
+    storeId: string,
+    data: Prisma.StorageUpdateInput,
+    db?: PrismaClient | Prisma.TransactionClient,
+  ) {
+    const client = db ?? prisma;
+    return client.storage.update({
+      where: { id, storeId, isDelete: false },
+      data,
+    });
+  }
+
+  async softDeleteById(id: string, storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
+    const client = db ?? prisma;
+    return client.storage.update({
+      where: { id, storeId, isDelete: false },
+      data: { isDelete: true },
+    });
+  }
+
   async findAllByStore(storeId: string, db?: PrismaClient | Prisma.TransactionClient) {
     const client = db ?? prisma;
     return client.storage.findMany({

@@ -14,7 +14,7 @@ import {
 import { useFormContext } from "react-hook-form";
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import CommonInput from "@Jade/core-design/input/CommonInput";
-import { cn } from "../utils";
+import { cn } from "@Jade/components/product-module/CreateProduct/utils";
 
 type PackFormData = {
   id: number;

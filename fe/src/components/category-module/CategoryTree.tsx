@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { NIL as NIL_UUID } from "uuid";
-import CategoryTreeSkeleton from "./CategoryTreeSkeleton";
+import CategoryTreeSkeleton from "@Jade/components/category-module/CategoryTreeSkeleton";
 import { useTranslation, Trans } from "react-i18next";
 const CreateCategoryDialog = lazy(() => import('@Jade/components/category-module/CreateCategoryDialog'));
 

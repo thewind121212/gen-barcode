@@ -1,6 +1,6 @@
 //==== This is code generated
 import Session from "supertokens-auth-react/recipe/session";
-import type { CreateStorageRequest, CreateStorageResponse, GetStorageByIdRequest, GetStorageByStoreIdOverviewResponse, GetStorageByStoreIdRequest, GetStorageByStoreIdResponse, StorageResponse } from "@Jade/types/storage.d";
+import type { CreateStorageRequest, CreateStorageResponse, GetStorageByIdRequest, GetStorageByStoreIdOverviewResponse, GetStorageByStoreIdRequest, GetStorageByStoreIdResponse, RemoveStorageRequest, RemoveStorageResponse, StorageResponse, UpdateStorageRequest, UpdateStorageResponse } from "@Jade/types/storage.d";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -112,6 +112,44 @@ export const getStorageByStoreIdOverview = async (request: GetStorageByStoreIdRe
     method: "GET",
     headers: buildHeaders(storeId),
     credentials: "include",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok && data.success === false) {
+    throw new Error(data.error.message);
+  }
+
+  await Session.doesSessionExist();
+
+  return data;
+};
+
+export const updateStorage = async (request: UpdateStorageRequest, storeId?: string): Promise<UpdateStorageResponse> => {
+  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/storage/UpdateStorage`, {
+    method: "PUT",
+    headers: buildHeaders(storeId),
+    credentials: "include",
+    body: JSON.stringify(request),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok && data.success === false) {
+    throw new Error(data.error.message);
+  }
+
+  await Session.doesSessionExist();
+
+  return data;
+};
+
+export const removeStorage = async (request: RemoveStorageRequest, storeId?: string): Promise<RemoveStorageResponse> => {
+  const response = await fetch(`${API_BASE_URL}/${API_VERSION_PREFIX}/storage/RemoveStorage`, {
+    method: "POST",
+    headers: buildHeaders(storeId),
+    credentials: "include",
+    body: JSON.stringify(request),
   });
 
   const data = await response.json();

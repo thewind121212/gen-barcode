@@ -1,11 +1,13 @@
 // this is code generated usequery for api
 import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { CreateStorageRequest, CreateStorageResponse, GetStorageByIdRequest, GetStorageByStoreIdOverviewResponse, GetStorageByStoreIdRequest, GetStorageByStoreIdResponse, StorageResponse } from "@Jade/types/storage.d";
+import type { CreateStorageRequest, CreateStorageResponse, GetStorageByIdRequest, GetStorageByStoreIdOverviewResponse, GetStorageByStoreIdRequest, GetStorageByStoreIdResponse, RemoveStorageRequest, RemoveStorageResponse, StorageResponse, UpdateStorageRequest, UpdateStorageResponse } from "@Jade/types/storage.d";
 import {
     createStorage,
     getStorageById,
     getStorageByStoreId,
     getStorageByStoreIdOverview,
+    updateStorage,
+    removeStorage,
 } from "./api";
 
 type ApiSuccessResponse<T> = {
@@ -55,6 +57,22 @@ export const useGetStorageByStoreIdOverview = (
         queryKey: ["storage", "GetStorageByStoreIdOverview", request],
         queryFn: () => getStorageByStoreIdOverview(request, storeId) as unknown as ApiSuccessResponse<GetStorageByStoreIdOverviewResponse>,
         ...options,
+    });
+};
+
+export const useUpdateStorage = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<UpdateStorageResponse>) => void, onError?: (error: Error) => void }) => {
+    return useMutation<UpdateStorageResponse, Error, UpdateStorageRequest>({
+        mutationFn: (request: UpdateStorageRequest) => updateStorage(request, storeId),
+        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<UpdateStorageResponse>),
+        onError: (error) => onError?.(error),
+    });
+};
+
+export const useRemoveStorage = ({ storeId, onSuccess, onError }: { storeId?: string, onSuccess?: (data: ApiSuccessResponse<RemoveStorageResponse>) => void, onError?: (error: Error) => void }) => {
+    return useMutation<RemoveStorageResponse, Error, RemoveStorageRequest>({
+        mutationFn: (request: RemoveStorageRequest) => removeStorage(request, storeId),
+        onSuccess: (data) => onSuccess?.(data as unknown as ApiSuccessResponse<RemoveStorageResponse>),
+        onError: (error) => onError?.(error),
     });
 };
 
