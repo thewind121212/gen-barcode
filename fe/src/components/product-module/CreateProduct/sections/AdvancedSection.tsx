@@ -1,4 +1,3 @@
-import type { ChangeEvent } from "react";
 import { useEffect } from "react";
 import {
   ChevronDown,
@@ -47,8 +46,8 @@ export function AdvancedSection({
   setShowAdvanced: (show: boolean) => void;
   getBaseUnitLabel: () => string;
 }) {
-  const { watch, setValue } = useFormContext<CreateProductFormValues>();
-  const packs = watch("packs");
+  const { watch, setValue, register } = useFormContext<CreateProductFormValues>();
+  const packs = watch("packs") ?? [];
   const inventoryType = watch("inventoryType");
   const containerConfig = watch("containerConfig");
 
@@ -69,14 +68,6 @@ export function AdvancedSection({
     setValue(
       "packs",
       (packs ?? []).filter((p) => p.id !== id),
-      { shouldDirty: true },
-    );
-  };
-
-  const updatePack = (id: number, field: keyof PackFormData, value: string | number) => {
-    setValue(
-      "packs",
-      (packs ?? []).map((p) => (p.id === id ? { ...p, [field]: value } : p)),
       { shouldDirty: true },
     );
   };
@@ -111,19 +102,6 @@ export function AdvancedSection({
         removePack(p.id);
       }
     }
-  };
-
-  const handlePackFieldChange = (
-    packId: number,
-    field: keyof PackFormData,
-    value: string | number
-  ) => {
-    updatePack(packId, field, value);
-    if (!isLotContainerMode) return;
-    // When in LOT_CONTAINER, treat the (only) pack as container definition too.
-    if (field === "name") setContainerConfig({ name: String(value) });
-    if (field === "multiplier") setContainerConfig({ multiplier: Number(value) });
-    if (field === "barcode") setContainerConfig({ barcode: String(value) });
   };
 
   return (
@@ -274,46 +252,40 @@ export function AdvancedSection({
                             {isLotContainerMode ? "Container Name" : "Pack Name"}
                           </label>
                           <CommonInput
-                            name={`pack-name-${p.id}`}
+                            name={`packs.${index}.name`}
                             value={p.name}
                             placeholder={isLotContainerMode ? "e.g. Pallet" : "e.g. Small Box"}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              handlePackFieldChange(p.id, "name", e.target.value)
-                            }
+                            register={register}
                             floatingLabel={false}
+                            className="h-[46px]! placeholder:text-xs placeholder:font-normal"
                           />
                         </div>
                         <div className="col-span-6 sm:col-span-2">
                           <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 block">
                             {isLotContainerMode ? "Capacity" : "Qty"} ({getBaseUnitLabel()})
                           </label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full rounded-lg border border-gray-200 bg-slate-50 px-2 py-2.5 text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white outline-none transition-all"
-                              value={p.multiplier}
-                              onChange={(e) =>
-                                handlePackFieldChange(p.id, "multiplier", e.target.value)
-                              }
-                            />
-                            <span className="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none font-medium">
-                              ×
-                            </span>
-                          </div>
+                          <CommonInput
+                            name={`packs.${index}.multiplier`}
+                            type="number"
+                            value={p.multiplier}
+                            register={register}
+                            registerOptions={{ valueAsNumber: true }}
+                            floatingLabel={false}
+                            className="h-[46px]! placeholder:text-xs placeholder:font-normal font-bold"
+                          />
                         </div>
                         <div className="col-span-6 sm:col-span-5">
                           <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5 block">
                             Barcode / SKU
                           </label>
                           <CommonInput
-                            name={`pack-barcode-${p.id}`}
+                            name={`packs.${index}.barcode`}
                             icon={<QrCode size={16} />}
                             value={p.barcode || ""}
                             placeholder="Scan or enter..."
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              handlePackFieldChange(p.id, "barcode", e.target.value)
-                            }
+                            register={register}
                             floatingLabel={false}
+                            className="h-[46px]! placeholder:text-xs placeholder:font-normal"
                           />
                         </div>
 
@@ -322,14 +294,13 @@ export function AdvancedSection({
                             Price Override (Optional)
                           </label>
                           <CommonInput
-                            name={`pack-price-${p.id}`}
+                            name={`packs.${index}.price`}
                             icon={null}
                             value={p.price ?? ""}
                             placeholder="Leave empty to calculate automatically"
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              handlePackFieldChange(p.id, "price", e.target.value)
-                            }
+                            register={register}
                             floatingLabel={false}
+                            className="h-[46px]! placeholder:text-xs placeholder:font-normal"
                           />
                         </div>
                       </div>

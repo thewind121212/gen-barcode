@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  PORT: z.coerce.number().default(9190),
   SUPERTOKENS_CONNECTION_URI: z.string().default("https://auth.simplestore.io.vn"),
   APP_NAME: z.string().default("barcode-generator"),
   API_DOMAIN: z.string().default("http://localhost:9190"),
@@ -14,6 +15,17 @@ const envSchema = z.object({
   ENVIRONMENT: z.string().default("dev"),
   MAX_STORAGE_BY_STORE: z.number().default(5),
   MAX_STORE_BY_USER: z.number().default(3),
+
+  // MinIO / S3 (optional)
+  MINIO_ENABLED: z.string().default("false"),
+  MINIO_ENDPOINT: z.string().default("localhost"),
+  MINIO_PORT: z.coerce.number().default(9000),
+  MINIO_USE_SSL: z.coerce.boolean().default(false),
+  MINIO_ACCESS_KEY: z.string().default("linh"),
+  MINIO_SECRET_KEY: z.string().default("linhdevtran99Q1@"),
+  MINIO_BUCKET: z.string().default("uploads"),
+  MINIO_REGION: z.string().default("us-east-1"),
+  MINIO_PUBLIC_READ: z.string().default("true"),
 });
 
 try {

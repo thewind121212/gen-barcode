@@ -17,9 +17,9 @@ import type { RequestContext } from "@Ciri/core/middlewares";
 import type { StorageResponse, StorageResponseOverview } from "@Ciri/types/storage";
 
 import prisma from "@Ciri/core/prisma";
+import { ProductRepository } from "@Ciri/core/repo/product.repo";
 import { StorageRepository } from "@Ciri/core/repo/storage.repo";
 import { LogLevel, LogType, UnitLogger } from "@Ciri/core/utils/logger";
-import { ProductRepository } from "@Ciri/core/repo/product.repo";
 
 type ProtoTimestamp = { seconds: number; nanos: number };
 

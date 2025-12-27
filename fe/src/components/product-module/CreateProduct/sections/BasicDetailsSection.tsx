@@ -15,6 +15,7 @@ import CommonButton from "@Jade/core-design/input/CommonButton";
 import CommonInput from "@Jade/core-design/input/CommonInput";
 import { useGetStorageByStoreId } from "@Jade/services/storage/useQuery";
 import CoreSelect from "@Jade/core-design/input/Select";
+import SelectSearch from "@Jade/core-design/input/SelectSearch";
 import { AVAILABLE_UOMS } from "@Jade/components/product-module/CreateProduct/constants";
 import { useSelector } from "react-redux";
 import type { RootState } from "@Jade/store/global.store";
@@ -108,9 +109,6 @@ export function BasicDetailsSection({
         <div className="flex flex-col md:flex-row gap-8">
           {/* Image Uploader */}
           <div className="shrink-0">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Image
-            </label>
             <input
               type="file"
               ref={fileInputRef}
@@ -213,7 +211,7 @@ export function BasicDetailsSection({
                 floatingLabel={false}
               />
               <div className="space-y-1.5">
-                <CoreSelect
+                <SelectSearch
                   name="baseUnit"
                   label="Base Unit"
                   value={baseUnit}
