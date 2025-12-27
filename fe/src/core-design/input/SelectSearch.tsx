@@ -50,7 +50,6 @@ const SearchSelect = ({
     success,
     expandOnError = true,
     className,
-    placeholderClassName,
     disabled,
     name,
     register,
