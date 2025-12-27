@@ -13,7 +13,7 @@ import {
 import CommonButton from "@Jade/core-design/input/CommonButton";
 import { ModalId, useModal } from "@Jade/core-design/modal/useModal";
 import { ConfirmModal } from "@Jade/core-design/modal/ConfirmModal";
-import { useProductModuleStore } from "./store";
+import { useProductModuleStore } from "@Jade/components/product-module/store";
 import type { ActionMenuItem } from "@Jade/core-design/card/active-menu/ActiveMenu";
 import { CardMainProduct } from "@Jade/core-design/card/main-product-card/MainProductCard";
 import { ListMainProduct } from "@Jade/core-design/list/main-product-list/MainProductListItem";

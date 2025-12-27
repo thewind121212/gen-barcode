@@ -60,4 +60,25 @@ export interface StorageResponseOverview {
 export interface GetStorageByStoreIdOverviewResponse {
   storages: StorageResponseOverview[];
 }
+
+export interface UpdateStorageRequest {
+  storageId: string;
+  name: string;
+  active?: boolean;
+  address?: string;
+  color?: string;
+  icon?: string;
+}
+
+export interface UpdateStorageResponse {
+  storageId?: string;
+}
+
+export interface RemoveStorageRequest {
+  storageId: string;
+}
+
+export interface RemoveStorageResponse {
+  storageId?: string;
+}
 //==================================================

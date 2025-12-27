@@ -68,6 +68,27 @@ message GetStorageByStoreIdOverviewResponse {
   repeated StorageResponseOverview storages = 1;
 }
 
+message UpdateStorageRequest {
+  string storageId = 1;
+  string name = 2;
+  optional bool active = 5;
+  optional string address = 6;
+  optional string color = 7;
+  optional string icon = 8;
+}
+
+message UpdateStorageResponse {
+  optional string storageId = 1;
+}
+
+message RemoveStorageRequest {
+  string storageId = 1;
+}
+
+message RemoveStorageResponse {
+  optional string storageId = 1;
+}
+
 service UserService {
   rpc CreateStorage(CreateStorageRequest) returns (CreateStorageResponse) {
     option (google.api.http) = {
@@ -90,6 +111,18 @@ service UserService {
   rpc GetStorageByStoreIdOverview(GetStorageByStoreIdRequest) returns (GetStorageByStoreIdOverviewResponse) {
     option (google.api.http) = {
       get: "/v1/storage/GetStorageByStoreIdOverview"
+      body: "*"
+    };
+  }
+  rpc UpdateStorage(UpdateStorageRequest) returns (UpdateStorageResponse) {
+    option (google.api.http) = {
+      put: "/v1/storage/UpdateStorage"
+      body: "*"
+    };
+  }
+  rpc RemoveStorage(RemoveStorageRequest) returns (RemoveStorageResponse) {
+    option (google.api.http) = {
+      delete: "/v1/storage/RemoveStorage"
       body: "*"
     };
   }

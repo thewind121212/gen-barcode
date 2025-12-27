@@ -1,6 +1,6 @@
 import { Briefcase, ChevronDown, Package, Settings, Truck, Users } from "lucide-react";
 import type { MouseEvent } from "react";
-import { cn } from "./utils";
+import { cn } from "@Jade/components/product-module/CreateProduct/utils";
 
 export function CreateProductSidebar({
   activeSection,

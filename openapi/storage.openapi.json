@@ -133,6 +133,108 @@
           }
         ]
       }
+    },
+    "/storage/UpdateStorage": {
+      "put": {
+        "operationId": "UpdateStorage",
+        "summary": "UpdateStorage",
+        "tags": [
+          "storage"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateStorageResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "storageId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "color",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "icon",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/storage/RemoveStorage": {
+      "post": {
+        "operationId": "RemoveStorage",
+        "summary": "RemoveStorage",
+        "tags": [
+          "storage"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveStorageResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveStorageRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -327,6 +429,60 @@
             "items": {
               "$ref": "#/components/schemas/StorageResponseOverview"
             }
+          }
+        }
+      },
+      "UpdateStorageRequest": {
+        "type": "object",
+        "properties": {
+          "storageId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "address": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storageId",
+          "name"
+        ]
+      },
+      "UpdateStorageResponse": {
+        "type": "object",
+        "properties": {
+          "storageId": {
+            "type": "string"
+          }
+        }
+      },
+      "RemoveStorageRequest": {
+        "type": "object",
+        "properties": {
+          "storageId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storageId"
+        ]
+      },
+      "RemoveStorageResponse": {
+        "type": "object",
+        "properties": {
+          "storageId": {
+            "type": "string"
           }
         }
       }

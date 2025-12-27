@@ -22,10 +22,11 @@ import { getLucideIconComponent } from "@Jade/core-design/utils/iconHelpers";
 import { allColors } from "@Jade/core-design/modal/colorOptions";
 import { useStorageModuleStore } from "@Jade/components/storage-module/store";
 import CreateStorageDialog from "@Jade/components/storage-module/CreateStorageDialog";
-import { useGetStorageByStoreIdOverview } from "@Jade/services/storage/useQuery";
+import { useGetStorageByStoreIdOverview, useRemoveStorage } from "@Jade/services/storage/useQuery";
 import { type StorageResponseOverview } from "@Jade/types/storage.d";
 import { useSelector } from "react-redux";
 import type { RootState } from "@Jade/store/global.store";
+import toast from "react-hot-toast";
 
 
 const formatPrice = (price: number) => {
@@ -54,6 +55,7 @@ const StorageCard = ({
   }, [storage.color]);
   const bgClass = colorMeta?.bg ?? "bg-slate-400";
   const ringClass = colorMeta?.ring ?? "ring-slate-400";
+
 
   return (
     <div
@@ -238,6 +240,9 @@ const MainStorage = () => {
   const activeMenuId = useStorageModuleStore((s) => s.activeMenuId);
   const setViewMode = useStorageModuleStore((s) => s.setViewMode);
   const setActiveMenuId = useStorageModuleStore((s) => s.setActiveMenuId);
+  const setEditingStorage = useStorageModuleStore((s) => s.setEditingStorage);
+  const storageToDelete = useStorageModuleStore((s) => s.storageToDelete);
+  const setStorageToDelete = useStorageModuleStore((s) => s.setStorageToDelete);
 
   // Modals
   const confirmModal = useModal(ModalId.CONFIRM);
@@ -257,6 +262,27 @@ const MainStorage = () => {
 
   const storageUnits: StorageResponseOverview[] = storageOverview?.data?.storages ?? [];
 
+
+  const handleCreate = () => {
+    setEditingStorage(null);
+    createModal.open();
+  };
+
+  const { mutate: removeStorage, isPending: isRemoving } = useRemoveStorage({
+    storeId: storeInfo?.storeId || "",
+    onSuccess: () => {
+      toast.success(t("storageRemoved", "Storage removed"));
+      refetchStorages();
+      confirmModal.close();
+      setStorageToDelete(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || t("removeFailed", "Failed to remove storage"));
+      confirmModal.close();
+      setStorageToDelete(null);
+    },
+  });
+
   const MENU_ACTIONS: ActionMenuItem[] = [
     {
       label: t("viewDetails", "View"),
@@ -265,23 +291,28 @@ const MainStorage = () => {
     },
     {
       label: t("edit", "Edit"),
-      onClick: (id: string) => console.log("Edit storage:", id),
+      onClick: (id: string) => {
+        const toEdit = storageUnits.find((s) => s.id === id);
+        if (!toEdit) return;
+        setEditingStorage(toEdit);
+        createModal.open();
+        setActiveMenuId(null);
+      },
       icon: Edit2Icon,
     },
     {
       label: t("delete", "Delete"),
       onClick: (id: string) => {
-        console.log("Delete storage:", id);
+        if (!id) return;
+        setStorageToDelete(id);
         confirmModal.open();
       },
       icon: Trash2Icon,
       danger: true,
+      loading: isRemoving,
     },
   ];
 
-  const handleCreate = () => {
-    createModal.open();
-  };
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 pt-10">
@@ -431,17 +462,17 @@ const MainStorage = () => {
         </div>
       </div>
 
-      {/* Confirm Delete Modal */}
       <ConfirmModal
         modal={confirmModal}
         title={t("deleteStorageTitle", "Delete Storage Unit")}
         subtitle={t("deleteStorageSubtitle", "Items in this storage must be moved first.")}
-        isLoading={false}
+        isLoading={isRemoving}
         cancelButtonText={t("cancel", "Cancel")}
         confirmButtonText={t("delete", "Delete")}
         onClose={() => { }}
         onConfirm={() => {
-          // TODO: Call delete API
+          if (!storageToDelete) return;
+          removeStorage({ storageId: storageToDelete });
           confirmModal.close();
         }}
       >
@@ -451,7 +482,9 @@ const MainStorage = () => {
       <CreateStorageDialog
         mainModal={createModal}
         onStorageCreatedCallback={() => {
-          // After create, reload from backend
+          refetchStorages();
+        }}
+        onStorageUpdatedCallback={() => {
           refetchStorages();
         }}
       />
